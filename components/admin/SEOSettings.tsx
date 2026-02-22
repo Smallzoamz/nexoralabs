@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Loader2, Image as ImageIcon, Globe, Search, Tag, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -37,12 +37,7 @@ export function SEOSettings() {
         og_image_url: null,
     })
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        fetchConfig()
-    }, [])
-
-    const fetchConfig = async () => {
+    const fetchConfig = useCallback(async () => {
         try {
             setIsLoading(true)
             const { data, error } = await supabase
@@ -73,7 +68,11 @@ export function SEOSettings() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [showAlert])
+
+    useEffect(() => {
+        fetchConfig()
+    }, [fetchConfig])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target

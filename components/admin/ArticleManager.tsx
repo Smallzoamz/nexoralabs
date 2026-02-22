@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, Eye, Link as LinkIcon, Calendar, Type, Heading2, Heading3, Bold, Italic, WrapText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -55,12 +55,7 @@ export function ArticleManager() {
         is_published: false
     })
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        fetchArticles()
-    }, [])
-
-    const fetchArticles = async () => {
+    const fetchArticles = useCallback(async () => {
         try {
             setIsLoading(true)
             const { data, error } = await supabase
@@ -76,7 +71,11 @@ export function ArticleManager() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [showAlert])
+
+    useEffect(() => {
+        fetchArticles()
+    }, [fetchArticles])
 
     const resetForm = () => {
         setFormData({

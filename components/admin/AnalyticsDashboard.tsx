@@ -336,35 +336,36 @@ export function AnalyticsDashboard() {
         if (!sourceEl) return
         setIsGeneratingPdf(true)
 
-        // Deep clone to safely inject at document.body level without destroying React's DOM tree
-        const printDiv = sourceEl.cloneNode(true) as HTMLElement
-        printDiv.id = 'print-acc-clone'
-        printDiv.className = "bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans absolute top-0 left-0 z-[99999]"
-        printDiv.style.display = 'block'
-        document.body.appendChild(printDiv)
-
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
-
-            // Wait for browser to actually paint the injected cloned element before capturing
-            await new Promise(resolve => setTimeout(resolve, 150))
 
             await html2pdfModule().set({
                 margin: [10, 10, 10, 10], // Allow proper margins
                 filename: `AccountingReport_Nexora_${accYear}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 750, width: 750, scrollY: 0 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    windowWidth: 750,
+                    width: 750,
+                    scrollY: 0,
+                    onclone: (clonedDoc: HTMLDocument) => {
+                        // html2canvas clones the entire DOM. In the cloned DOM, we just 
+                        // make our hidden container fully visible before capture!
+                        const el = clonedDoc.getElementById('accounting-report-pdf')
+                        if (el) {
+                            el.style.display = 'block'
+                            el.classList.remove('hidden')
+                        }
+                    }
+                },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(printDiv).save()
+            }).from(sourceEl).save()
 
         } catch (e) {
             console.error(e)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ PDF ได้', 'error')
         } finally {
-            // Clean up the cloned node
-            if (printDiv && printDiv.parentNode) {
-                printDiv.parentNode.removeChild(printDiv)
-            }
             setIsGeneratingPdf(false)
         }
     }
@@ -1092,155 +1093,6 @@ export function AnalyticsDashboard() {
                                                 </div>
                                             </div>
 
-                                            {/* ── HIDDEN PRINT VIEW PORTAL (FORMAL ACCOUNTING A4 PDF) ── */}
-                                            {/* ── HIDDEN PRINT VIEW PORTAL (FORMAL ACCOUNTING A4 PDF) ── */}
-                                            <div id="accounting-report-pdf" className="hidden bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans mx-auto" style={{ fontSize: '12px' }}>
-                                                {/* Header */}
-                                                <div className="text-center border-b-2 border-black pb-4 mb-8">
-                                                    <h1 className="text-xl font-bold uppercase tracking-widest">NEXORA LABS COMPANY LIMITED</h1>
-                                                    <p className="mt-1">234/56 อาคารซีเนียร์ พารากอน ชั้น 9 เขตบางรัก กรุงเทพมหานคร 10500</p>
-                                                    <h2 className="text-lg font-bold mt-4">รายงานสรุปข้อมูลทางบัญชี (Accounting Report)</h2>
-                                                    <p>สำหรับรอบระยะเวลาบัญชี สิ้นสุดวันที่ 31 ธันวาคม {accYear}</p>
-                                                </div>
-
-                                                {/* Income Statement */}
-                                                <div className="mb-8">
-                                                    <h3 className="font-bold underline mb-2">1. งบกำไรขาดทุน (Income Statement)</h3>
-                                                    <table className="w-full border-collapse border border-black text-sm">
-                                                        <thead className="bg-gray-100">
-                                                            <tr>
-                                                                <th className="border border-black px-2 py-1.5 text-left w-16">รหัสบัญชี</th>
-                                                                <th className="border border-black px-2 py-1.5 text-left">รายการ</th>
-                                                                <th className="border border-black px-2 py-1.5 text-right w-32">เดบิต (บาท)</th>
-                                                                <th className="border border-black px-2 py-1.5 text-right w-32">เครดิต (บาท)</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td className="border border-black px-2 py-1.5">4100</td>
-                                                                <td className="border border-black px-2 py-1.5 font-bold">รายได้จากการให้บริการ</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">-</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right font-bold">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td className="border border-black px-2 py-1.5 pl-4">4101</td>
-                                                                <td className="border border-black px-2 py-1.5 pl-6">ค่าติดตั้ง / พัฒนาระบบ</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">-</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">{totalSetup.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td className="border border-black px-2 py-1.5 pl-4">4102</td>
-                                                                <td className="border border-black px-2 py-1.5 pl-6">ค่าบริการรายเดือน</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">-</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">{totalMonthly.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td className="border border-black px-2 py-1.5">1200</td>
-                                                                <td className="border border-black px-2 py-1.5 font-bold">ลูกหนี้การค้า</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right font-bold">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td className="border border-black px-2 py-1.5">5100</td>
-                                                                <td className="border border-black px-2 py-1.5 font-bold">ค่าใช้จ่ายในการดำเนินงาน</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right font-bold">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">-</td>
-                                                            </tr>
-                                                            <tr className="bg-gray-100 font-bold">
-                                                                <td colSpan={2} className="border border-black px-2 py-1.5">รวมเงินสดรับจริง (Cash Collected)</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                <td className="border border-black px-2 py-1.5 text-right">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                            </tr>
-                                                            <tr className="font-bold border-b-4 border-black border-double">
-                                                                <td colSpan={2} className="px-2 py-2 border-r border-l border-black">กำไร (ขาดทุน) สุทธิ</td>
-                                                                <td colSpan={2} className="px-2 py-2 border-r border-black text-right text-[14px]">THB {netProfit.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                {/* Accounts Receivable Ledger Highlight */}
-                                                {yearPending.length > 0 && (
-                                                    <div className="mb-8">
-                                                        <h3 className="font-bold underline mb-2">2. รายละเอียดลูกหนี้การค้า (Accounts Receivable Detail)</h3>
-                                                        <table className="w-full border-collapse border border-black text-sm">
-                                                            <thead className="bg-gray-100">
-                                                                <tr>
-                                                                    <th className="border border-black px-2 py-1.5 text-left">ลูกค้า</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-left">รายละเอียด</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-left w-24">วันกำหนดชำระ</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-right w-32">จำนวนเงิน (บาท)</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {yearPending.map(inv => (
-                                                                    <tr key={inv.id}>
-                                                                        <td className="border border-black px-2 py-1">
-                                                                            <div className="font-bold">{inv.client_name}</div>
-                                                                            <div className="text-gray-500 text-[10px]">{inv.client_email}</div>
-                                                                        </td>
-                                                                        <td className="border border-black px-2 py-1">{inv.package_details}</td>
-                                                                        <td className="border border-black px-2 py-1">{new Date(inv.due_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                                                                        <td className="border border-black px-2 py-1 text-right">{(Number(inv.setup_fee) + Number(inv.monthly_fee)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                    </tr>
-                                                                ))}
-                                                                <tr className="bg-gray-100 font-bold border-b-4 border-black border-double">
-                                                                    <td colSpan={3} className="border border-black px-2 py-1.5">รวมลูกหนี้การค้า</td>
-                                                                    <td className="border border-black px-2 py-1.5 text-right">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-
-                                                {/* Expense Highlight */}
-                                                {yearExpenses.length > 0 && (
-                                                    <div className="mb-12">
-                                                        <h3 className="font-bold underline mb-2">3. รายละเอียดค่าใช้จ่าย (Expenses Detail)</h3>
-                                                        <table className="w-full border-collapse border border-black text-sm">
-                                                            <thead className="bg-gray-100">
-                                                                <tr>
-                                                                    <th className="border border-black px-2 py-1.5 text-left w-24">วันที่</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-left w-32">หมวดหมู่</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-left">รายละเอียด</th>
-                                                                    <th className="border border-black px-2 py-1.5 text-right w-32">จำนวนเงิน (บาท)</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {yearExpenses.map(exp => (
-                                                                    <tr key={exp.id}>
-                                                                        <td className="border border-black px-2 py-1">{new Date(exp.expense_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                                                                        <td className="border border-black px-2 py-1">{exp.category}</td>
-                                                                        <td className="border border-black px-2 py-1">{exp.description}</td>
-                                                                        <td className="border border-black px-2 py-1 text-right">{Number(exp.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                    </tr>
-                                                                ))}
-                                                                <tr className="bg-gray-100 font-bold border-b-4 border-black border-double">
-                                                                    <td colSpan={3} className="border border-black px-2 py-1.5">รวมค่าใช้จ่ายดำเนินงาน</td>
-                                                                    <td className="border border-black px-2 py-1.5 text-right">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-
-                                                <div className="mt-16 pt-8 flex justify-between px-12">
-                                                    <div className="text-center">
-                                                        <div className="border-b border-black w-48 mb-2 pb-6"></div>
-                                                        <p>ผู้จัดทำรายงาน (Preparer)</p>
-                                                        <p className="text-gray-500 mt-1">วันที่ _______/_______/_______</p>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="border-b border-black w-48 mb-2 pb-6"></div>
-                                                        <p>ผู้อนุมัติ (Approver)</p>
-                                                        <p className="text-gray-500 mt-1">วันที่ _______/_______/_______</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-center text-xs text-slate-400 mt-12">
-                                                    รายงานสร้างโดย Nexora Labs Automated System ในวันที่ {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                                </div>
-                                            </div>
                                         </div>
                                     )
                                 })() : null}
@@ -1249,6 +1101,169 @@ export function AnalyticsDashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* ── HIDDEN PRINT VIEW (FORMAL ACCOUNTING A4 PDF) ── */}
+            {/* Placed at the absolute root OUTSIDE of Framer Motion Modals. Browser renders it safely via html2canvas onclone. */}
+            <div id="accounting-report-pdf" className="hidden bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans mx-auto" style={{ fontSize: '12px' }}>
+                {/* Header */}
+                <div className="text-center border-b-2 border-black pb-4 mb-8">
+                    <h1 className="text-xl font-bold uppercase tracking-widest">NEXORA LABS COMPANY LIMITED</h1>
+                    <p className="mt-1">234/56 อาคารซีเนียร์ พารากอน ชั้น 9 เขตบางรัก กรุงเทพมหานคร 10500</p>
+                    <h2 className="text-lg font-bold mt-4">รายงานสรุปข้อมูลทางบัญชี (Accounting Report)</h2>
+                    <p>สำหรับรอบระยะเวลาบัญชี สิ้นสุดวันที่ 31 ธันวาคม {accYear}</p>
+                </div>
+
+                {/* Income Statement */}
+                {accData && (() => {
+                    const totalSetup = accData.paidInvoices.reduce((sum, inv) => sum + Number(inv.setup_fee), 0)
+                    const totalMonthly = accData.paidInvoices.reduce((sum, inv) => sum + Number(inv.monthly_fee), 0)
+                    const totalRevenue = totalSetup + totalMonthly
+                    const totalExpenses = accData.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0)
+                    const netProfit = totalRevenue - totalExpenses
+                    const totalAR = accData.pendingInvoices.reduce((sum, inv) => sum + Number(inv.setup_fee) + Number(inv.monthly_fee), 0)
+
+                    return (
+                        <>
+                            <div className="mb-8">
+                                <h3 className="font-bold underline mb-2">1. งบกำไรขาดทุน (Income Statement)</h3>
+                                <table className="w-full border-collapse border border-black text-sm">
+                                    <thead className="bg-gray-100">
+                                        <tr>
+                                            <th className="border border-black px-2 py-1.5 text-left w-16">รหัสบัญชี</th>
+                                            <th className="border border-black px-2 py-1.5 text-left">รายการ</th>
+                                            <th className="border border-black px-2 py-1.5 text-right w-32">เดบิต (บาท)</th>
+                                            <th className="border border-black px-2 py-1.5 text-right w-32">เครดิต (บาท)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-black px-2 py-1.5">4100</td>
+                                            <td className="border border-black px-2 py-1.5 font-bold">รายได้จากการให้บริการ</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">-</td>
+                                            <td className="border border-black px-2 py-1.5 text-right font-bold">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black px-2 py-1.5 pl-4">4101</td>
+                                            <td className="border border-black px-2 py-1.5 pl-6">ค่าติดตั้ง / พัฒนาระบบ</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">-</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">{totalSetup.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black px-2 py-1.5 pl-4">4102</td>
+                                            <td className="border border-black px-2 py-1.5 pl-6">ค่าบริการรายเดือน</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">-</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">{totalMonthly.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black px-2 py-1.5">1200</td>
+                                            <td className="border border-black px-2 py-1.5 font-bold">ลูกหนี้การค้า</td>
+                                            <td className="border border-black px-2 py-1.5 text-right font-bold">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black px-2 py-1.5">5100</td>
+                                            <td className="border border-black px-2 py-1.5 font-bold">ค่าใช้จ่ายในการดำเนินงาน</td>
+                                            <td className="border border-black px-2 py-1.5 text-right font-bold">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">-</td>
+                                        </tr>
+                                        <tr className="bg-gray-100 font-bold">
+                                            <td colSpan={2} className="border border-black px-2 py-1.5">รวมเงินสดรับจริง (Cash Collected)</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            <td className="border border-black px-2 py-1.5 text-right">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                        <tr className="font-bold border-b-4 border-black border-double">
+                                            <td colSpan={2} className="px-2 py-2 border-r border-l border-black">กำไร (ขาดทุน) สุทธิ</td>
+                                            <td colSpan={2} className="px-2 py-2 border-r border-black text-right text-[14px]">THB {netProfit.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Accounts Receivable Ledger Highlight */}
+                            {accData.pendingInvoices.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="font-bold underline mb-2">2. รายละเอียดลูกหนี้การค้า (Accounts Receivable Detail)</h3>
+                                    <table className="w-full border-collapse border border-black text-sm">
+                                        <thead className="bg-gray-100">
+                                            <tr>
+                                                <th className="border border-black px-2 py-1.5 text-left">ลูกค้า</th>
+                                                <th className="border border-black px-2 py-1.5 text-left">รายละเอียด</th>
+                                                <th className="border border-black px-2 py-1.5 text-left w-24">วันกำหนดชำระ</th>
+                                                <th className="border border-black px-2 py-1.5 text-right w-32">จำนวนเงิน (บาท)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {accData.pendingInvoices.map(inv => (
+                                                <tr key={inv.id}>
+                                                    <td className="border border-black px-2 py-1">
+                                                        <div className="font-bold">{inv.client_name}</div>
+                                                        <div className="text-gray-500 text-[10px]">{inv.client_email}</div>
+                                                    </td>
+                                                    <td className="border border-black px-2 py-1">{inv.package_details}</td>
+                                                    <td className="border border-black px-2 py-1">{new Date(inv.due_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                                                    <td className="border border-black px-2 py-1 text-right">{(Number(inv.setup_fee) + Number(inv.monthly_fee)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="bg-gray-100 font-bold border-b-4 border-black border-double">
+                                                <td colSpan={3} className="border border-black px-2 py-1.5">รวมลูกหนี้การค้า</td>
+                                                <td className="border border-black px-2 py-1.5 text-right">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* Expense Highlight */}
+                            {accData.expenses.length > 0 && (
+                                <div className="mb-12">
+                                    <h3 className="font-bold underline mb-2">3. รายละเอียดค่าใช้จ่าย (Expenses Detail)</h3>
+                                    <table className="w-full border-collapse border border-black text-sm">
+                                        <thead className="bg-gray-100">
+                                            <tr>
+                                                <th className="border border-black px-2 py-1.5 text-left w-24">วันที่</th>
+                                                <th className="border border-black px-2 py-1.5 text-left w-32">หมวดหมู่</th>
+                                                <th className="border border-black px-2 py-1.5 text-left">รายละเอียด</th>
+                                                <th className="border border-black px-2 py-1.5 text-right w-32">จำนวนเงิน (บาท)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {accData.expenses.map(exp => (
+                                                <tr key={exp.id}>
+                                                    <td className="border border-black px-2 py-1">{new Date(exp.expense_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                                                    <td className="border border-black px-2 py-1">{exp.category}</td>
+                                                    <td className="border border-black px-2 py-1">{exp.description}</td>
+                                                    <td className="border border-black px-2 py-1 text-right">{Number(exp.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="bg-gray-100 font-bold border-b-4 border-black border-double">
+                                                <td colSpan={3} className="border border-black px-2 py-1.5">รวมค่าใช้จ่ายดำเนินงาน</td>
+                                                <td className="border border-black px-2 py-1.5 text-right">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </>
+                    )
+                })()}
+
+                <div className="mt-16 pt-8 flex justify-between px-12">
+                    <div className="text-center">
+                        <div className="border-b border-black w-48 mb-2 pb-6"></div>
+                        <p>ผู้จัดทำรายงาน (Preparer)</p>
+                        <p className="text-gray-500 mt-1">วันที่ _______/_______/_______</p>
+                    </div>
+                    <div className="text-center">
+                        <div className="border-b border-black w-48 mb-2 pb-6"></div>
+                        <p>ผู้อนุมัติ (Approver)</p>
+                        <p className="text-gray-500 mt-1">วันที่ _______/_______/_______</p>
+                    </div>
+                </div>
+
+                <div className="text-center text-xs text-slate-400 mt-12">
+                    รายงานสร้างโดย Nexora Labs Automated System ในวันที่ {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
+            </div>
         </div>
     )
 }

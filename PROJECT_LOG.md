@@ -329,3 +329,14 @@ CREATE POLICY "Allow authenticated users to insert admin logs"
 - ใช้ `AnimatePresence` จาก framer-motion สำหรับ animation
 - Modal มี backdrop blur และสามารถปิดได้โดยการคลิก backdrop หรือปุ่มปิด
 - ModalProvider ถูกเพิ่มใน root layout เพื่อให้ Header/Footer เข้าถึง context ได้
+
+---
+
+## [2026-02-23] Dependency & Garbage Code Cleanup
+
+### Detailed Logs:
+- [2026-02-23T03:07:38+07:00] | File: `components/admin/AnalyticsDashboard.tsx` | Line: 6-8 | Keyword: `Imports` | Status: `Cleaned` | Change: Removed unused imports initially, but restored `ArrowDownRight` and `Plus` after linter flagged them as used. Verified file is free of unused garbage code.
+- [2026-02-23T03:07:38+07:00] | File: `components/admin/ArticleManager.tsx` | Line: 58-77 | Keyword: `useCallback` | Status: `Fixed` | Change: Wrapped `fetchArticles` in `useCallback` and added it to `useEffect` dependency array to resolve exhaustive-deps React Hook warning.
+- [2026-02-23T03:07:38+07:00] | File: `components/admin/PortfolioManager.tsx` | Line: 51-73 | Keyword: `useCallback` | Status: `Fixed` | Change: Wrapped `fetchPortfolios` in `useCallback` and updated `useEffect` to resolve ESLint exhaustive-deps warning.
+- [2026-02-23T03:07:38+07:00] | File: `components/admin/SEOSettings.tsx` | Line: 40-75 | Keyword: `useCallback` | Status: `Fixed` | Change: Wrapped `fetchConfig` in `useCallback` and added it to `useEffect` correctly. Repaired syntax errors caused during replacement logic. Linter is now 100% clean.
+- [2026-02-23T03:15:00] | File: AnalyticsDashboard.tsx | Line: ~1100 | Keyword: PDF Generation Fix | Status: Completed | Change: Removed nested portal and used html2canvas onclone to render off-screen component accurately.

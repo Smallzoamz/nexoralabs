@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, GripVertical } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -48,12 +48,7 @@ export function PortfolioManager() {
         is_active: true
     })
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        fetchPortfolios()
-    }, [])
-
-    const fetchPortfolios = async () => {
+    const fetchPortfolios = useCallback(async () => {
         try {
             setIsLoading(true)
             const { data, error } = await supabase
@@ -69,7 +64,11 @@ export function PortfolioManager() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [showAlert])
+
+    useEffect(() => {
+        fetchPortfolios()
+    }, [fetchPortfolios])
 
     const resetForm = () => {
         setFormData({
