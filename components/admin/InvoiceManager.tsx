@@ -1139,7 +1139,7 @@ export function InvoiceManager() {
                                             </div>
                                             <div className="flex justify-between py-1 border-b border-dashed border-slate-300">
                                                 <span className="font-bold mr-4">วันที่รับเงิน (Date):</span>
-                                                <span>{new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                                <span>{new Date(invoice.due_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                             </div>
                                             <div className="flex justify-between py-1">
                                                 <span className="font-bold mr-4">อ้างอิงใบแจ้งหนี้ (Ref):</span>
