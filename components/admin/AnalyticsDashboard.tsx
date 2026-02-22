@@ -338,15 +338,18 @@ export function AnalyticsDashboard() {
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
 
-            // Make it visible and positioned at 0,0 temporarily for html2canvas to capture it
+            // Make it visible and force it into the very front viewport to ensure browser paints it
             const origClass = el.className
-            el.className = "bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans absolute top-0 left-0 z-50"
+            el.className = "bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans fixed top-0 left-0 z-[99999] block"
+
+            // Wait for browser to actually paint the element before capturing
+            await new Promise(resolve => setTimeout(resolve, 150))
 
             await html2pdfModule().set({
                 margin: 0,
                 filename: `AccountingReport_Nexora_${accYear}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 794, width: 794 },
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 794, width: 794, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).from(el).save()
 
