@@ -10,7 +10,10 @@ interface ArticleShareButtonsProps {
     coverImage?: string
 }
 
-export function ArticleShareButtons({ title, url, excerpt, coverImage }: ArticleShareButtonsProps) {
+export function ArticleShareButtons({ title, url, excerpt, coverImage: _coverImage }: ArticleShareButtonsProps) {
+    // Note: coverImage is passed for future use (e.g., Pinterest sharing)
+    // Facebook/Twitter use Open Graph meta tags from the page itself
+    void _coverImage // Suppress unused variable warning
     const [copied, setCopied] = useState(false)
 
     const encodedTitle = encodeURIComponent(title)
