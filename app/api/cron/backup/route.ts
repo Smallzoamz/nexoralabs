@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 // Next.js Edge / Vercel Cron Config
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 // Hobby tier max is 10s, Pro is longer. 
 export const maxDuration = 300
 

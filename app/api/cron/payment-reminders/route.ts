@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer'
 
 // SECURITY: This endpoint must only be callable by Vercel's cron scheduler.
 // Set CRON_SECRET in your .env.local.
+export const dynamic = 'force-dynamic'
 export async function GET(req: Request) {
     const authHeader = req.headers.get('authorization')
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
