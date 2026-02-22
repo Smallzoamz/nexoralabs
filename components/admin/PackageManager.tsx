@@ -258,41 +258,23 @@ export function PackageManager() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-secondary-50 rounded-lg">
                                     <p className="text-xs text-secondary-500 mb-1">Setup Fee</p>
-                                    <div className="flex gap-1 flex-col">
-                                        <input
-                                            type="number"
-                                            value={editForm.setup_price_min}
-                                            onChange={(e) => setEditForm({ ...editForm, setup_price_min: Number(e.target.value) })}
-                                            className="w-full px-2 py-1 border rounded text-sm"
-                                            placeholder="Min"
-                                        />
-                                        <input
-                                            type="number"
-                                            value={editForm.setup_price_max}
-                                            onChange={(e) => setEditForm({ ...editForm, setup_price_max: Number(e.target.value) })}
-                                            className="w-full px-2 py-1 border rounded text-sm"
-                                            placeholder="Max"
-                                        />
-                                    </div>
+                                    <input
+                                        type="number"
+                                        value={editForm.setup_price_min}
+                                        onChange={(e) => setEditForm({ ...editForm, setup_price_min: Number(e.target.value), setup_price_max: Number(e.target.value) })}
+                                        className="w-full px-2 py-1 border rounded text-sm"
+                                        placeholder="ราคา"
+                                    />
                                 </div>
                                 <div className="p-3 bg-secondary-50 rounded-lg">
                                     <p className="text-xs text-secondary-500 mb-1">รายเดือน</p>
-                                    <div className="flex gap-1 flex-col">
-                                        <input
-                                            type="number"
-                                            value={editForm.monthly_price_min}
-                                            onChange={(e) => setEditForm({ ...editForm, monthly_price_min: Number(e.target.value) })}
-                                            className="w-full px-2 py-1 border rounded text-sm"
-                                            placeholder="Min"
-                                        />
-                                        <input
-                                            type="number"
-                                            value={editForm.monthly_price_max}
-                                            onChange={(e) => setEditForm({ ...editForm, monthly_price_max: Number(e.target.value) })}
-                                            className="w-full px-2 py-1 border rounded text-sm"
-                                            placeholder="Max"
-                                        />
-                                    </div>
+                                    <input
+                                        type="number"
+                                        value={editForm.monthly_price_min}
+                                        onChange={(e) => setEditForm({ ...editForm, monthly_price_min: Number(e.target.value), monthly_price_max: Number(e.target.value) })}
+                                        className="w-full px-2 py-1 border rounded text-sm"
+                                        placeholder="ราคา"
+                                    />
                                 </div>
                             </div>
                             <div className="pt-2 border-t border-secondary-100">
@@ -415,50 +397,32 @@ export function PackageManager() {
                                 <div className="p-3 bg-secondary-50 rounded-lg">
                                     <p className="text-xs text-secondary-500 mb-1">Setup Fee</p>
                                     {editingId === pkg.id ? (
-                                        <div className="flex gap-1 flex-col">
-                                            <input
-                                                type="number"
-                                                value={editForm?.setup_price_min || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, setup_price_min: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border rounded text-sm"
-                                                placeholder="Min"
-                                            />
-                                            <input
-                                                type="number"
-                                                value={editForm?.setup_price_max || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, setup_price_max: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border rounded text-sm"
-                                                placeholder="Max"
-                                            />
-                                        </div>
+                                        <input
+                                            type="number"
+                                            value={editForm?.setup_price_min || ''}
+                                            onChange={(e) => setEditForm({ ...editForm, setup_price_min: Number(e.target.value), setup_price_max: Number(e.target.value) })}
+                                            className="w-full px-2 py-1 border rounded text-sm"
+                                            placeholder="ราคา"
+                                        />
                                     ) : (
                                         <p className="font-semibold text-secondary-900">
-                                            ฿{Number(pkg.setup_price_min).toLocaleString()} - ฿{Number(pkg.setup_price_max).toLocaleString()}
+                                            ฿{Number(pkg.setup_price_min).toLocaleString()}
                                         </p>
                                     )}
                                 </div>
                                 <div className="p-3 bg-secondary-50 rounded-lg">
                                     <p className="text-xs text-secondary-500 mb-1">รายเดือน</p>
                                     {editingId === pkg.id ? (
-                                        <div className="flex gap-1 flex-col">
-                                            <input
-                                                type="number"
-                                                value={editForm?.monthly_price_min || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, monthly_price_min: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border rounded text-sm"
-                                                placeholder="Min"
-                                            />
-                                            <input
-                                                type="number"
-                                                value={editForm?.monthly_price_max || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, monthly_price_max: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border rounded text-sm"
-                                                placeholder="Max"
-                                            />
-                                        </div>
+                                        <input
+                                            type="number"
+                                            value={editForm?.monthly_price_min || ''}
+                                            onChange={(e) => setEditForm({ ...editForm, monthly_price_min: Number(e.target.value), monthly_price_max: Number(e.target.value) })}
+                                            className="w-full px-2 py-1 border rounded text-sm"
+                                            placeholder="ราคา"
+                                        />
                                     ) : (
                                         <p className="font-semibold text-secondary-900">
-                                            ฿{Number(pkg.monthly_price_min).toLocaleString()} - ฿{Number(pkg.monthly_price_max).toLocaleString()}
+                                            ฿{Number(pkg.monthly_price_min).toLocaleString()}
                                         </p>
                                     )}
                                 </div>
