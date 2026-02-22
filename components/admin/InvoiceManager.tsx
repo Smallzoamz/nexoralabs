@@ -312,7 +312,7 @@ export function InvoiceManager() {
     }
 
     const handleApproveSlip = async (submission: PaymentSubmission) => {
-        if (!(await showConfirm('ยืนยันการอนุมัติสลิป', `ยืนยันการชำระเงินของ "${submission.invoice?.client_name}" ใช่หรือไม่? ระบบจะส่งใบเสร็จอัตโนมัติ`))) return
+        if (!(await showConfirm('ยืนยันการอนุมัติสลิป', `ยืนยันการชำระเงินของ "${submission.invoice?.client_name}" ใช่หรือไม่? ระบบจะส่งใบเสร็จ PDF อัตโนมัติ`))) return
         setProcessingSlipId(submission.id)
         try {
             // 1. Mark submission as approved
@@ -335,17 +335,38 @@ export function InvoiceManager() {
                 status: 'pending'
             })
 
-            // 4. Send receipt email via API
+            // 4. Generate Receipt PDF as base64 to attach to email
+            let pdfBase64: string | null = null
+            try {
+                const html2pdfModule = (await import('html2pdf.js')).default
+                const element = document.getElementById(`receipt-pdf-${submission.invoice_id}`)
+                if (element) {
+                    element.style.display = 'block'
+                    const opt = {
+                        margin: 0,
+                        filename: `Receipt_${inv.client_name}.pdf`,
+                        image: { type: 'jpeg' as const, quality: 0.95 },
+                        html2canvas: { scale: 2, useCORS: true, windowWidth: 793, width: 793 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+                    }
+                    pdfBase64 = await html2pdfModule().set(opt).from(element).outputPdf('datauristring')
+                    element.style.display = 'none'
+                }
+            } catch (pdfErr) {
+                console.warn('PDF generation failed, will send email without attachment:', pdfErr)
+            }
+
+            // 5. Send receipt email (+ PDF attachment if available)
             const res = await fetch('/api/send-receipt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ invoiceId: submission.invoice_id, amount: submission.amount, invoice: inv })
+                body: JSON.stringify({ invoiceId: submission.invoice_id, amount: submission.amount, invoice: inv, pdfBase64 })
             })
             const result = await res.json()
             if (!res.ok) throw new Error(result.error || 'ส่งอีเมลใบเสร็จไม่สำเร็จ')
 
-            setViewingSlip(null)
-            showAlert('สำเร็จ! ✅', 'อนุมัติสลิปแล้ว ส่งใบเสร็จแจ้งลูกค้าเรียบร้อย และสร้างบิลเดือนถัดไปให้อัตโนมัติแล้วครับ', 'success')
+            closeSlipViewer()
+            showAlert('สำเร็จ! ✅', 'อนุมัติสลิปแล้ว ส่งใบเสร็จ PDF แจ้งลูกค้าเรียบร้อย และสร้างบิลเดือนถัดไปให้อัตโนมัติแล้วครับ', 'success')
             fetchData()
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด'
