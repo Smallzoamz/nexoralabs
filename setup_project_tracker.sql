@@ -9,7 +9,7 @@ CHECK (project_status IN ('pending', 'planning', 'designing', 'developing', 'tes
 -- 2. Add tracking_code column
 -- Used by clients to lookup their project timeline
 ALTER TABLE public.invoices 
-ADD COLUMN IF NOT EXISTS tracking_code TEXT;
+ADD COLUMN IF NOT EXISTS tracking_code TEXT UNIQUE;
 
 -- Create an index for faster lookups by tracking_code
 CREATE INDEX IF NOT EXISTS invoices_tracking_code_idx ON public.invoices(tracking_code);

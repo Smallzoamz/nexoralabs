@@ -66,6 +66,21 @@ export async function POST(req: Request) {
                 .replace(/\[PAYMENT_LINK\]/g, `${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}`)
         }
 
+        // Check if this is the first invoice for this client (to show tracking code only once)
+        const { count: existingCount } = await supabase
+            .from('invoices')
+            .select('id', { count: 'exact', head: true })
+            .eq('client_email', invoice.client_email)
+
+        const isFirstInvoice = (existingCount || 0) <= 1
+        const trackingCodeSection = isFirstInvoice && invoice.tracking_code
+            ? `<div style="background-color: #f0fdf4; padding: 18px; border-radius: 8px; margin: 25px 0; border: 1px solid #bbf7d0;">
+                    <p style="margin: 0 0 8px; color: #166534; font-weight: bold; font-size: 14px;">🔍 รหัสติดตามสถานะงานของคุณ</p>
+                    <p style="margin: 0; font-family: monospace; font-size: 22px; font-weight: bold; color: #15803d; letter-spacing: 2px;">${invoice.tracking_code}</p>
+                    <p style="margin: 8px 0 0; color: #166534; font-size: 12px;">ใช้ตรวจสอบความคืบหน้าโครงการได้ที่ ${process.env.NEXT_PUBLIC_SITE_URL || 'เว็บไซต์ของเรา'}</p>
+                </div>`
+            : ''
+
         // Create HTML Email Template
         const htmlTemplate = `
         <div style="font-family: 'Sarabun', 'Prompt', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px;">
@@ -106,6 +121,8 @@ export async function POST(req: Request) {
                     <div style="text-align: center; margin: 35px 0;">
                     <a href="${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}" target="_blank" style="background-color: #142b41; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">ดูช่องทางการชำระเงิน</a>
                 </div>
+
+                ${trackingCodeSection}
 
                 <p style="color: #475569; font-size: 14px; line-height: 1.6; text-align: center;">
                     กรุณาชำระเงินตามช่องทางด้านบน และ <strong>แนบสลิปโอนเงิน</strong> ที่ลิงก์ด้านบนได้เลยครับ
