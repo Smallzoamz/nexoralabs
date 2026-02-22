@@ -134,7 +134,7 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold text-secondary-900 leading-[1.1] mb-8"
+                            className="text-[2.25rem] sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-display font-bold text-secondary-900 leading-[1.15] mb-8 [text-wrap:balance]"
                         >
                             {displayData.title.split('\n').map((line, index, array) => (
                                 <span key={index}>
@@ -149,7 +149,7 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="text-lg sm:text-xl lg:text-2xl text-secondary-600 leading-relaxed mb-10 max-w-2xl"
+                            className="text-base sm:text-lg lg:text-xl text-secondary-600 leading-relaxed mb-10 max-w-xl [text-wrap:balance]"
                         >
                             {displayData.description}
                         </motion.p>
