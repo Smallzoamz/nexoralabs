@@ -23,9 +23,11 @@ export async function POST(req: Request) {
         }
 
         // Fetch all unique client emails from invoices table
+        // Use DISTINCT to get unique emails directly from database
         const { data: invoices, error } = await supabase
             .from('invoices')
-            .select('client_email')
+            .select('client_email, client_name')
+            .order('client_email', { ascending: true })
 
         if (error) {
             throw error
@@ -35,8 +37,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No clients found' }, { status: 404 })
         }
 
-        // Get unique emails
-        const uniqueEmails = Array.from(new Set(invoices.map(inv => inv.client_email))).filter(Boolean)
+        // Get unique emails using Set (handles any duplicates)
+        const uniqueEmails = [...new Set(invoices.map(inv => inv.client_email).filter(Boolean))]
 
         if (uniqueEmails.length === 0) {
             return NextResponse.json({ error: 'No valid client emails found' }, { status: 404 })

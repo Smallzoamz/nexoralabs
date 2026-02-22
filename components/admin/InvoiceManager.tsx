@@ -1295,7 +1295,6 @@ export function InvoiceManager() {
                             inv.id !== invoice.id &&
                             new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
                     )
-                    const isInstallmentContract = invoice.package_details.includes('(งวดที่ 1/') && isFirstOfProject;
 
                     return (
                         <>
@@ -1756,10 +1755,10 @@ export function InvoiceManager() {
                                                 <strong>สัญญาจ้าง</strong>ฉบับนี้ทำขึ้น ณ วันที่ {issuedDate}
                                                 ระหว่าง <strong>{siteInfo.name}</strong>
                                                 {siteInfo.address ? ` ตั้งอยู่เลขที่ ${siteInfo.address}` : ''}
-                                                ผู้ให้บริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้รับจ้าง"</strong> ฝ่ายหนึ่ง
+                                                ผู้ให้บริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>&quot;ผู้รับจ้าง&quot;</strong> ฝ่ายหนึ่ง
                                             </p>
                                             <p className="indent-4 mb-2">
-                                                กับ <strong>{invoice.client_name}</strong> ผู้รับบริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้ว่าจ้าง"</strong> อีกฝ่ายหนึ่ง
+                                                กับ <strong>{invoice.client_name}</strong> ผู้รับบริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>&quot;ผู้ว่าจ้าง&quot;</strong> อีกฝ่ายหนึ่ง
                                             </p>
                                             <p className="indent-4">
                                                 คู่สัญญาทั้งสองฝ่ายตกลงทำสัญญากันโดยมีข้อตกลงและเงื่อนไขดังต่อไปนี้:
