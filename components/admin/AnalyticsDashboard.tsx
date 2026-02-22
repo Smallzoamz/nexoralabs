@@ -340,16 +340,17 @@ export function AnalyticsDashboard() {
 
             // Make it visible and force it into the very front viewport to ensure browser paints it
             const origClass = el.className
-            el.className = "bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans fixed top-0 left-0 z-[99999] block"
+            // Adjust width down slightly from full 794px A4 pixel equivalent so there is breathing room
+            el.className = "bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans fixed top-0 left-0 z-[99999] block"
 
             // Wait for browser to actually paint the element before capturing
             await new Promise(resolve => setTimeout(resolve, 150))
 
             await html2pdfModule().set({
-                margin: 0,
+                margin: [10, 10, 10, 10], // Allow proper margins
                 filename: `AccountingReport_Nexora_${accYear}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 794, width: 794, scrollY: 0 },
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 750, width: 750, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).from(el).save()
 
@@ -1087,7 +1088,7 @@ export function AnalyticsDashboard() {
                                             </div>
 
                                             {/* ── HIDDEN PRINT VIEW (FORMAL ACCOUNTING A4 PDF) ── */}
-                                            <div id="accounting-report-pdf" className="hidden bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans" style={{ fontSize: '12px' }}>
+                                            <div id="accounting-report-pdf" className="hidden bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans mx-auto" style={{ fontSize: '12px' }}>
                                                 {/* Header */}
                                                 <div className="text-center border-b-2 border-black pb-4 mb-8">
                                                     <h1 className="text-xl font-bold uppercase tracking-widest">NEXORA LABS COMPANY LIMITED</h1>
