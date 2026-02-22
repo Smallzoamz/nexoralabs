@@ -6,17 +6,23 @@ import { Share2, Facebook, Twitter, Link2, Check, MessageCircle } from 'lucide-r
 interface ArticleShareButtonsProps {
     title: string
     url: string
+    excerpt?: string
+    coverImage?: string
 }
 
-export function ArticleShareButtons({ title, url }: ArticleShareButtonsProps) {
+export function ArticleShareButtons({ title, url, excerpt, coverImage }: ArticleShareButtonsProps) {
     const [copied, setCopied] = useState(false)
 
     const encodedTitle = encodeURIComponent(title)
     const encodedUrl = encodeURIComponent(url)
 
+    // Share URLs with article-specific data
     const shareLinks = {
+        // Facebook uses Open Graph meta tags from the page, just need the URL
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+        // Twitter supports text and URL
         twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+        // LINE supports text and URL
         line: `https://social-plugins.line.me/lineit/share?url=${encodedUrl}&text=${encodedTitle}`,
     }
 
@@ -35,6 +41,7 @@ export function ArticleShareButtons({ title, url }: ArticleShareButtonsProps) {
             try {
                 await navigator.share({
                     title: title,
+                    text: excerpt || title,
                     url: url,
                 })
             } catch (err) {

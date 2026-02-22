@@ -151,6 +151,8 @@ export default async function ArticleReadPage({ params }: { params: { slug: stri
                     <ArticleShareButtons
                         title={article.title}
                         url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexoralabs.com'}/articles/${article.slug}`}
+                        excerpt={article.excerpt}
+                        coverImage={article.cover_image}
                     />
                 </div>
             </div>
