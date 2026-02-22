@@ -116,13 +116,14 @@ export function HeroSection() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
+                        className="py-8 lg:py-12"
                     >
                         {/* Badge */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-6"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-8"
                         >
                             <Sparkles className="w-4 h-4" />
                             <span>{displayData.subtitle}</span>
@@ -133,7 +134,7 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-secondary-900 leading-tight mb-6"
+                            className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold text-secondary-900 leading-[1.1] mb-8"
                         >
                             {displayData.title.split('\n').map((line, index, array) => (
                                 <span key={index}>
@@ -148,7 +149,7 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="text-lg md:text-xl text-secondary-600 leading-relaxed mb-8 max-w-xl"
+                            className="text-lg sm:text-xl lg:text-2xl text-secondary-600 leading-relaxed mb-10 max-w-2xl"
                         >
                             {displayData.description}
                         </motion.p>
@@ -158,11 +159,11 @@ export function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="flex flex-wrap gap-4 mb-8"
+                            className="flex flex-wrap gap-6 mb-10"
                         >
                             {highlights.map((item, index) => (
-                                <div key={index} className="flex items-center gap-2 text-secondary-700">
-                                    <CheckCircle2 className="w-5 h-5 text-primary-500" />
+                                <div key={index} className="flex items-center gap-2.5 text-secondary-700 text-base lg:text-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-primary-500 flex-shrink-0" />
                                     <span>{item}</span>
                                 </div>
                             ))}
@@ -175,11 +176,11 @@ export function HeroSection() {
                             transition={{ delay: 0.6 }}
                             className="flex flex-col sm:flex-row gap-4"
                         >
-                            <Link href={displayData.primary_cta_link || '#contact'} className="btn-primary group">
+                            <Link href={displayData.primary_cta_link || '#contact'} className="btn-primary group text-base lg:text-lg px-8 py-4">
                                 {displayData.primary_cta_text || 'ปรึกษาฟรี'}
                                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <Link href={displayData.secondary_cta_link || '#packages'} className="btn-secondary group">
+                            <Link href={displayData.secondary_cta_link || '#packages'} className="btn-secondary group text-base lg:text-lg px-8 py-4">
                                 <Play className="w-5 h-5 mr-2" />
                                 {displayData.secondary_cta_text || 'ดูแพ็กเกจ'}
                             </Link>
@@ -191,9 +192,9 @@ export function HeroSection() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.8 }}
-                                className="mt-12 pt-8 border-t border-secondary-200"
+                                className="mt-14 pt-10 border-t border-secondary-200"
                             >
-                                <p className="text-sm text-secondary-500 mb-4">
+                                <p className="text-sm text-secondary-500 mb-5">
                                     ไว้วางใจโดยธุรกิจกว่า {badges.length} ราย
                                 </p>
                                 <div className="flex items-center gap-6 sm:gap-8 flex-wrap opacity-60">
