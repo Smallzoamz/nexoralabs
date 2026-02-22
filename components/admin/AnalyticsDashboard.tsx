@@ -338,12 +338,12 @@ export function AnalyticsDashboard() {
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
 
-            // Temporarily make it visible for html2pdf to capture correctly
-            const originalClasses = el.className
-            el.className = "bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans absolute top-0 left-0 z-0"
+            // Make it visible and positioned at 0,0 temporarily for html2canvas to capture it
+            const origClass = el.className
+            el.className = "bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans absolute top-0 left-0 z-50"
 
             await html2pdfModule().set({
-                margin: 0, // Margin is handled by padding in the element itself
+                margin: 0,
                 filename: `AccountingReport_Nexora_${accYear}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, windowWidth: 794, width: 794 },
@@ -351,7 +351,7 @@ export function AnalyticsDashboard() {
             }).from(el).save()
 
             // Restore hidden state
-            el.className = originalClasses
+            el.className = origClass
         } catch (e) {
             console.error(e)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ PDF ได้', 'error')
@@ -1084,7 +1084,7 @@ export function AnalyticsDashboard() {
                                             </div>
 
                                             {/* ── HIDDEN PRINT VIEW (FORMAL ACCOUNTING A4 PDF) ── */}
-                                            <div id="accounting-report-pdf" className="fixed -left-[10000px] top-0 bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans" style={{ fontSize: '12px' }}>
+                                            <div id="accounting-report-pdf" className="hidden bg-white text-black w-[794px] min-h-[1123px] p-12 font-sans" style={{ fontSize: '12px' }}>
                                                 {/* Header */}
                                                 <div className="text-center border-b-2 border-black pb-4 mb-8">
                                                     <h1 className="text-xl font-bold uppercase tracking-widest">NEXORA LABS COMPANY LIMITED</h1>
@@ -1231,7 +1231,6 @@ export function AnalyticsDashboard() {
                                                     รายงานสร้างโดย Nexora Labs Automated System ในวันที่ {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </div>
-
                                         </div>
                                     )
                                 })() : null}
@@ -1240,7 +1239,6 @@ export function AnalyticsDashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
         </div>
     )
 }
