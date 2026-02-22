@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     BarChart3, TrendingUp, Users, Activity,
-    Download, FileText, X, Calculator, RefreshCw, Package, BookOpen, ArrowDownRight, Clock
+    Download, FileText, X, Calculator, RefreshCw, Package, BookOpen, ArrowDownRight, Clock, Plus, Trash2
 } from 'lucide-react'
 import { bahttext } from 'bahttext'
 import { useModal } from '@/lib/modal-context'
@@ -31,9 +31,12 @@ export function AnalyticsDashboard() {
     const [accData, setAccData] = useState<{
         paidInvoices: { id: string; client_name: string; client_email: string; package_details: string; setup_fee: number; monthly_fee: number; created_at: string; due_date: string }[]
         pendingInvoices: { id: string; client_name: string; client_email: string; package_details: string; setup_fee: number; monthly_fee: number; due_date: string }[]
+        expenses: { id: string; category: string; description: string; amount: number; expense_date: string; created_at: string }[]
         accYear: number
     } | null>(null)
     const [accYear, setAccYear] = useState(new Date().getFullYear())
+    const [expenseForm, setExpenseForm] = useState({ category: 'ค่าเซิร์ฟเวอร์/โฮสติ้ง', description: '', amount: 0, expense_date: new Date().toISOString().split('T')[0] })
+    const [isAddingExpense, setIsAddingExpense] = useState(false)
 
     // Tax Form State
     const [taxData, setTaxData] = useState({
@@ -266,25 +269,65 @@ export function AnalyticsDashboard() {
         setIsAccModalOpen(true)
         setAccLoading(true)
         try {
-            const { data: paid } = await supabase
-                .from('invoices')
-                .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, created_at, due_date')
-                .eq('status', 'paid')
-                .order('created_at', { ascending: false })
-            const { data: pending } = await supabase
-                .from('invoices')
-                .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, due_date')
-                .eq('status', 'pending')
-                .order('due_date', { ascending: true })
+            const [{ data: paid }, { data: pending }, { data: expenseData }] = await Promise.all([
+                supabase.from('invoices')
+                    .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, created_at, due_date')
+                    .eq('status', 'paid')
+                    .order('created_at', { ascending: false }),
+                supabase.from('invoices')
+                    .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, due_date')
+                    .eq('status', 'pending')
+                    .order('due_date', { ascending: true }),
+                supabase.from('expenses')
+                    .select('id, category, description, amount, expense_date, created_at')
+                    .order('expense_date', { ascending: false })
+            ])
             setAccData({
                 paidInvoices: paid ?? [],
                 pendingInvoices: pending ?? [],
+                expenses: expenseData ?? [],
                 accYear,
             })
         } catch (err) {
             console.error(err)
         } finally {
             setAccLoading(false)
+        }
+    }
+
+    const handleAddExpense = async () => {
+        if (!expenseForm.description || expenseForm.amount <= 0) {
+            showAlert('ข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดและจำนวนเงิน', 'error')
+            return
+        }
+        setIsAddingExpense(true)
+        try {
+            const { error } = await supabase.from('expenses').insert([expenseForm])
+            if (error) throw error
+            showAlert('สำเร็จ', 'บันทึกรายจ่ายเรียบร้อยแล้ว', 'success')
+            setExpenseForm({ category: 'ค่าเซิร์ฟเวอร์/โฮสติ้ง', description: '', amount: 0, expense_date: new Date().toISOString().split('T')[0] })
+            // Refresh data
+            const { data: expenseData } = await supabase.from('expenses')
+                .select('id, category, description, amount, expense_date, created_at')
+                .order('expense_date', { ascending: false })
+            if (accData) setAccData({ ...accData, expenses: expenseData ?? [] })
+        } catch (err) {
+            console.error(err)
+            showAlert('ข้อผิดพลาด', 'ไม่สามารถบันทึกรายจ่ายได้', 'error')
+        } finally {
+            setIsAddingExpense(false)
+        }
+    }
+
+    const handleDeleteExpense = async (id: string) => {
+        try {
+            const { error } = await supabase.from('expenses').delete().eq('id', id)
+            if (error) throw error
+            if (accData) setAccData({ ...accData, expenses: accData.expenses.filter(e => e.id !== id) })
+            showAlert('ลบแล้ว', 'ลบรายจ่ายเรียบร้อย', 'success')
+        } catch (err) {
+            console.error(err)
+            showAlert('ข้อผิดพลาด', 'ไม่สามารถลบรายจ่ายได้', 'error')
         }
     }
 
@@ -736,10 +779,13 @@ export function AnalyticsDashboard() {
                                 ) : accData ? (() => {
                                     const yearPaid = accData.paidInvoices.filter(inv => new Date(inv.created_at).getFullYear() === accYear)
                                     const yearPending = accData.pendingInvoices.filter(inv => new Date(inv.due_date).getFullYear() === accYear)
+                                    const yearExpenses = accData.expenses.filter(exp => new Date(exp.expense_date).getFullYear() === accYear)
                                     const totalRevenue = yearPaid.reduce((s, inv) => s + Number(inv.setup_fee) + Number(inv.monthly_fee), 0)
                                     const totalSetup = yearPaid.reduce((s, inv) => s + Number(inv.setup_fee), 0)
                                     const totalMonthly = yearPaid.reduce((s, inv) => s + Number(inv.monthly_fee), 0)
                                     const totalAR = yearPending.reduce((s, inv) => s + Number(inv.setup_fee) + Number(inv.monthly_fee), 0)
+                                    const totalExpenses = yearExpenses.reduce((s, exp) => s + Number(exp.amount), 0)
+                                    const netProfit = totalRevenue - totalExpenses
 
                                     return (
                                         <div id="accounting-report-pdf" className="space-y-6" style={{ display: 'block' }}>
@@ -790,10 +836,20 @@ export function AnalyticsDashboard() {
                                                             <td className="px-4 py-2 text-right font-bold text-amber-700">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                                                             <td className="px-4 py-2 text-right">—</td>
                                                         </tr>
+                                                        <tr className="bg-red-50">
+                                                            <td className="px-4 py-2 text-slate-500 font-mono text-xs">5100</td>
+                                                            <td className="px-4 py-2 font-semibold text-red-800">รายจ่ายดำเนินงาน (Operating Expenses)</td>
+                                                            <td className="px-4 py-2 text-right font-bold text-red-700">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                            <td className="px-4 py-2 text-right">—</td>
+                                                        </tr>
                                                         <tr className="bg-slate-100 font-bold">
                                                             <td colSpan={2} className="px-4 py-3 text-slate-800">รายได้รับจริง (Cash Collected)</td>
                                                             <td className="px-4 py-3 text-right text-blue-700">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                                                             <td className="px-4 py-3 text-right text-blue-700">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                        <tr className={`font-bold ${netProfit >= 0 ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                                                            <td colSpan={2} className="px-4 py-3 text-slate-900">กำไร (ขาดทุน) สุทธิ — Net Profit (Loss)</td>
+                                                            <td colSpan={2} className={`px-4 py-3 text-right text-lg ${netProfit >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>฿{netProfit.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -896,22 +952,123 @@ export function AnalyticsDashboard() {
                                                 </div>
                                             )}
 
+                                            {/* ── SECTION: Expense Form (Screen Only) ── */}
+                                            <div className="no-print bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-5">
+                                                <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                    <Plus className="w-4 h-4" />
+                                                    เพิ่มรายจ่าย (Add Expense)
+                                                </h3>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                    <select
+                                                        value={expenseForm.category}
+                                                        onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                                                        className="text-sm border border-red-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
+                                                    >
+                                                        <option>ค่าเซิร์ฟเวอร์/โฮสติ้ง</option>
+                                                        <option>ค่าโดเมน</option>
+                                                        <option>ค่าเครื่องมือ/ซอฟต์แวร์</option>
+                                                        <option>ค่าการตลาด/โฆษณา</option>
+                                                        <option>ค่าจ้างบุคลากร</option>
+                                                        <option>ค่าสาธารณูปโภค</option>
+                                                        <option>อื่นๆ</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="รายละเอียด"
+                                                        value={expenseForm.description}
+                                                        onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })}
+                                                        className="text-sm border border-red-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        placeholder="จำนวนเงิน (฿)"
+                                                        value={expenseForm.amount || ''}
+                                                        onChange={e => setExpenseForm({ ...expenseForm, amount: Number(e.target.value) })}
+                                                        className="text-sm border border-red-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300"
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="date"
+                                                            value={expenseForm.expense_date}
+                                                            onChange={e => setExpenseForm({ ...expenseForm, expense_date: e.target.value })}
+                                                            className="text-sm border border-red-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 flex-1"
+                                                        />
+                                                        <button
+                                                            onClick={handleAddExpense}
+                                                            disabled={isAddingExpense}
+                                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                                                        >
+                                                            {isAddingExpense ? <Calculator className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                                            เพิ่ม
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* ── SECTION: Expense Ledger ── */}
+                                            {yearExpenses.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                        <span className="w-1 h-4 bg-red-500 rounded-full inline-block"></span>
+                                                        สมุดรายวัน — รายจ่าย (Expense Ledger) — ปี {accYear}
+                                                    </h3>
+                                                    <table className="w-full text-xs border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-red-700 text-white">
+                                                                <th className="px-3 py-2 text-left font-medium">วันที่</th>
+                                                                <th className="px-3 py-2 text-left font-medium">หมวดหมู่</th>
+                                                                <th className="px-3 py-2 text-left font-medium">รายละเอียด</th>
+                                                                <th className="px-3 py-2 text-right font-medium">จำนวนเงิน (฿)</th>
+                                                                <th className="px-3 py-2 text-center font-medium no-print w-12"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-red-50">
+                                                            {yearExpenses.map((exp, idx) => (
+                                                                <tr key={exp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
+                                                                    <td className="px-3 py-2 text-slate-500 whitespace-nowrap">{new Date(exp.expense_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
+                                                                    <td className="px-3 py-2">
+                                                                        <span className="inline-flex px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium">{exp.category}</span>
+                                                                    </td>
+                                                                    <td className="px-3 py-2 text-slate-700">{exp.description}</td>
+                                                                    <td className="px-3 py-2 text-right font-semibold text-red-700">{Number(exp.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                    <td className="px-3 py-2 text-center no-print">
+                                                                        <button onClick={() => handleDeleteExpense(exp.id)} className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            <tr className="bg-red-700 text-white font-bold">
+                                                                <td colSpan={3} className="px-3 py-2.5">รวมรายจ่ายทั้งสิ้น</td>
+                                                                <td className="px-3 py-2.5 text-right">{totalExpenses.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                <td className="no-print"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+
                                             {/* Summary box */}
-                                            <div className="grid grid-cols-3 gap-4 mt-4">
+                                            <div className="grid grid-cols-4 gap-3 mt-4">
                                                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
                                                     <p className="text-xs text-emerald-600 font-medium">รายได้รวม (Revenue)</p>
                                                     <p className="text-xl font-bold text-emerald-800 mt-1">฿{totalRevenue.toLocaleString('th-TH')}</p>
                                                     <p className="text-xs text-emerald-500 mt-1">{yearPaid.length} รายการ</p>
+                                                </div>
+                                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                                                    <p className="text-xs text-red-600 font-medium">รายจ่ายรวม (Expenses)</p>
+                                                    <p className="text-xl font-bold text-red-800 mt-1">฿{totalExpenses.toLocaleString('th-TH')}</p>
+                                                    <p className="text-xs text-red-500 mt-1">{yearExpenses.length} รายการ</p>
                                                 </div>
                                                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
                                                     <p className="text-xs text-amber-600 font-medium">ลูกหนี้คงค้าง (A/R)</p>
                                                     <p className="text-xl font-bold text-amber-800 mt-1">฿{totalAR.toLocaleString('th-TH')}</p>
                                                     <p className="text-xs text-amber-500 mt-1">{yearPending.length} รายการ</p>
                                                 </div>
-                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                                                    <p className="text-xs text-blue-600 font-medium">ยอดรวมทั้งหมด</p>
-                                                    <p className="text-xl font-bold text-blue-800 mt-1">฿{(totalRevenue + totalAR).toLocaleString('th-TH')}</p>
-                                                    <p className="text-xs text-blue-500 mt-1">{yearPaid.length + yearPending.length} รายการ</p>
+                                                <div className={`border rounded-xl p-4 text-center ${netProfit >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-300'}`}>
+                                                    <p className={`text-xs font-medium ${netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>กำไรสุทธิ (Net Profit)</p>
+                                                    <p className={`text-xl font-bold mt-1 ${netProfit >= 0 ? 'text-blue-800' : 'text-red-800'}`}>฿{netProfit.toLocaleString('th-TH')}</p>
+                                                    <p className={`text-xs mt-1 ${netProfit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>รายได้ - รายจ่าย</p>
                                                 </div>
                                             </div>
 
