@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Clock, Shield, Headphones, Zap, Code, TrendingUp } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 const reasons = [
     {
@@ -37,6 +39,25 @@ const reasons = [
 ]
 
 export function WhyChooseUs() {
+    const [trustCount, setTrustCount] = useState<number | null>(null)
+
+    useEffect(() => {
+        async function fetchTrustCount() {
+            try {
+                const { count, error } = await supabase
+                    .from('trust_badges')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_active', true)
+
+                if (error) throw error
+                setTrustCount(count)
+            } catch (error) {
+                console.error('Error fetching trust badge count:', error)
+            }
+        }
+        fetchTrustCount()
+    }, [])
+
     return (
         <section className="section-padding bg-white">
             <div className="container-custom">
@@ -98,7 +119,9 @@ export function WhyChooseUs() {
                             {/* Main Card */}
                             <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-8 text-white">
                                 <div className="text-center mb-8">
-                                    <div className="text-6xl font-display font-bold mb-2">50+</div>
+                                    <div className="text-6xl font-display font-bold mb-2">
+                                        {trustCount !== null ? trustCount : '-'}
+                                    </div>
                                     <p className="text-primary-100">ธุรกิจไว้วางใจ</p>
                                 </div>
 

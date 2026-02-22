@@ -194,7 +194,7 @@ export function HeroSection() {
                                 className="mt-12 pt-8 border-t border-secondary-200"
                             >
                                 <p className="text-sm text-secondary-500 mb-4">
-                                    ไว้วางใจโดยธุรกิจกว่า {badges.length >= 50 ? '50+' : `${badges.length}+`} ราย
+                                    ไว้วางใจโดยธุรกิจกว่า {badges.length} ราย
                                 </p>
                                 <div className="flex items-center gap-6 sm:gap-8 flex-wrap opacity-60">
                                     {badges.map((badge) => {
