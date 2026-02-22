@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { Lock, Mail, Eye, EyeOff, LogIn, RefreshCw, AlertTriangle } from 'lucide-react'
 import { ForgotPasswordModal } from './ForgotPasswordModal'
+import { logAdminAction } from '@/lib/admin-logger'
 
 export function LoginPage() {
     const { login, isLoading: authLoading } = useAuth()
@@ -83,6 +84,13 @@ export function LoginPage() {
             // Reset on success
             setFailedAttempts(0)
             setLockoutTimer(0)
+
+            try {
+                // Background log
+                logAdminAction(email, 'LOGIN', 'เข้าสู่ระบบสำเร็จ')
+            } catch (e) {
+                console.error(e)
+            }
         }
 
         setIsLoading(false)

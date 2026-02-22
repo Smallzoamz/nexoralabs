@@ -14,7 +14,10 @@ import {
     LogOut,
     ChevronRight,
     ShieldCheck,
-    BarChart3
+    BarChart3,
+    Layout,
+    Activity,
+    Mail
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
@@ -25,9 +28,15 @@ import { PackageManager } from '@/components/admin/PackageManager'
 import { ContactManager } from '@/components/admin/ContactManager'
 import { InvoiceManager } from '@/components/admin/InvoiceManager'
 import { PaymentSettings } from '@/components/admin/PaymentSettings'
+import { ArticleManager } from '@/components/admin/ArticleManager'
 import TrustBadgeManager from '@/components/admin/TrustBadgeManager'
 import ClientManager from '@/components/admin/ClientManager'
-import { CreditCard, Landmark } from 'lucide-react'
+import { PortfolioManager } from '@/components/admin/PortfolioManager'
+import { SEOSettings } from '@/components/admin/SEOSettings'
+import { FAQManager } from '@/components/admin/FAQManager'
+import { ActivityLogManager } from '@/components/admin/ActivityLogManager'
+import { EmailTemplateManager } from '@/components/admin/EmailTemplateManager'
+import { CreditCard, Landmark, LineChart, MessageCircleQuestion } from 'lucide-react'
 
 const menuGroups = [
     {
@@ -35,13 +44,19 @@ const menuGroups = [
         items: [
             { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard },
             { id: 'analytics', label: 'ดูรายงาน', icon: BarChart3 },
+            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity },
+            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail },
             { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
+            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart },
         ]
     },
     {
         title: 'จัดการระบบ',
         items: [
             { id: 'content', label: 'จัดการเนื้อหา', icon: FileText },
+            { id: 'articles', label: 'บทความ (Blog)', icon: FileText },
+            { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout },
+            { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion },
             { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package },
             { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck },
         ]
@@ -72,8 +87,20 @@ export default function AdminPage() {
                 return <AnalyticsDashboard />
             case 'site':
                 return <SiteSettings />
+            case 'seo':
+                return <SEOSettings />
+            case 'templates':
+                return <EmailTemplateManager />
+            case 'activity-log':
+                return <ActivityLogManager />
             case 'content':
                 return <ContentManager />
+            case 'articles':
+                return <ArticleManager />
+            case 'portfolios':
+                return <PortfolioManager />
+            case 'faqs':
+                return <FAQManager />
             case 'packages':
                 return <PackageManager />
             case 'contacts':

@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { createClient } from '@supabase/supabase-js'
+
+export const dynamic = 'force-dynamic'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(req: Request) {
     try {
@@ -34,6 +41,31 @@ export async function POST(req: Request) {
             day: 'numeric'
         })
 
+        const { data: template } = await supabase
+            .from('email_templates')
+            .select('*')
+            .eq('template_name', 'INVOICE')
+            .single()
+
+        let customBody = `<p style="font-size: 16px; color: #334155;">เรียน <strong>${invoice.client_name}</strong>,</p>
+                <p style="color: #475569; line-height: 1.6;">รายละเอียดใบแจ้งหนี้สำหรับบริการ <strong>${invoice.package_details}</strong> พร้อมให้บริการชำระเงินแล้ว รายละเอียดมีดังนี้:</p>`
+
+        let customSubject = `💳 ใบแจ้งหนี้ใหม่ - ${invoice.package_details}`
+
+        if (template) {
+            customSubject = template.subject
+                .replace(/\[CLIENT_NAME\]/g, invoice.client_name)
+                .replace(/\[AMOUNT\]/g, formattedTotal)
+                .replace(/\[DUE_DATE\]/g, formattedDate)
+                .replace(/\[PAYMENT_LINK\]/g, `${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}`)
+
+            customBody = template.body_html
+                .replace(/\[CLIENT_NAME\]/g, invoice.client_name)
+                .replace(/\[AMOUNT\]/g, formattedTotal)
+                .replace(/\[DUE_DATE\]/g, formattedDate)
+                .replace(/\[PAYMENT_LINK\]/g, `${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}`)
+        }
+
         // Create HTML Email Template
         const htmlTemplate = `
         <div style="font-family: 'Sarabun', 'Prompt', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px;">
@@ -44,8 +76,7 @@ export async function POST(req: Request) {
             </div>
 
             <div style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <p style="font-size: 16px; color: #334155;">เรียน <strong>${invoice.client_name}</strong>,</p>
-                <p style="color: #475569; line-height: 1.6;">รายละเอียดใบแจ้งหนี้สำหรับบริการ <strong>${invoice.package_details}</strong> พร้อมให้บริการชำระเงินแล้ว รายละเอียดมีดังนี้:</p>
+                ${customBody}
 
                 <div style="margin: 25px 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -106,9 +137,9 @@ export async function POST(req: Request) {
 
         // Send Email
         const info = await transporter.sendMail({
-            from: `"Nexora Labs" <${process.env.EMAIL_USER}>`,
+            from: `"Nexora Labs | Billing Team" <${process.env.EMAIL_USER}>`,
             to: invoice.client_email,
-            subject: `ใบแจ้งหนี้ - ${invoice.package_details}`,
+            subject: customSubject,
             html: htmlTemplate,
             attachments: attachments,
         })

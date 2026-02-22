@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { createClient } from '@supabase/supabase-js'
+
+export const dynamic = 'force-dynamic'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(req: Request) {
     try {
@@ -32,6 +39,27 @@ export async function POST(req: Request) {
             </svg>
         </div>`
 
+        const { data: template } = await supabase
+            .from('email_templates')
+            .select('*')
+            .eq('template_name', 'RECEIPT')
+            .single()
+
+        let customBody = `<p style="font-size:16px;color:#334155;margin:0 0 8px;">เรียน <strong>${invoice.client_name}</strong>,</p>
+                    <p style="color:#475569;line-height:1.7;margin:0 0 28px;">เราได้รับยืนยันการชำระเงินค่าบริการของท่านเรียบร้อยแล้ว ขอขอบพระคุณที่ไว้วางใจ Nexora Labs ครับ 🙏</p>`
+
+        let customSubject = `✅ ยืนยันการชำระเงิน - ${invoice.package_details} (${receiptNo})`
+
+        if (template) {
+            customSubject = template.subject
+                .replace(/\[CLIENT_NAME\]/g, invoice.client_name)
+                .replace(/\[AMOUNT\]/g, formattedAmount)
+
+            customBody = template.body_html
+                .replace(/\[CLIENT_NAME\]/g, invoice.client_name)
+                .replace(/\[AMOUNT\]/g, formattedAmount)
+        }
+
         const htmlTemplate = `
         <!DOCTYPE html>
         <html>
@@ -53,8 +81,7 @@ export async function POST(req: Request) {
 
                 <!-- Body -->
                 <div style="padding:32px 40px;">
-                    <p style="font-size:16px;color:#334155;margin:0 0 8px;">เรียน <strong>${invoice.client_name}</strong>,</p>
-                    <p style="color:#475569;line-height:1.7;margin:0 0 28px;">เราได้รับยืนยันการชำระเงินค่าบริการของท่านเรียบร้อยแล้ว ขอขอบพระคุณที่ไว้วางใจ Nexora Labs ครับ 🙏</p>
+                    ${customBody}
 
                     <!-- Receipt Details -->
                     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:24px;">
@@ -116,7 +143,7 @@ export async function POST(req: Request) {
         await transporter.sendMail({
             from: `"Nexora Labs | Billing Team" <${process.env.EMAIL_USER}>`,
             to: invoice.client_email,
-            subject: `✅ ยืนยันการชำระเงิน - ${invoice.package_details} (${receiptNo})`,
+            subject: customSubject,
             html: htmlTemplate,
             attachments,
         })

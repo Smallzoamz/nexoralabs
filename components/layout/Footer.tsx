@@ -15,6 +15,8 @@ import {
     ArrowUpRight
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useModal } from '@/lib/modal-context'
+import { ProjectTrackerModal } from '@/components/frontend/ProjectTrackerModal'
 
 interface SiteConfig {
     site_name: string
@@ -31,15 +33,15 @@ interface SiteConfig {
 
 const footerLinks = {
     services: [
-        { name: 'ออกแบบเว็บไซต์', href: '#services' },
-        { name: 'ดูแลเว็บไซต์', href: '#services' },
-        { name: 'ระบบ Admin Panel', href: '#services' },
-        { name: 'SEO Optimization', href: '#services' },
+        { name: 'ออกแบบเว็บไซต์', href: '/#services' },
+        { name: 'ดูแลเว็บไซต์', href: '/#services' },
+        { name: 'ระบบ Admin Panel', href: '/#services' },
+        { name: 'SEO Optimization', href: '/#services' },
     ],
     packages: [
-        { name: 'Standard Package', href: '#packages' },
-        { name: 'Pro Package', href: '#packages' },
-        { name: 'เปรียบเทียบแพ็กเกจ', href: '#packages' },
+        { name: 'Standard Package', href: '/#packages' },
+        { name: 'Pro Package', href: '/#packages' },
+        { name: 'เปรียบเทียบแพ็กเกจ', href: '/#packages' },
     ],
     policies: [
         { name: 'นโยบายความเป็นส่วนตัว', href: '/privacy' },
@@ -51,6 +53,7 @@ const footerLinks = {
 export function Footer() {
     const currentYear = new Date().getFullYear()
     const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null)
+    const { openProjectTracker, isProjectTrackerOpen, closeProjectTracker } = useModal()
 
     useEffect(() => {
         async function fetchSiteConfig() {
@@ -146,6 +149,15 @@ export function Footer() {
                                     </Link>
                                 </li>
                             ))}
+                            <li>
+                                <button
+                                    onClick={openProjectTracker}
+                                    className="text-secondary-300 hover:text-primary-400 transition-colors flex items-center gap-1 group"
+                                >
+                                    ติดตามงาน
+                                    <ArrowUpRight className="w-4 h-4 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all" />
+                                </button>
+                            </li>
                         </ul>
                     </div>
 
@@ -220,7 +232,7 @@ export function Footer() {
                 <div className="container-custom py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-secondary-400 text-sm text-center md:text-left">
-                            © {currentYear} {siteConfig?.site_name || 'Nexora Labs'}. สงวนลิขสิทธิ์ทุกประการ.
+                            © {currentYear} {siteConfig?.site_name || 'Nexora Labs'}. สงวนลิทธิ์ทุกประการ.
                         </p>
                         <div className="flex items-center gap-6 text-sm text-secondary-400">
                             <span>กรณีระบบล่มทั้งระบบ ตอบกลับภายใน 2 ชม.</span>
@@ -228,6 +240,9 @@ export function Footer() {
                     </div>
                 </div>
             </div>
+
+            {/* Project Tracker Modal */}
+            <ProjectTrackerModal isOpen={isProjectTrackerOpen} onClose={closeProjectTracker} />
         </footer>
     )
 }

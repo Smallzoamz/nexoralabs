@@ -232,3 +232,100 @@ ADMIN_SECRET_KEY=your_admin_secret
 [2026-02-22 21:40] | File: PackageManager.tsx, TestimonialsSection.tsx, cron backup | Line: Multiple | Keyword: UI/Bug Fix | Status: SUCCESS | Change: Collapsed min/max setup and monthly fee inputs into a single UI textfield in PackageManager. Added null guard (`?? []`) to `services.features`. Implemented `export const dynamic = 'force-dynamic'` to Cron handlers.
 [2026-02-22 21:52] | File: app/feedback/page.tsx, ContentManager.tsx, TestimonialsSection.tsx | Line: Multiple | Keyword: Feature, Client Feedback | Status: SUCCESS | Change: Built a public-facing `/feedback` route for clients to submit 5-star reviews. Integrated an "Approval" toggle in `ContentManager` where new reviews land in a pending (`is_active: false`) state until the Admin approves them. Removed hardcoded dummy reviews from Frontend.
 [2026-02-22 22:15] | File: HeroSection.tsx, WhyChooseUs.tsx | Line: Multiple | Keyword: UI, Dynamic Trust Badges | Status: SUCCESS | Change: Removed static '50+' strings and fallback logic from the trusted businesses count. The UI now exclusively maps and counts the exact length of the active `trust_badges` array fetched from Supabase.
+[2026-02-22 23:55] | File: setup_project_tracker.sql, InvoiceManager.tsx, app/track/page.tsx, api/lookup-tracker/route.ts | Line: Multiple | Keyword: Feature, Project Tracker | Status: SUCCESS | Change: Implemented a public Project Status Tracker (`/track`). Added `project_status` and `tracking_code` columns to `invoices` table. Integrated status updater and auto-tracking-code generator into `InvoiceManager.tsx`. Engineered `/api/lookup-tracker` endpoint with Service Role Key to securely fetch and mask client data. Built a responsive stepped-timeline UI on `/track` to visualize progress milestones, and added its link to Header and Footer navigation.
+-- สร้างตารางบันทึกประวัติการทำงานของแอดมิน (Admin Activity Logs)
+CREATE TABLE IF NOT EXISTS public.admin_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    admin_email TEXT NOT NULL,
+    action_type TEXT NOT NULL, -- เช่น LOGIN, DELETE, APPROVE_SLIP, UPDATE_SETTINGS
+    details TEXT, -- รายละเอียดเพิ่มเติม เช่น "ลบรูปภาพ portfolio_01.jpg", "อนุมัติสลิป INV-202401-ABCD"
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- เปิดใช้งาน RLS (Row Level Security)
+ALTER TABLE public.admin_logs ENABLE ROW LEVEL SECURITY;
+
+-- นโยบาย RLS:
+-- 1. เฉพาะแอดมิน (ผู้ที่ล็อกอินแล้ว) เท่านั้นที่สามารถดู Log ได้
+CREATE POLICY "Allow authenticated users to select admin logs"
+    ON public.admin_logs FOR SELECT
+    TO authenticated
+    USING (true);
+
+-- 2. เฉพาะแอดมินเท่านั้นที่สามารถเพิ่ม Log ได้
+CREATE POLICY "Allow authenticated users to insert admin logs"
+    ON public.admin_logs FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+-- 3. ไม่อนุญาตให้แก้ไข Log (เพื่อป้องกันการลบประวัติ)
+-- 4. ไม่อนุญาตให้อนุญาตแก้ไข Log
+
+-- ไม่สร้าง Policy สำหรับ UPDATE และ DELETE เพื่อป้องกันการแก้ไขหรือลบประวัติ
+
+---
+
+## Step 7: Admin Activity Log ✅
+[2026-02-23 00:00] | Status: COMPLETED
+
+### Files Created/Modified:
+| File | Action | Description |
+|:---|:---:|:---|
+| `setup_admin_logs.sql` | NEW | SQL schema for `admin_logs` table with RLS policies |
+| `lib/admin-logger.ts` | NEW | Helper function `logAdminAction()` for inserting log entries |
+| `components/admin/ActivityLogManager.tsx` | NEW | Admin UI for viewing, searching, and filtering activity logs |
+| `app/admin/page.tsx` | MODIFIED | Added "บันทึกประวัติ (Log)" menu item and route |
+| `components/admin/LoginPage.tsx` | MODIFIED | Injected `logAdminAction` on successful login |
+| `components/admin/InvoiceManager.tsx` | MODIFIED | Injected logging for create, update, delete invoice, and approve slip |
+
+### Action Types Tracked:
+`LOGIN`, `CREATE_INVOICE`, `UPDATE_INVOICE`, `DELETE_INVOICE`, `APPROVE_SLIP`
+
+---
+
+## Step 8: Email Template Manager ✅
+[2026-02-23 00:00] | Status: COMPLETED
+
+### Files Created/Modified:
+| File | Action | Description |
+|:---|:---:|:---|
+| `setup_email_templates.sql` | NEW | SQL schema for `email_templates` table with default data (INVOICE, RECEIPT, REMINDER_7) |
+| `components/admin/EmailTemplateManager.tsx` | NEW | Admin UI for editing templates and sending broadcasts |
+| `app/api/broadcast/route.ts` | NEW | API endpoint for sending bulk email announcements to all clients |
+| `app/admin/page.tsx` | MODIFIED | Added "จัดการเทมเพลตอีเมล" menu item and route |
+| `app/api/send-invoice/route.ts` | MODIFIED | Now fetches INVOICE template from DB; uses `[CLIENT_NAME]`, `[AMOUNT]`, `[DUE_DATE]`, `[PAYMENT_LINK]` variables |
+| `app/api/send-receipt/route.ts` | MODIFIED | Now fetches RECEIPT template from DB; uses `[CLIENT_NAME]`, `[AMOUNT]` variables |
+| `app/api/cron/payment-reminders/route.ts` | MODIFIED | Now fetches REMINDER_7 template from DB for dynamic reminder body |
+
+### Template Variables:
+| Variable | Description |
+|:---|:---|
+| `[CLIENT_NAME]` | ชื่อลูกค้า |
+| `[AMOUNT]` | ยอดชำระเงิน |
+| `[DUE_DATE]` | วันครบกำหนด |
+| `[PAYMENT_LINK]` | ลิงก์หน้าชำระเงิน |
+
+### Broadcast Feature:
+- แอดมินสามารถพิมพ์หัวข้อ + เนื้อหาอีเมล (รองรับ HTML) แล้วส่งหาลูกค้าทั้งหมดในระบบได้ทันที
+- ระบบจะดึง unique emails จากตาราง `invoices` แล้วทะยอยส่งอัตโนมัติ (100ms delay ต่อฉบับเพื่อป้องกัน spam filter)
+
+---
+
+## [2026-02-23] Project Tracker Modal Conversion
+
+### Change Summary:
+แปลง "ติดตามงาน" จาก Route `/track` เป็น Modal แทน
+
+### Files Modified:
+1. **สร้างใหม่:** `components/frontend/ProjectTrackerModal.tsx` - Modal component สำหรับติดตามงาน
+2. **แก้ไข:** `lib/modal-context.tsx` - เพิ่ม `openProjectTracker`, `closeProjectTracker`, `isProjectTrackerOpen`
+3. **แก้ไข:** `components/layout/Header.tsx` - เปลี่ยน Link เป็น button เปิด Modal
+4. **แก้ไข:** `components/layout/Footer.tsx` - เปลี่ยน Link เป็น button เปิด Modal
+5. **แก้ไข:** `app/layout.tsx` - เพิ่ม ModalProvider wrapper
+6. **ลบ:** `app/track/page.tsx` - ลบ route เดิมออก
+
+### Technical Details:
+- ใช้ `createPortal` ที่ `document.body` สำหรับ Modal rendering
+- ใช้ `AnimatePresence` จาก framer-motion สำหรับ animation
+- Modal มี backdrop blur และสามารถปิดได้โดยการคลิก backdrop หรือปุ่มปิด
+- ModalProvider ถูกเพิ่มใน root layout เพื่อให้ Header/Footer เข้าถึง context ได้

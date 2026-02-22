@@ -24,6 +24,9 @@ interface ConfirmContextData {
 interface ModalContextType {
     showAlert: (title: string, message: string, type?: AlertType) => void;
     showConfirm: (title: string, message: string) => Promise<boolean>;
+    openProjectTracker: () => void;
+    closeProjectTracker: () => void;
+    isProjectTrackerOpen: boolean;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined)
@@ -32,6 +35,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [mounted, setMounted] = useState(false)
     const [alert, setAlert] = useState<AlertContextData>({ title: '', message: '', type: 'info', isOpen: false })
     const [confirm, setConfirm] = useState<ConfirmContextData>({ title: '', message: '', isOpen: false })
+    const [isProjectTrackerOpen, setIsProjectTrackerOpen] = useState(false)
 
     useEffect(() => {
         setMounted(true)
@@ -53,6 +57,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         if (confirm.resolve) confirm.resolve(value)
         setConfirm({ ...confirm, isOpen: false })
     }
+
+    const openProjectTracker = () => setIsProjectTrackerOpen(true)
+    const closeProjectTracker = () => setIsProjectTrackerOpen(false)
 
     // Map Alert Types to Icons/Colors
     const getAlertIcon = (type: AlertType) => {
@@ -144,7 +151,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     )
 
     return (
-        <ModalContext.Provider value={{ showAlert, showConfirm }}>
+        <ModalContext.Provider value={{ showAlert, showConfirm, openProjectTracker, closeProjectTracker, isProjectTrackerOpen }}>
             {children}
             {mounted && createPortal(modalContent, document.body)}
         </ModalContext.Provider>

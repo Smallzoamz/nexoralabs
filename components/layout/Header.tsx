@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { useModal } from '@/lib/modal-context'
+import { ProjectTrackerModal } from '@/components/frontend/ProjectTrackerModal'
 
 interface SiteConfig {
     site_name: string
@@ -15,10 +17,10 @@ interface SiteConfig {
 
 const navigation = [
     { name: 'หน้าแรก', href: '/' },
-    { name: 'บริการ', href: '#services' },
-    { name: 'แพ็กเกจ', href: '#packages' },
-    { name: 'ผลงาน', href: '#portfolio' },
-    { name: 'ติดต่อเรา', href: '#contact' },
+    { name: 'บริการ', href: '/#services' },
+    { name: 'แพ็กเกจ', href: '/#packages' },
+    { name: 'ผลงาน', href: '/portfolio' },
+    { name: 'บทความ', href: '/articles' },
 ]
 
 const policyLinks = [
@@ -32,6 +34,7 @@ export function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isPolicyOpen, setIsPolicyOpen] = useState(false)
     const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null)
+    const { openProjectTracker, isProjectTrackerOpen, closeProjectTracker } = useModal()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -109,6 +112,15 @@ export function Header() {
                             </Link>
                         ))}
 
+                        {/* Track Order Button */}
+                        <button
+                            onClick={openProjectTracker}
+                            className="px-4 py-2 text-secondary-600 hover:text-primary-600 font-medium transition-colors relative group"
+                        >
+                            ติดตามงาน
+                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-500 transition-all group-hover:w-3/4" />
+                        </button>
+
                         {/* Policy Dropdown */}
                         <div className="relative">
                             <button
@@ -185,6 +197,16 @@ export function Header() {
                                         {item.name}
                                     </Link>
                                 ))}
+                                {/* Track Order Button (Mobile) */}
+                                <button
+                                    onClick={() => {
+                                        setIsMobileMenuOpen(false)
+                                        openProjectTracker()
+                                    }}
+                                    className="block w-full text-left px-4 py-3 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors"
+                                >
+                                    ติดตามงาน
+                                </button>
                                 <div className="pt-2 border-t border-secondary-100">
                                     <p className="px-4 py-2 text-xs text-secondary-400 uppercase tracking-wider">
                                         นโยบาย
@@ -213,6 +235,9 @@ export function Header() {
                     )}
                 </AnimatePresence>
             </nav>
+
+            {/* Project Tracker Modal */}
+            <ProjectTrackerModal isOpen={isProjectTrackerOpen} onClose={closeProjectTracker} />
         </header>
     )
 }

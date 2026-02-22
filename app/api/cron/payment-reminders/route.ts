@@ -41,6 +41,13 @@ export async function GET(req: Request) {
 
         const results = { sent: 0, skipped: 0 }
 
+        // Fetch template
+        const { data: template } = await supabase
+            .from('email_templates')
+            .select('*')
+            .eq('template_name', 'REMINDER_7')
+            .single()
+
         for (const invoice of pendingInvoices) {
             const dueDate = new Date(invoice.due_date)
             dueDate.setHours(0, 0, 0, 0) // Normalize
@@ -82,6 +89,17 @@ export async function GET(req: Request) {
             })
             const paymentLink = `${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}`
 
+            let customBody = `<p style="color: #334155; font-size: 16px;">เรียน <strong>${invoice.client_name}</strong>,</p>
+                    <p style="color: #475569; line-height: 1.7;">ขอแจ้งเตือนให้ท่านทราบว่า ค่าบริการดูแลรักษาระบบของแพ็กเกจ <strong>${invoice.package_details}</strong> มีกำหนดชำระภายใน <strong style="color: ${urgencyColor};">${formattedDueDate}</strong> ครับ</p>`
+
+            if (template) {
+                customBody = template.body_html
+                    .replace(/\[CLIENT_NAME\]/g, invoice.client_name)
+                    .replace(/\[AMOUNT\]/g, formattedTotal)
+                    .replace(/\[DUE_DATE\]/g, formattedDueDate)
+                    .replace(/\[PAYMENT_LINK\]/g, paymentLink)
+            }
+
             const htmlTemplate = `
             <div style="font-family: 'Sarabun', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px;">
                 <div style="text-align: center; margin-bottom: 30px;">
@@ -94,8 +112,7 @@ export async function GET(req: Request) {
                 </div>
 
                 <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.07);">
-                    <p style="color: #334155; font-size: 16px;">เรียน <strong>${invoice.client_name}</strong>,</p>
-                    <p style="color: #475569; line-height: 1.7;">ขอแจ้งเตือนให้ท่านทราบว่า ค่าบริการดูแลรักษาระบบของแพ็กเกจ <strong>${invoice.package_details}</strong> มีกำหนดชำระภายใน <strong style="color: ${urgencyColor};">${formattedDueDate}</strong> ครับ</p>
+                    ${customBody}
 
                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
                         <p style="margin: 0; color: #64748b; font-size: 14px;">ยอดชำระสุทธิ (Total)</p>

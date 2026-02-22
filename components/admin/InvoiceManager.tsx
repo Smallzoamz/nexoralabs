@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { Plus, Edit2, Trash2, Mail, FileDown, Receipt, CheckCheck, XCircle, ExternalLink, Loader2, Download, FileArchive } from 'lucide-react'
 import { z } from 'zod'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
+import { logAdminAction } from '@/lib/admin-logger'
 
 // We cannot use next/dynamic here because we need the static function, not a Component
 // So we will just import and use it dynamically inside the click handler to avoid SSR issues.
@@ -16,7 +18,8 @@ const invoiceSchema = z.object({
     setup_fee: z.number().min(0, 'ค่าบริการแรกเข้าต้องไม่ติดลบ'),
     monthly_fee: z.number().min(0, 'ค่าบริการรายเดือนต้องไม่ติดลบ'),
     due_date: z.string().min(1, 'กรุณาเลือกวันครบกำหนดชำระ'),
-    status: z.enum(['pending', 'paid', 'cancelled'])
+    status: z.enum(['pending', 'paid', 'cancelled']),
+    project_status: z.enum(['pending', 'planning', 'designing', 'developing', 'testing', 'completed']).optional()
 })
 
 interface InvoiceRecord {
@@ -28,6 +31,8 @@ interface InvoiceRecord {
     monthly_fee: number;
     due_date: string;
     status: 'pending' | 'paid' | 'cancelled';
+    project_status?: 'pending' | 'planning' | 'designing' | 'developing' | 'testing' | 'completed';
+    tracking_code?: string;
     created_at?: string;
     updated_at?: string;
 }
@@ -51,6 +56,7 @@ interface PaymentSubmission {
 
 export function InvoiceManager() {
     const { showAlert, showConfirm } = useModal()
+    const { user } = useAuth()
     const [invoices, setInvoices] = useState<InvoiceRecord[]>([])
     const [availablePackages, setAvailablePackages] = useState<{ name: string, setup_price_min: number, monthly_price_min: number }[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -81,7 +87,8 @@ export function InvoiceManager() {
         setup_fee: 0,
         monthly_fee: 0,
         due_date: new Date().toISOString().split('T')[0],
-        status: 'pending' as 'pending' | 'paid' | 'cancelled'
+        status: 'pending' as 'pending' | 'paid' | 'cancelled',
+        project_status: 'pending' as 'pending' | 'planning' | 'designing' | 'developing' | 'testing' | 'completed'
     })
 
     const fetchData = useCallback(async () => {
@@ -130,7 +137,8 @@ export function InvoiceManager() {
             setup_fee: invoice.setup_fee,
             monthly_fee: invoice.monthly_fee,
             due_date: invoice.due_date || new Date().toISOString().split('T')[0],
-            status: invoice.status
+            status: invoice.status,
+            project_status: invoice.project_status || 'pending'
         })
         setEditingId(invoice.id)
         setIsEditing(true)
@@ -143,6 +151,7 @@ export function InvoiceManager() {
             const { error } = await supabase.from('invoices').delete().eq('id', id)
             if (error) throw error
             setInvoices(invoices.filter(inv => inv.id !== id))
+            logAdminAction(user?.email || 'System', 'DELETE_INVOICE', `ลบใบแจ้งหนี้ ID: ${id}`)
         } catch (error) {
             console.error('Error deleting invoice:', error)
             showAlert('ข้อผิดพลาด', 'ลบไม่สำเร็จ', 'error')
@@ -180,6 +189,11 @@ export function InvoiceManager() {
 
                 if (error) throw error
                 setInvoices([data, ...invoices])
+                logAdminAction(user?.email || 'System', 'CREATE_INVOICE', `สร้างใบแจ้งหนี้ใหม่สำหรับ ${payload.client_name}`)
+            }
+
+            if (editingId && editingId !== 'new') {
+                logAdminAction(user?.email || 'System', 'UPDATE_INVOICE', `แก้ไขใบแจ้งหนี้ของ ${payload.client_name}`)
             }
 
             setIsEditing(false)
@@ -343,6 +357,8 @@ export function InvoiceManager() {
                 due_date: nextDueDate.toISOString().split('T')[0],
                 status: 'pending'
             })
+
+            logAdminAction(user?.email || 'System', 'APPROVE_SLIP', `อนุมัติสลิปและรอบบิลถัดไปให้ ${inv.client_name}`)
 
             // 4. Generate Receipt PDF as base64 to attach to email
             let pdfBase64: string | null = null
@@ -573,7 +589,7 @@ export function InvoiceManager() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-secondary-700 mb-2">สถานะ</label>
+                                <label className="block text-sm font-medium text-secondary-700 mb-2">สถานะบิล (รพ.ชำระเงิน/จ่ายแล้ว)</label>
                                 <select
                                     value={formData.status}
                                     onChange={e => setFormData({ ...formData, status: e.target.value as 'pending' | 'paid' | 'cancelled' })}
@@ -582,6 +598,21 @@ export function InvoiceManager() {
                                     <option value="pending">รอชำระเงิน</option>
                                     <option value="paid">ชำระแล้ว</option>
                                     <option value="cancelled">ยกเลิก</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-secondary-700 mb-2">สถานะงาน (Project Tracker)</label>
+                                <select
+                                    value={formData.project_status}
+                                    onChange={e => setFormData({ ...formData, project_status: e.target.value as 'pending' | 'planning' | 'designing' | 'developing' | 'testing' | 'completed' })}
+                                    className="w-full px-4 py-2 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white"
+                                >
+                                    <option value="pending">รอดำเนินการ (Pending)</option>
+                                    <option value="planning">กำลังวางแผน (Planning)</option>
+                                    <option value="designing">กำลังออกแบบ (Designing)</option>
+                                    <option value="developing">กำลังพัฒนา (Developing)</option>
+                                    <option value="testing">กำลังทดสอบ (Testing)</option>
+                                    <option value="completed">ส่งมอบงานแล้ว (Completed)</option>
                                 </select>
                             </div>
                             <div>
@@ -632,7 +663,8 @@ export function InvoiceManager() {
                             setup_fee: 0,
                             monthly_fee: 0,
                             due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 7 days from now
-                            status: 'pending'
+                            status: 'pending',
+                            project_status: 'pending'
                         })
                         setEditingId('new')
                         setIsEditing(true)
@@ -813,7 +845,8 @@ export function InvoiceManager() {
                                 <th className="p-4 font-medium">ลูกค้า</th>
                                 <th className="p-4 font-medium">รายละเอียด</th>
                                 <th className="p-4 font-medium">ยอดรวม (฿)</th>
-                                <th className="p-4 font-medium">สถานะ</th>
+                                <th className="p-4 font-medium">บิล</th>
+                                <th className="p-4 font-medium">สถานะงาน</th>
                                 <th className="p-4 font-medium">จัดการ</th>
                             </tr>
                         </thead>
@@ -844,6 +877,24 @@ export function InvoiceManager() {
                                             <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
                                                 {getStatusText(invoice.status)}
                                             </span>
+                                        </td>
+                                        <td className="p-4">
+                                            {invoice.tracking_code ? (
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{invoice.tracking_code}</span>
+                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${invoice.project_status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                        invoice.project_status === 'testing' ? 'bg-purple-100 text-purple-700' :
+                                                            invoice.project_status === 'developing' ? 'bg-blue-100 text-blue-700' :
+                                                                invoice.project_status === 'designing' ? 'bg-pink-100 text-pink-700' :
+                                                                    invoice.project_status === 'planning' ? 'bg-amber-100 text-amber-700' :
+                                                                        'bg-slate-100 text-slate-700'
+                                                        }`}>
+                                                        {invoice.project_status?.toUpperCase() || 'PENDING'}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-secondary-400">N/A</span>
+                                            )}
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
