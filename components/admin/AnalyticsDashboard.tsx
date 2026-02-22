@@ -173,9 +173,15 @@ export function AnalyticsDashboard() {
         )
     }
 
-    // Calculations for Progress Bars
-    const maxPackage = Math.max(...(data.popularPackages.map(p => p.count) || [1])) || 1
-    const maxBusiness = Math.max(...(data.businessTypes.map(b => b.count) || [1])) || 1
+    // Calculations for Progress Bars — use ?? [] to guard against null arrays from API
+    const popularPackages = data.popularPackages ?? []
+    const businessTypes = data.businessTypes ?? []
+    const commonIssues = data.commonIssues ?? []
+    const monthlyRenewals = data.monthlyRenewals ?? []
+    const recentTraffic = data.siteTraffic?.recent ?? []
+    const monthlyRevenue = data.revenue?.monthlyData ?? []
+    const maxPackage = Math.max(...(popularPackages.length ? popularPackages.map(p => p.count) : [1])) || 1
+    const maxBusiness = Math.max(...(businessTypes.length ? businessTypes.map(b => b.count) : [1])) || 1
 
     return (
         <div className="space-y-6">
@@ -279,7 +285,7 @@ export function AnalyticsDashboard() {
                         แพ็กเกจที่ได้รับความสนใจสูงสุด
                     </h3>
                     <div className="space-y-5">
-                        {data.popularPackages.sort((a, b) => b.count - a.count).map((pkg, idx) => {
+                        {popularPackages.sort((a, b) => b.count - a.count).map((pkg, idx) => {
                             const percent = Math.round((pkg.count / maxPackage) * 100)
                             return (
                                 <div key={idx}>
@@ -293,7 +299,7 @@ export function AnalyticsDashboard() {
                                 </div>
                             )
                         })}
-                        {data.popularPackages.length === 0 && <p className="text-sm text-secondary-500 text-center py-4">ยังไม่มีข้อมูลเพียงพอ</p>}
+                        {popularPackages.length === 0 && <p className="text-sm text-secondary-500 text-center py-4">ยังไม่มีข้อมูลเพียงพอ</p>}
                     </div>
                 </div>
 
@@ -304,7 +310,7 @@ export function AnalyticsDashboard() {
                         ประเภทธุรกิจของลูกค้า
                     </h3>
                     <div className="space-y-4">
-                        {data.businessTypes.filter(b => b.count > 0).map((biz, idx) => {
+                        {businessTypes.filter(b => b.count > 0).map((biz, idx) => {
                             const percent = Math.round((biz.count / maxBusiness) * 100)
                             return (
                                 <div key={idx} className="flex items-center gap-4">
