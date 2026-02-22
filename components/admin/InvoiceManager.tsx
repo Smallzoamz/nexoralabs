@@ -62,6 +62,7 @@ export function InvoiceManager() {
     const [pendingSubmissions, setPendingSubmissions] = useState<PaymentSubmission[]>([])
     const [viewingSlip, setViewingSlip] = useState<PaymentSubmission | null>(null)
     const [processingSlipId, setProcessingSlipId] = useState<string | null>(null)
+    const [signedSlipUrl, setSignedSlipUrl] = useState<string | null>(null)
     const [paymentConfig, setPaymentConfig] = useState<{
         promptpay_number: string;
         promptpay_name: string;
@@ -370,6 +371,29 @@ export function InvoiceManager() {
         }
     }
 
+    const openSlipViewer = async (submission: PaymentSubmission) => {
+        setViewingSlip(submission)
+        setSignedSlipUrl(null) // reset while loading
+        try {
+            // Extract just the filename/path from the stored public URL
+            const urlPath = submission.slip_url.split('/payment-slips/')[1]
+            if (!urlPath) throw new Error('Invalid slip URL')
+            const { data, error } = await supabase.storage
+                .from('payment-slips')
+                .createSignedUrl(urlPath, 3600) // Valid for 1 hour
+            if (error) throw error
+            setSignedSlipUrl(data.signedUrl)
+        } catch {
+            // Fallback: try to use the original URL (works if bucket is public)
+            setSignedSlipUrl(submission.slip_url)
+        }
+    }
+
+    const closeSlipViewer = () => {
+        setViewingSlip(null)
+        setSignedSlipUrl(null)
+    }
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'paid': return 'bg-green-100 text-green-700'
@@ -563,19 +587,22 @@ export function InvoiceManager() {
 
             {/* Slip Viewer Modal */}
             {viewingSlip && (
-                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setViewingSlip(null)}>
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={closeSlipViewer}>
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="p-5 border-b border-secondary-200 flex justify-between items-start">
                             <div>
                                 <h3 className="font-bold text-secondary-900 text-lg">ตรวจสอบสลิปการชำระเงิน</h3>
                                 <p className="text-sm text-secondary-500 mt-0.5">{viewingSlip.invoice?.client_name} — {viewingSlip.invoice?.package_details}</p>
                             </div>
-                            <button onClick={() => setViewingSlip(null)} className="text-secondary-400 hover:text-secondary-700 text-2xl leading-none">&times;</button>
+                            <button onClick={closeSlipViewer} className="text-secondary-400 hover:text-secondary-700 text-2xl leading-none">&times;</button>
                         </div>
                         <div className="p-5">
                             <div className="bg-secondary-50 rounded-xl overflow-hidden mb-4 flex items-center justify-center min-h-[250px]">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={viewingSlip.slip_url} alt="Payment Slip" className="max-h-[50vh] w-auto object-contain rounded" />
+                                {signedSlipUrl
+                                    ? <img src={signedSlipUrl} alt="Payment Slip" className="max-h-[50vh] w-auto object-contain rounded" />
+                                    : <div className="flex flex-col items-center gap-2 text-slate-400"><Loader2 className="w-8 h-8 animate-spin" /><span className="text-sm">กำลังโหลดรูปสลิป...</span></div>
+                                }
                             </div>
                             <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                                 <div className="bg-secondary-50 rounded-lg p-3">
@@ -587,7 +614,7 @@ export function InvoiceManager() {
                                     <p className="font-medium text-secondary-900">{new Date(viewingSlip.submitted_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                 </div>
                             </div>
-                            <a href={viewingSlip.slip_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-indigo-500 hover:underline mb-4">
+                            <a href={signedSlipUrl ?? '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-indigo-500 hover:underline mb-4">
                                 <ExternalLink className="w-3.5 h-3.5" /> เปิดภาพต้นฉบับ
                             </a>
                             <div className="flex gap-3">
@@ -630,7 +657,7 @@ export function InvoiceManager() {
                                 </div>
                                 <p className="text-xs text-secondary-400 shrink-0">{new Date(sub.submitted_at).toLocaleDateString('th-TH')}</p>
                                 <button
-                                    onClick={() => setViewingSlip(sub)}
+                                    onClick={() => openSlipViewer(sub)}
                                     className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors"
                                 >
                                     ตรวจสอบสลิป
