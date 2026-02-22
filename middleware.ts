@@ -61,26 +61,30 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     }
 
     // --- Analytics Tracking (Fire & Forget) ---
-    // Only track main pages, ignore admin pages
-    try {
-        const ipHash = await hashIP(ip)
-        const userAgent = request.headers.get('user-agent') || 'unknown'
+    // Only track public-facing pages — skip admin, api, _next, static, payment routes
+    const publicPath = !url.pathname.startsWith('/admin') &&
+        !url.pathname.startsWith('/api') &&
+        !url.pathname.startsWith('/_next') &&
+        !url.pathname.startsWith('/favicon') &&
+        !url.pathname.startsWith('/payment') &&
+        !url.pathname.includes('.')
 
-        // We use event.waitUntil to not block the middleware response time but allow fetch to finish
-        const trackingUrl = new URL('/api/track', request.url)
-        event.waitUntil(
-            fetch(trackingUrl.toString(), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ipHash,
-                    userAgent,
-                    path: url.pathname
-                })
-            }).catch(() => { }) // Ignore errors
-        )
-    } catch (e) {
-        // Silently fail tracking if error happens
+    if (publicPath) {
+        try {
+            const ipHash = await hashIP(ip)
+            const userAgent = request.headers.get('user-agent') || 'unknown'
+
+            const trackingUrl = new URL('/api/track', request.url)
+            event.waitUntil(
+                fetch(trackingUrl.toString(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ipHash, userAgent, path: url.pathname })
+                }).catch(() => { })
+            )
+        } catch {
+            // Silently fail tracking if error happens
+        }
     }
     // --- End Analytics Tracking ---
 

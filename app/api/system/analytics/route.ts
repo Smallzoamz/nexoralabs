@@ -35,7 +35,11 @@ export async function GET(request: Request) {
             supabase.from('contact_submissions').select('package_interest, message, company, created_at'),
             supabase.from('clients').select('package_type, is_active, created_at'),
             supabase.from('invoices').select('setup_fee, monthly_fee, status, created_at').eq('status', 'paid'),
-            supabase.from('site_analytics').select('user_agent, visited_at')
+            supabase.from('site_analytics').select('user_agent, visited_at, path')
+                .not('path', 'like', '/admin%')
+                .not('path', 'like', '/api%')
+                .not('path', 'like', '/_next%')
+                .not('path', 'like', '/payment%')
         ])
 
         // 1. Popular Packages

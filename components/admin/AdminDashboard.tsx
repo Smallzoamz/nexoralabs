@@ -73,11 +73,23 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 const newContactsCount = contacts.filter(c => c.status === 'new').length
                 const totalContactsCount = contacts.length
 
+                // Fetch real today's public visitor count from site_analytics
+                const todayStart = new Date()
+                todayStart.setHours(0, 0, 0, 0)
+                const { count: todayVisitors } = await supabase
+                    .from('site_analytics')
+                    .select('id', { count: 'exact', head: true })
+                    .gte('visited_at', todayStart.toISOString())
+                    .not('path', 'like', '/admin%')
+                    .not('path', 'like', '/api%')
+                    .not('path', 'like', '/_next%')
+                    .not('path', 'like', '/payment%')
+
                 setStats([
-                    { label: 'ผู้เยี่ยมชมวันนี้', value: '1,234', change: '+12.5%', trend: 'up', icon: Eye, color: 'primary' }, // Mock visual stat
+                    { label: 'ผู้เยี่ยมชมวันนี้', value: (todayVisitors ?? 0).toLocaleString(), change: 'วันนี้', trend: 'up', icon: Eye, color: 'primary' },
                     { label: 'การติดต่อใหม่', value: newContactsCount.toString(), change: 'วันนี้', trend: 'up', icon: MessageSquare, color: 'green' },
                     { label: 'ลูกค้าทั้งหมด', value: totalContactsCount.toString(), change: 'รวม', trend: 'up', icon: Users, color: 'blue' },
-                    { label: 'อัตราการแปลง', value: '3.2%', change: '-0.5%', trend: 'down', icon: TrendingUp, color: 'amber' }, // Mock visual stat
+                    { label: 'อัตราการแปลง', value: totalContactsCount > 0 ? `${((newContactsCount / totalContactsCount) * 100).toFixed(1)}%` : '0%', change: 'รวม', trend: 'up', icon: TrendingUp, color: 'amber' },
                 ])
 
                 setRecentContacts(contacts.slice(0, 5))
