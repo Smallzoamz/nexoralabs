@@ -16,6 +16,7 @@ const initialSettings = {
     socialLine: '@nexoralabs',
     socialInstagram: '@nexoralabs',
     logoUrl: '',
+    ownerSignature: '',
 }
 
 export function SiteSettings() {
@@ -56,6 +57,7 @@ export function SiteSettings() {
                     socialLine: data.social_line || '',
                     socialInstagram: data.social_instagram || '',
                     logoUrl: data.logo_url || '',
+                    ownerSignature: data.owner_signature || '',
                 })
             }
         } catch (err: unknown) {
@@ -88,6 +90,7 @@ export function SiteSettings() {
                 social_line: settings.socialLine,
                 social_instagram: settings.socialInstagram,
                 logo_url: settings.logoUrl,
+                owner_signature: settings.ownerSignature,
                 updated_at: new Date().toISOString()
             }
 
@@ -319,6 +322,38 @@ export function SiteSettings() {
                                 placeholder="@yourinstagram"
                             />
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Owner Signature */}
+            <div className="bg-white rounded-xl shadow-sm border border-secondary-100">
+                <div className="p-6 border-b border-secondary-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-secondary-900">ลายเซนต์เจ้าของ</h2>
+                            <p className="text-sm text-secondary-500">ลายเซนต์สำหรับเอกสาร PDF</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-6 space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">
+                            ชื่อผู้เซ็นสัญญา / ลายเซนต์
+                        </label>
+                        <input
+                            type="text"
+                            value={settings.ownerSignature}
+                            onChange={(e) => handleChange('ownerSignature', e.target.value)}
+                            placeholder="เช่น นายสมชาย มหาวิทยาลัย"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
+                        />
+                        <p className="text-sm text-secondary-500 mt-2">ใส่ชื่อหรือคำลงนามที่ต้องการแสดงในเอกสารสัญญา</p>
                     </div>
                 </div>
             </div>

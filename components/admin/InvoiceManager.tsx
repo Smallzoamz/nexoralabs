@@ -84,7 +84,8 @@ export function InvoiceManager() {
         description: 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
         email: 'contact@nexoralabs.com',
         website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, ''),
-        address: ''
+        address: '',
+        ownerSignature: ''
     })
 
     // Form state
@@ -117,7 +118,7 @@ export function InvoiceManager() {
                     .select('*, invoice:invoice_id(client_name, client_email, package_details, monthly_fee, setup_fee, due_date)')
                     .eq('status', 'approved')
                     .order('submitted_at', { ascending: false }),
-                supabase.from('site_config').select('site_name, site_description, contact_email, contact_address').limit(1).maybeSingle()
+                supabase.from('site_config').select('site_name, site_description, contact_email, contact_address, owner_signature').limit(1).maybeSingle()
             ])
 
             if (invoicesRes.error) throw invoicesRes.error
@@ -138,7 +139,8 @@ export function InvoiceManager() {
                     name: siteConfRes.data?.site_name || 'Nexora Labs',
                     description: siteConfRes.data?.site_description || 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
                     email: siteConfRes.data?.contact_email || 'contact@nexoralabs.com',
-                    address: siteConfRes.data?.contact_address || ''
+                    address: siteConfRes.data?.contact_address || '',
+                    ownerSignature: siteConfRes.data?.owner_signature || ''
                 }))
             }
         } catch (error) {
@@ -1704,7 +1706,7 @@ export function InvoiceManager() {
                                             <div className="w-56">
                                                 <div className="border-b-2 border-slate-800 mb-1"></div>
                                                 <p className="text-sm font-bold">ลงชื่อ ผู้รับจ้าง</p>
-                                                <p className="text-xs mt-2">({siteInfo.name})</p>
+                                                <p className="text-xs mt-2">({siteInfo.ownerSignature || siteInfo.name})</p>
                                                 <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
                                             </div>
                                         </div>
@@ -1902,7 +1904,7 @@ export function InvoiceManager() {
                                             <div className="w-56">
                                                 <div className="border-b-2 border-slate-800 mb-1"></div>
                                                 <p className="text-sm font-bold">ลงชื่อ ผู้รับจ้าง</p>
-                                                <p className="text-xs mt-2">({siteInfo.name})</p>
+                                                <p className="text-xs mt-2">({siteInfo.ownerSignature || siteInfo.name})</p>
                                                 <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
                                             </div>
                                         </div>
