@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     BarChart3, TrendingUp, Users, Activity,
-    Download, FileText, X, Calculator, RefreshCw, Package, BookOpen, ArrowUpRight, ArrowDownRight, Clock
+    Download, FileText, X, Calculator, RefreshCw, Package, BookOpen, ArrowDownRight, Clock
 } from 'lucide-react'
 import { bahttext } from 'bahttext'
 import { useModal } from '@/lib/modal-context'
