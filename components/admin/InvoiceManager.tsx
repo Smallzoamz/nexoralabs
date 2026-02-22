@@ -181,9 +181,22 @@ export function InvoiceManager() {
                 if (error) throw error
                 setInvoices(invoices.map(inv => inv.id === editingId ? data : inv))
             } else {
+                // Reuse tracking code if same client/project already has one
+                const { data: existingInvoice } = await supabase
+                    .from('invoices')
+                    .select('tracking_code')
+                    .eq('client_name', payload.client_name)
+                    .not('tracking_code', 'is', null)
+                    .limit(1)
+                    .single()
+
+                const insertPayload = existingInvoice?.tracking_code
+                    ? { ...payload, tracking_code: existingInvoice.tracking_code }
+                    : payload
+
                 const { error, data } = await supabase
                     .from('invoices')
-                    .insert([payload])
+                    .insert([insertPayload])
                     .select()
                     .single()
 
@@ -879,22 +892,32 @@ export function InvoiceManager() {
                                             </span>
                                         </td>
                                         <td className="p-4">
-                                            {invoice.tracking_code ? (
-                                                <div className="flex flex-col items-start gap-1">
-                                                    <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{invoice.tracking_code}</span>
-                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${invoice.project_status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                                                        invoice.project_status === 'testing' ? 'bg-purple-100 text-purple-700' :
-                                                            invoice.project_status === 'developing' ? 'bg-blue-100 text-blue-700' :
-                                                                invoice.project_status === 'designing' ? 'bg-pink-100 text-pink-700' :
-                                                                    invoice.project_status === 'planning' ? 'bg-amber-100 text-amber-700' :
-                                                                        'bg-slate-100 text-slate-700'
-                                                        }`}>
-                                                        {invoice.project_status?.toUpperCase() || 'PENDING'}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-xs text-secondary-400">N/A</span>
-                                            )}
+                                            {(() => {
+                                                // Show tracking code only for the first invoice of each project (oldest by created_at)
+                                                const isFirstOfProject = !invoices.some(
+                                                    inv => inv.client_name === invoice.client_name &&
+                                                        inv.tracking_code === invoice.tracking_code &&
+                                                        new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
+                                                )
+
+                                                if (invoice.tracking_code && isFirstOfProject) {
+                                                    return (
+                                                        <div className="flex flex-col items-start gap-1">
+                                                            <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{invoice.tracking_code}</span>
+                                                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${invoice.project_status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                                invoice.project_status === 'testing' ? 'bg-purple-100 text-purple-700' :
+                                                                    invoice.project_status === 'developing' ? 'bg-blue-100 text-blue-700' :
+                                                                        invoice.project_status === 'designing' ? 'bg-pink-100 text-pink-700' :
+                                                                            invoice.project_status === 'planning' ? 'bg-amber-100 text-amber-700' :
+                                                                                'bg-slate-100 text-slate-700'
+                                                                }`}>
+                                                                {invoice.project_status?.toUpperCase() || 'PENDING'}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                }
+                                                return <span className="text-[10px] text-secondary-400">รายเดือน</span>
+                                            })()}
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">

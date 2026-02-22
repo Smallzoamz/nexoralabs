@@ -66,11 +66,12 @@ export async function POST(req: Request) {
                 .replace(/\[PAYMENT_LINK\]/g, `${process.env.NEXT_PUBLIC_SITE_URL}/payment/${invoice.id}`)
         }
 
-        // Check if this is the first invoice for this client (to show tracking code only once)
+        // Check if this is the first invoice for this project (same email + same client name = recurring, skip tracking code)
         const { count: existingCount } = await supabase
             .from('invoices')
             .select('id', { count: 'exact', head: true })
             .eq('client_email', invoice.client_email)
+            .eq('client_name', invoice.client_name)
 
         const isFirstInvoice = (existingCount || 0) <= 1
         const trackingCodeSection = isFirstInvoice && invoice.tracking_code
