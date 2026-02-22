@@ -37,6 +37,11 @@ export function AnalyticsDashboard() {
     const [accYear, setAccYear] = useState(new Date().getFullYear())
     const [expenseForm, setExpenseForm] = useState({ category: 'ค่าเซิร์ฟเวอร์/โฮสติ้ง', description: '', amount: 0, expense_date: new Date().toISOString().split('T')[0] })
     const [isAddingExpense, setIsAddingExpense] = useState(false)
+    const [siteInfo, setSiteInfo] = useState({
+        name: 'Nexora Labs',
+        address: 'กรุงเทพมหานคร, ประเทศไทย',
+        website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, '')
+    })
 
     // Tax Form State
     const [taxData, setTaxData] = useState({
@@ -45,8 +50,8 @@ export function AnalyticsDashboard() {
         payerAddress: '',
         payerTaxId: '',
         receiverName: 'Nexora Labs (เน็กโซร่า แล็บส์)',
-        receiverAddress: '234/56 อาคารซีเนียร์ พารากอน ชั้น 9 เขตบางรัก กรุงเทพมหานคร 10500',
-        receiverTaxId: '01055xxxxxxxx',
+        receiverAddress: 'กรุงเทพมหานคร, ประเทศไทย',
+        receiverTaxId: '-',
         description: 'ค่าบริการออกแบบและพัฒนาระบบเว็บไซต์',
         amount: 25000,
         taxRate: 3, // Default 3% for services
@@ -62,7 +67,8 @@ export function AnalyticsDashboard() {
                 { data: contacts },
                 { data: clients },
                 { data: invoices },
-                { data: analytics }
+                { data: analytics },
+                { data: siteConf }
             ] = await Promise.all([
                 supabase.from('contact_submissions').select('package_interest, message, company, created_at'),
                 supabase.from('clients').select('package_type, is_active, created_at'),
@@ -71,8 +77,24 @@ export function AnalyticsDashboard() {
                     .not('path', 'like', '/admin%')
                     .not('path', 'like', '/api%')
                     .not('path', 'like', '/_next%')
-                    .not('path', 'like', '/payment%')
+                    .not('path', 'like', '/payment%'),
+                supabase.from('site_config').select('site_name, contact_address').limit(1).maybeSingle()
             ])
+
+            if (siteConf) {
+                const fetchedName = siteConf.site_name || 'Nexora Labs'
+                const fetchedAddress = siteConf.contact_address || 'กรุงเทพมหานคร, ประเทศไทย'
+                setSiteInfo(prev => ({
+                    ...prev,
+                    name: fetchedName,
+                    address: fetchedAddress
+                }))
+                setTaxData(prev => ({
+                    ...prev,
+                    receiverName: fetchedName,
+                    receiverAddress: fetchedAddress
+                }))
+            }
 
             // 1. Popular Packages
             const packageCounts: Record<string, number> = {}
@@ -334,7 +356,9 @@ export function AnalyticsDashboard() {
     const handleDownloadAccPdf = async () => {
         const sourceEl = document.getElementById('accounting-report-pdf')
         if (!sourceEl) return
+
         setIsGeneratingPdf(true)
+        sourceEl.style.display = 'block'
 
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
@@ -348,16 +372,7 @@ export function AnalyticsDashboard() {
                     useCORS: true,
                     windowWidth: 750,
                     width: 750,
-                    scrollY: 0,
-                    onclone: (clonedDoc: HTMLDocument) => {
-                        // html2canvas clones the entire DOM. In the cloned DOM, we just 
-                        // make our hidden container fully visible before capture!
-                        const el = clonedDoc.getElementById('accounting-report-pdf')
-                        if (el) {
-                            el.style.display = 'block'
-                            el.classList.remove('hidden')
-                        }
-                    }
+                    scrollY: 0
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).from(sourceEl).save()
@@ -366,6 +381,7 @@ export function AnalyticsDashboard() {
             console.error(e)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ PDF ได้', 'error')
         } finally {
+            sourceEl.style.display = 'none'
             setIsGeneratingPdf(false)
         }
     }
@@ -812,7 +828,7 @@ export function AnalyticsDashboard() {
                                         <div className="space-y-6">
                                             {/* Header for Screen */}
                                             <div className="text-center border-b-2 border-slate-200 pb-4 mb-6">
-                                                <p className="text-xs text-slate-500 uppercase tracking-widest">NEXORA LABS CO., LTD.</p>
+                                                <p className="text-xs text-slate-500 uppercase tracking-widest">{siteInfo.name}</p>
                                                 <h1 className="text-xl font-bold text-slate-900 mt-1">สรุปข้อมูลทางบัญชี (Accounting Overview)</h1>
                                                 <p className="text-sm text-slate-600">สำหรับปีสิ้นสุดวันที่ 31 ธันวาคม พ.ศ. {accYear}</p>
                                             </div>
@@ -1107,8 +1123,8 @@ export function AnalyticsDashboard() {
             <div id="accounting-report-pdf" className="hidden bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans mx-auto" style={{ fontSize: '12px' }}>
                 {/* Header */}
                 <div className="text-center border-b-2 border-black pb-4 mb-8">
-                    <h1 className="text-xl font-bold uppercase tracking-widest">NEXORA LABS COMPANY LIMITED</h1>
-                    <p className="mt-1">234/56 อาคารซีเนียร์ พารากอน ชั้น 9 เขตบางรัก กรุงเทพมหานคร 10500</p>
+                    <h1 className="text-xl font-bold uppercase tracking-widest">{siteInfo.name}</h1>
+                    <p className="mt-1">{siteInfo.address}</p>
                     <h2 className="text-lg font-bold mt-4">รายงานสรุปข้อมูลทางบัญชี (Accounting Report)</h2>
                     <p>สำหรับรอบระยะเวลาบัญชี สิ้นสุดวันที่ 31 ธันวาคม {accYear}</p>
                 </div>

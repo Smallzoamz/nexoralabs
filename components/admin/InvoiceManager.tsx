@@ -78,6 +78,12 @@ export function InvoiceManager() {
         bank_account_no: string;
         bank_account_name: string;
     } | null>(null)
+    const [siteInfo, setSiteInfo] = useState({
+        name: 'Nexora Labs',
+        description: 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
+        email: 'contact@nexoralabs.com',
+        website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, '')
+    })
 
     // Form state
     const [formData, setFormData] = useState({
@@ -93,7 +99,7 @@ export function InvoiceManager() {
 
     const fetchData = useCallback(async () => {
         try {
-            const [invoicesRes, packagesRes, paymentRes, submissionsRes, approvedRes] = await Promise.all([
+            const [invoicesRes, packagesRes, paymentRes, submissionsRes, approvedRes, siteConfRes] = await Promise.all([
                 supabase.from('invoices').select('*').order('created_at', { ascending: false }),
                 supabase.from('packages').select('name, setup_price_min, monthly_price_min').eq('is_active', true).order('order', { ascending: true }),
                 supabase.from('payment_settings').select('*').limit(1).maybeSingle(),
@@ -104,7 +110,8 @@ export function InvoiceManager() {
                 supabase.from('payment_submissions')
                     .select('*, invoice:invoice_id(client_name, client_email, package_details, monthly_fee, setup_fee, due_date)')
                     .eq('status', 'approved')
-                    .order('submitted_at', { ascending: false })
+                    .order('submitted_at', { ascending: false }),
+                supabase.from('site_config').select('site_name, site_description, contact_email').limit(1).maybeSingle()
             ])
 
             if (invoicesRes.error) throw invoicesRes.error
@@ -117,6 +124,15 @@ export function InvoiceManager() {
             }
             if (!approvedRes.error && approvedRes.data) {
                 setApprovedSubmissions(approvedRes.data as unknown as PaymentSubmission[])
+            }
+
+            if (siteConfRes?.data) {
+                setSiteInfo(prev => ({
+                    ...prev,
+                    name: siteConfRes.data?.site_name || 'Nexora Labs',
+                    description: siteConfRes.data?.site_description || 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
+                    email: siteConfRes.data?.contact_email || 'contact@nexoralabs.com',
+                }))
             }
         } catch (error) {
             console.error('Error fetching data:', error)
@@ -1017,10 +1033,10 @@ export function InvoiceManager() {
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-8 border-b-2 border-black pb-6">
                                     <div>
-                                        <h1 className="text-4xl font-bold text-black mb-2 uppercase tracking-wide">Nexora Labs</h1>
-                                        <p className="text-sm text-slate-800">บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร</p>
-                                        <p className="text-sm text-slate-800 mt-2">Email: contact@nexoralabs.com</p>
-                                        <p className="text-sm text-slate-800">Website: www.nexoralabs.com</p>
+                                        <h1 className="text-4xl font-bold text-black mb-2 uppercase tracking-wide">{siteInfo.name}</h1>
+                                        <p className="text-sm text-slate-800">{siteInfo.description}</p>
+                                        <p className="text-sm text-slate-800 mt-2">Email: {siteInfo.email}</p>
+                                        <p className="text-sm text-slate-800">Website: {siteInfo.website}</p>
                                     </div>
                                     <div className="text-right">
                                         <h2 className="text-3xl font-bold text-black tracking-widest mb-2">INVOICE</h2>
@@ -1126,7 +1142,7 @@ export function InvoiceManager() {
 
                                 <div className="absolute bottom-10 left-0 right-0 text-center text-xs text-black border-t border-dashed border-slate-300 pt-4 mx-10">
                                     <p>เอกสารฉบับนี้พิมพ์จากระบบอิเล็กทรอนิกส์</p>
-                                    <p className="mt-1 font-bold">© {new Date().getFullYear()} Nexora Labs.</p>
+                                    <p className="mt-1 font-bold">© {new Date().getFullYear()} {siteInfo.name}.</p>
                                 </div>
                             </div>
 
@@ -1135,10 +1151,10 @@ export function InvoiceManager() {
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-8 border-b-2 border-black pb-6">
                                     <div>
-                                        <h1 className="text-4xl font-bold text-black mb-2 uppercase tracking-wide">Nexora Labs</h1>
-                                        <p className="text-sm text-slate-800">บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร</p>
-                                        <p className="text-sm text-slate-800 mt-2">Email: contact@nexoralabs.com</p>
-                                        <p className="text-sm text-slate-800">Website: www.nexoralabs.com</p>
+                                        <h1 className="text-4xl font-bold text-black mb-2 uppercase tracking-wide">{siteInfo.name}</h1>
+                                        <p className="text-sm text-slate-800">{siteInfo.description}</p>
+                                        <p className="text-sm text-slate-800 mt-2">Email: {siteInfo.email}</p>
+                                        <p className="text-sm text-slate-800">Website: {siteInfo.website}</p>
                                     </div>
                                     <div className="text-right">
                                         <h2 className="text-3xl font-bold text-black tracking-widest mb-2">RECEIPT</h2>
@@ -1225,7 +1241,7 @@ export function InvoiceManager() {
 
                                 <div className="absolute bottom-10 left-0 right-0 text-center text-xs text-black border-t border-dashed border-slate-300 pt-4 mx-10">
                                     <p>เอกสารฉบับนี้พิมพ์จากระบบอิเล็กทรอนิกส์</p>
-                                    <p className="mt-1 font-bold">© {new Date().getFullYear()} Nexora Labs.</p>
+                                    <p className="mt-1 font-bold">© {new Date().getFullYear()} {siteInfo.name}.</p>
                                 </div>
                             </div>
                         </>

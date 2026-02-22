@@ -10,7 +10,7 @@ export const defaultViewport: Viewport = {
     ],
 }
 
-export interface SEOConfig {
+interface SEOConfig {
     title: string
     description: string
     keywords?: string[]
@@ -128,19 +128,7 @@ export const defaultSEO: SEOConfig = {
     type: 'website',
 }
 
-export const packageSEO: SEOConfig = {
-    title: 'แพ็กเกจบริการ - Standard & Pro',
-    description:
-        'เลือกแพ็กเกจที่เหมาะกับธุรกิจคุณ Standard เริ่มต้น 10,000 บาท หรือ Pro สำหรับธุรกิจที่จริงจัง เริ่มต้น 22,000 บาท',
-    keywords: [
-        'แพ็กเกจเว็บไซต์',
-        'ราคาเว็บไซต์',
-        'Standard Package',
-        'Pro Package',
-        'เว็บไซต์ราคาประหยัด',
-    ],
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/packages`,
-}
+
 
 export const privacySEO: SEOConfig = {
     title: 'นโยบายความเป็นส่วนตัว',

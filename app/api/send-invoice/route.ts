@@ -41,11 +41,15 @@ export async function POST(req: Request) {
             day: 'numeric'
         })
 
-        const { data: template } = await supabase
-            .from('email_templates')
-            .select('*')
-            .eq('template_name', 'INVOICE')
-            .single()
+        const [
+            { data: template },
+            { data: siteConfig }
+        ] = await Promise.all([
+            supabase.from('email_templates').select('*').eq('template_name', 'INVOICE').single(),
+            supabase.from('site_config').select('site_name').limit(1).maybeSingle()
+        ])
+
+        const companyName = siteConfig?.site_name || 'Nexora Labs'
 
         let customBody = `<p style="font-size: 16px; color: #334155;">เรียน <strong>${invoice.client_name}</strong>,</p>
                 <p style="color: #475569; line-height: 1.6;">รายละเอียดใบแจ้งหนี้สำหรับบริการ <strong>${invoice.package_details}</strong> พร้อมให้บริการชำระเงินแล้ว รายละเอียดมีดังนี้:</p>`
@@ -87,7 +91,7 @@ export async function POST(req: Request) {
         <div style="font-family: 'Sarabun', 'Prompt', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px;">
             
             <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #4f46e5; margin: 0; font-size: 28px;">Nexora Labs</h1>
+                <h1 style="color: #4f46e5; margin: 0; font-size: 28px;">${companyName}</h1>
                 <p style="color: #64748b; margin-top: 5px;">ใบแจ้งหนี้ / E-Invoice</p>
             </div>
 
@@ -130,12 +134,12 @@ export async function POST(req: Request) {
                 </p>
 
                 <div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
-                    <p style="color: #94a3b8; font-size: 13px; margin: 0;">หากมีข้อซักถาม กรุณาติดต่อทางเรา <br>ขอขอบพระคุณที่ไว้วางใจ Nexora Labs</p>
+                    <p style="color: #94a3b8; font-size: 13px; margin: 0;">หากมีข้อซักถาม กรุณาติดต่อทางเรา <br>ขอขอบพระคุณที่ไว้วางใจ ${companyName}</p>
                 </div>
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <p style="color: #94a3b8; font-size: 12px;">© ${new Date().getFullYear()} Nexora Labs. All rights reserved.</p>
+                <p style="color: #94a3b8; font-size: 12px;">© ${new Date().getFullYear()} ${companyName}. All rights reserved.</p>
             </div>
         </div>
         `
@@ -155,7 +159,7 @@ export async function POST(req: Request) {
 
         // Send Email
         const info = await transporter.sendMail({
-            from: `"Nexora Labs | Billing Team" <${process.env.EMAIL_USER}>`,
+            from: `"${companyName} | Billing Team" <${process.env.EMAIL_USER}>`,
             to: invoice.client_email,
             subject: customSubject,
             html: htmlTemplate,

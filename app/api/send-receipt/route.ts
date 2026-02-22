@@ -39,11 +39,16 @@ export async function POST(req: Request) {
             </svg>
         </div>`
 
-        const { data: template } = await supabase
-            .from('email_templates')
-            .select('*')
-            .eq('template_name', 'RECEIPT')
-            .single()
+        const [
+            { data: template },
+            { data: siteConfig }
+        ] = await Promise.all([
+            supabase.from('email_templates').select('*').eq('template_name', 'RECEIPT').single(),
+            supabase.from('site_config').select('site_name, contact_email').limit(1).maybeSingle()
+        ])
+
+        const companyName = siteConfig?.site_name || 'Nexora Labs'
+        const companyEmail = siteConfig?.contact_email || 'contact@nexoralabs.com'
 
         let customBody = `<p style="font-size:16px;color:#334155;margin:0 0 8px;">เรียน <strong>${invoice.client_name}</strong>,</p>
                     <p style="color:#475569;line-height:1.7;margin:0 0 28px;">เราได้รับยืนยันการชำระเงินค่าบริการของท่านเรียบร้อยแล้ว ขอขอบพระคุณที่ไว้วางใจ Nexora Labs ครับ 🙏</p>`
@@ -76,7 +81,7 @@ export async function POST(req: Request) {
                 <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f0fdf4;">
                     ${checkmarkSvg}
                     <h1 style="margin:0 0 6px;font-size:26px;font-weight:800;color:#15803d;letter-spacing:-0.5px;">ชำระเงินสำเร็จ! 🎉</h1>
-                    <p style="margin:0;color:#64748b;font-size:14px;">Nexora Labs | Billing Team</p>
+                    <p style="margin:0;color:#64748b;font-size:14px;">${companyName} | Billing Team</p>
                 </div>
 
                 <!-- Body -->
@@ -111,13 +116,13 @@ export async function POST(req: Request) {
                     ${pdfBase64 ? '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;margin-bottom:24px;"><p style="margin:0;color:#1e40af;font-size:14px;">📎 ใบเสร็จรับเงินแบบ PDF แนบมาพร้อมอีเมลฉบับนี้แล้วครับ</p></div>' : ''}
 
                     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;">
-                        <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">📋 ท่านจะได้รับบิลสำหรับเดือนถัดไปตามรอบปกติ หากมีข้อสงสัย ติดต่อเราได้ที่ <a href="mailto:contact@nexoralabs.com" style="color:#d97706;font-weight:600;">contact@nexoralabs.com</a></p>
+                        <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">📋 ท่านจะได้รับบิลสำหรับเดือนถัดไปตามรอบปกติ หากมีข้อสงสัย ติดต่อเราได้ที่ <a href="mailto:${companyEmail}" style="color:#d97706;font-weight:600;">${companyEmail}</a></p>
                     </div>
                 </div>
 
                 <!-- Footer -->
                 <div style="padding:20px 40px 28px;text-align:center;border-top:1px solid #f1f5f9;">
-                    <p style="color:#94a3b8;font-size:12px;margin:0;line-height:1.8;">ขอบคุณที่ไว้วางใจ <strong>Nexora Labs</strong><br/>© ${new Date().getFullYear()} Nexora Labs | Billing Team</p>
+                    <p style="color:#94a3b8;font-size:12px;margin:0;line-height:1.8;">ขอบคุณที่ไว้วางใจ <strong>${companyName}</strong><br/>© ${new Date().getFullYear()} ${companyName} | Billing Team</p>
                 </div>
             </div>
 
@@ -141,7 +146,7 @@ export async function POST(req: Request) {
         }
 
         await transporter.sendMail({
-            from: `"Nexora Labs | Billing Team" <${process.env.EMAIL_USER}>`,
+            from: `"${companyName} | Billing Team" <${process.env.EMAIL_USER}>`,
             to: invoice.client_email,
             subject: customSubject,
             html: htmlTemplate,
