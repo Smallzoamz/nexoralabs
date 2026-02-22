@@ -361,6 +361,16 @@ export function InvoiceManager() {
             const inv = submission.invoice
             const nextDueDate = new Date(inv.due_date)
             nextDueDate.setMonth(nextDueDate.getMonth() + 1)
+
+            // Reuse tracking code from same client/project
+            const { data: existingCode } = await supabase
+                .from('invoices')
+                .select('tracking_code')
+                .eq('client_name', inv.client_name)
+                .not('tracking_code', 'is', null)
+                .limit(1)
+                .single()
+
             await supabase.from('invoices').insert({
                 client_name: inv.client_name,
                 client_email: inv.client_email,
@@ -368,7 +378,8 @@ export function InvoiceManager() {
                 setup_fee: 0,
                 monthly_fee: inv.monthly_fee,
                 due_date: nextDueDate.toISOString().split('T')[0],
-                status: 'pending'
+                status: 'pending',
+                ...(existingCode?.tracking_code ? { tracking_code: existingCode.tracking_code } : {})
             })
 
             logAdminAction(user?.email || 'System', 'APPROVE_SLIP', `อนุมัติสลิปและรอบบิลถัดไปให้ ${inv.client_name}`)
