@@ -24,7 +24,7 @@ const serviceSchema = z.object({
 
 const testimonialSchema = z.object({
     client_name: z.string().min(1, 'กรุณากรอกชื่อลูกค้า').max(100, 'ชื่อลูกค้ายาวเกินไป'),
-    client_company: z.string().max(100, 'ชื่อบริษัทยาวเกินไป'),
+    client_company: z.string().max(100, 'ชื่อบริษัทยาวเกินไป').optional(),
     content: z.string().min(1, 'กรุณากรอกรีวิว').max(1000, 'รีวิวยาวเกินไป'),
     rating: z.number().min(1).max(5),
     is_active: z.boolean(),
@@ -76,6 +76,8 @@ interface TestimonialItem {
     client_name: string;
     client_company: string;
     content: string;
+    is_active?: boolean;
+    rating?: number;
 }
 
 export function ContentManager() {
@@ -249,6 +251,25 @@ export function ContentManager() {
         } catch (err: unknown) {
             console.error(err)
             showAlert('ข้อผิดพลาด', 'ลบไม่สำเร็จ', 'error')
+        }
+    }
+
+    const handleToggleTestimonialActivity = async (id: string, currentStatus: boolean) => {
+        try {
+            const { error } = await supabase
+                .from('testimonials')
+                .update({ is_active: !currentStatus })
+                .eq('id', id)
+
+            if (error) throw error
+
+            setTestimonialsData(testimonialsData.map(t =>
+                t.id === id ? { ...t, is_active: !currentStatus } : t
+            ))
+            showAlert('สำเร็จ', `เปลี่ยนสถานะเป็น ${!currentStatus ? 'แสดงผล' : 'ซ่อน'} แล้ว`, 'success')
+        } catch (err) {
+            console.error(err)
+            showAlert('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ', 'error')
         }
     }
 
@@ -472,16 +493,30 @@ export function ContentManager() {
                                     <h4 className="font-medium text-secondary-900">รีวิวที่มีอยู่ ({testimonialsData.length})</h4>
                                     {testimonialsData.map((testimonial, idx) => (
                                         <div key={testimonial.id || idx} className="flex items-center justify-between p-4 bg-secondary-50 border border-secondary-100 rounded-xl">
-                                            <div>
-                                                <h5 className="font-semibold text-secondary-900">{testimonial.client_name} <span className="text-xs text-secondary-500">({testimonial.client_company})</span></h5>
-                                                <p className="text-sm text-secondary-500 line-clamp-1">&quot;{testimonial.content as string}&quot;</p>
+                                            <div className="flex-1 mr-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h5 className="font-semibold text-secondary-900">{testimonial.client_name}</h5>
+                                                    <span className="text-xs text-secondary-500">({testimonial.client_company || 'ไม่ระบุ'})</span>
+                                                    {!testimonial.is_active && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium border border-amber-200">รออนุมัติ</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-secondary-500 line-clamp-2">&quot;{testimonial.content as string}&quot;</p>
                                             </div>
-                                            <button
-                                                className="p-2 text-secondary-400 hover:text-red-600 transition-colors"
-                                                onClick={() => handleDeleteTestimonial(testimonial.id)}
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <button
+                                                    onClick={() => handleToggleTestimonialActivity(testimonial.id, !!testimonial.is_active)}
+                                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${testimonial.is_active ? 'bg-secondary-200 text-secondary-700 hover:bg-secondary-300' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                                                >
+                                                    {testimonial.is_active ? 'ซ่อน' : 'อนุมัติ'}
+                                                </button>
+                                                <button
+                                                    className="p-2 text-secondary-400 hover:text-red-600 transition-colors"
+                                                    onClick={() => handleDeleteTestimonial(testimonial.id)}
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
