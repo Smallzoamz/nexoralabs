@@ -896,7 +896,7 @@ export function InvoiceManager() {
                                                 // Show tracking code only for the first invoice of each project (oldest by created_at)
                                                 const isFirstOfProject = !invoices.some(
                                                     inv => inv.client_name === invoice.client_name &&
-                                                        inv.tracking_code === invoice.tracking_code &&
+                                                        inv.id !== invoice.id &&
                                                         new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
                                                 )
 
