@@ -332,18 +332,21 @@ export function AnalyticsDashboard() {
     }
 
     const handleDownloadAccPdf = async () => {
-        const el = document.getElementById('accounting-report-pdf')
-        if (!el) return
+        const sourceEl = document.getElementById('accounting-report-pdf')
+        if (!sourceEl) return
         setIsGeneratingPdf(true)
+
+        // Deep clone to safely inject at document.body level without destroying React's DOM tree
+        const printDiv = sourceEl.cloneNode(true) as HTMLElement
+        printDiv.id = 'print-acc-clone'
+        printDiv.className = "bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans absolute top-0 left-0 z-[99999]"
+        printDiv.style.display = 'block'
+        document.body.appendChild(printDiv)
+
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
 
-            // Make it visible and force it into the very front viewport to ensure browser paints it
-            const origClass = el.className
-            // Adjust width down slightly from full 794px A4 pixel equivalent so there is breathing room
-            el.className = "bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans fixed top-0 left-0 z-[99999] block"
-
-            // Wait for browser to actually paint the element before capturing
+            // Wait for browser to actually paint the injected cloned element before capturing
             await new Promise(resolve => setTimeout(resolve, 150))
 
             await html2pdfModule().set({
@@ -352,14 +355,16 @@ export function AnalyticsDashboard() {
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, windowWidth: 750, width: 750, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(el).save()
+            }).from(printDiv).save()
 
-            // Restore hidden state
-            el.className = origClass
         } catch (e) {
             console.error(e)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ PDF ได้', 'error')
         } finally {
+            // Clean up the cloned node
+            if (printDiv && printDiv.parentNode) {
+                printDiv.parentNode.removeChild(printDiv)
+            }
             setIsGeneratingPdf(false)
         }
     }
@@ -1087,7 +1092,8 @@ export function AnalyticsDashboard() {
                                                 </div>
                                             </div>
 
-                                            {/* ── HIDDEN PRINT VIEW (FORMAL ACCOUNTING A4 PDF) ── */}
+                                            {/* ── HIDDEN PRINT VIEW PORTAL (FORMAL ACCOUNTING A4 PDF) ── */}
+                                            {/* ── HIDDEN PRINT VIEW PORTAL (FORMAL ACCOUNTING A4 PDF) ── */}
                                             <div id="accounting-report-pdf" className="hidden bg-white text-black w-[750px] min-h-[1050px] p-8 font-sans mx-auto" style={{ fontSize: '12px' }}>
                                                 {/* Header */}
                                                 <div className="text-center border-b-2 border-black pb-4 mb-8">
