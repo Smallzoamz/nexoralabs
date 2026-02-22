@@ -15,44 +15,6 @@ interface TestimonialData {
     avatar: string | null
 }
 
-const defaultTestimonials: TestimonialData[] = [
-    {
-        id: 1,
-        name: 'คุณสมชาย วิริยะกุล',
-        position: 'เจ้าของร้าน',
-        company: 'ร้านอาหารบ้านสมชาย',
-        content: 'บริการดีมากครับ ทีมงานใส่ใจทุกรายละเอียด เว็บไซต์สวยและใช้งานง่าย ลูกค้าเข้ามาสั่งอาหารเพิ่มขึ้น 30% เลย',
-        rating: 5,
-        avatar: null,
-    },
-    {
-        id: 2,
-        name: 'คุณนภา สุขสันต์',
-        position: 'ผู้จัดการ',
-        company: 'บริษัท สยามเทรดดิ้ง จำกัด',
-        content: 'ระบบ Admin Panel ใช้งานง่ายมาก พนักงานสามารถอัปเดตสินค้าเองได้ ไม่ต้องพึ่งโปรแกรมเมอร์ ประหยัดเวลาและค่าใช้จ่ายไปได้เยอะ',
-        rating: 5,
-        avatar: null,
-    },
-    {
-        id: 3,
-        name: 'คุณวิภา ชัยมงคล',
-        position: 'CEO',
-        company: 'สตาร์ทอัพ เทคโนโลยี',
-        content: 'เริ่มต้นธุรกิจกับเว็บไซต์ที่ดูมืออาชีพ ทำให้ลูกค้าเชื่อมั่นในบริการของเรามากขึ้น ราคาไม่แพงแต่ได้คุณภาพเกินราคา',
-        rating: 5,
-        avatar: null,
-    },
-    {
-        id: 4,
-        name: 'คุณธนพล รักษ์โลก',
-        position: 'เจ้าของกิจการ',
-        company: 'ร้านกาแฟ Green Bean',
-        content: 'ทีมซัพพอร์ตตอบไวมาก มีปัญหาอะไรแจ้งไปตอบกลับภายในไม่กี่นาที สบายใจมากที่มีคนดูแลเว็บไซต์ให้ตลอด 24 ชม.',
-        rating: 5,
-        avatar: null,
-    },
-]
 
 export function TestimonialsSection() {
     const [testimonials, setTestimonials] = useState<TestimonialData[]>([])
@@ -88,17 +50,15 @@ export function TestimonialsSection() {
         fetchTestimonials()
     }, [])
 
-    const displayTestimonials = testimonials.length > 0 ? testimonials : defaultTestimonials
-
     const next = () => {
-        setCurrentIndex((prev) => (prev + 1) % displayTestimonials.length)
+        setCurrentIndex((prev) => (prev + 1) % testimonials.length)
     }
 
     const prev = () => {
-        setCurrentIndex((prev) => (prev - 1 + displayTestimonials.length) % displayTestimonials.length)
+        setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
     }
 
-    if (displayTestimonials.length === 0) return null
+    if (testimonials.length === 0) return null
 
     return (
         <section className="section-padding gradient-bg overflow-hidden">
@@ -145,7 +105,7 @@ export function TestimonialsSection() {
                                 {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
-                                        className={`w-5 h-5 ${i < displayTestimonials[currentIndex].rating
+                                        className={`w-5 h-5 ${i < testimonials[currentIndex].rating
                                             ? 'text-amber-400 fill-amber-400'
                                             : 'text-secondary-200'
                                             }`}
@@ -155,20 +115,20 @@ export function TestimonialsSection() {
 
                             {/* Content */}
                             <p className="text-lg md:text-xl text-secondary-700 leading-loose mb-8">
-                                &quot;{displayTestimonials[currentIndex].content}&quot;
+                                &quot;{testimonials[currentIndex].content}&quot;
                             </p>
 
                             {/* Author */}
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-xl">
-                                    {displayTestimonials[currentIndex].name.charAt(0)}
+                                    {testimonials[currentIndex].name.charAt(0)}
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-secondary-900">
-                                        {displayTestimonials[currentIndex].name}
+                                        {testimonials[currentIndex].name}
                                     </h4>
                                     <p className="text-sm text-secondary-500">
-                                        {displayTestimonials[currentIndex].position} • {displayTestimonials[currentIndex].company}
+                                        {testimonials[currentIndex].position} • {testimonials[currentIndex].company}
                                     </p>
                                 </div>
                             </div>
@@ -186,7 +146,7 @@ export function TestimonialsSection() {
 
                         {/* Dots */}
                         <div className="flex gap-2">
-                            {displayTestimonials.map((_, index) => (
+                            {testimonials.map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setCurrentIndex(index)}
@@ -194,6 +154,7 @@ export function TestimonialsSection() {
                                         ? 'bg-primary-500 w-8'
                                         : 'bg-secondary-300 hover:bg-secondary-400'
                                         }`}
+                                    aria-label={`Go to testimonial ${index + 1}`}
                                 />
                             ))}
                         </div>
