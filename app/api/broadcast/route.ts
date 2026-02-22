@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         }
 
         // Get unique emails using Set (handles any duplicates)
-        const uniqueEmails = [...new Set(invoices.map(inv => inv.client_email).filter(Boolean))]
+        const uniqueEmails = Array.from(new Set(invoices.map(inv => inv.client_email).filter(Boolean)))
 
         if (uniqueEmails.length === 0) {
             return NextResponse.json({ error: 'No valid client emails found' }, { status: 404 })
