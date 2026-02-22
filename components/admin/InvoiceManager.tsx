@@ -181,9 +181,27 @@ export function InvoiceManager() {
                 if (error) throw error
                 setInvoices(invoices.map(inv => inv.id === editingId ? data : inv))
             } else {
+                // Reuse tracking code if same client already has one
+                let existingTrackingCode: string | null = null
+                const { data: existingInvoice } = await supabase
+                    .from('invoices')
+                    .select('tracking_code')
+                    .eq('client_email', payload.client_email)
+                    .not('tracking_code', 'is', null)
+                    .limit(1)
+                    .single()
+
+                if (existingInvoice?.tracking_code) {
+                    existingTrackingCode = existingInvoice.tracking_code
+                }
+
+                const insertPayload = existingTrackingCode
+                    ? { ...payload, tracking_code: existingTrackingCode }
+                    : payload
+
                 const { error, data } = await supabase
                     .from('invoices')
-                    .insert([payload])
+                    .insert([insertPayload])
                     .select()
                     .single()
 

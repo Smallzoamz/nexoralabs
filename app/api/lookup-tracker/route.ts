@@ -22,11 +22,13 @@ export async function POST(req: Request) {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-        // Query the invoice using the tracking code
+        // Query the latest invoice using the tracking code
         const { data, error } = await supabase
             .from('invoices')
             .select('client_name, package_details, project_status, created_at, updated_at')
             .eq('tracking_code', trackingCode)
+            .order('updated_at', { ascending: false })
+            .limit(1)
             .maybeSingle()
 
         if (error) {
