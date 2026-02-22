@@ -176,10 +176,6 @@ export function AnalyticsDashboard() {
     // Calculations for Progress Bars — use ?? [] to guard against null arrays from API
     const popularPackages = data.popularPackages ?? []
     const businessTypes = data.businessTypes ?? []
-    const commonIssues = data.commonIssues ?? []
-    const monthlyRenewals = data.monthlyRenewals ?? []
-    const recentTraffic = data.siteTraffic?.recent ?? []
-    const monthlyRevenue = data.revenue?.monthlyData ?? []
     const maxPackage = Math.max(...(popularPackages.length ? popularPackages.map(p => p.count) : [1])) || 1
     const maxBusiness = Math.max(...(businessTypes.length ? businessTypes.map(b => b.count) : [1])) || 1
 

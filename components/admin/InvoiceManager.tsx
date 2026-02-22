@@ -657,8 +657,8 @@ export function InvoiceManager() {
                         </div>
                         <div className="p-5">
                             <div className="bg-secondary-50 rounded-xl overflow-hidden mb-4 flex items-center justify-center min-h-[250px]">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 {signedSlipUrl
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     ? <img src={signedSlipUrl} alt="Payment Slip" className="max-h-[50vh] w-auto object-contain rounded" />
                                     : <div className="flex flex-col items-center gap-2 text-slate-400"><Loader2 className="w-8 h-8 animate-spin" /><span className="text-sm">กำลังโหลดรูปสลิป...</span></div>
                                 }
