@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Plus, Edit2, Trash2, Mail, FileDown, Receipt, CheckCheck, XCircle, ExternalLink, Loader2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Mail, FileDown, Receipt, CheckCheck, XCircle, ExternalLink, Loader2, Download, FileArchive } from 'lucide-react'
 import { z } from 'zod'
 import { useModal } from '@/lib/modal-context'
 
@@ -60,9 +60,11 @@ export function InvoiceManager() {
     const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null)
     const [downloadingReceiptId, setDownloadingReceiptId] = useState<string | null>(null)
     const [pendingSubmissions, setPendingSubmissions] = useState<PaymentSubmission[]>([])
+    const [approvedSubmissions, setApprovedSubmissions] = useState<PaymentSubmission[]>([])
     const [viewingSlip, setViewingSlip] = useState<PaymentSubmission | null>(null)
     const [processingSlipId, setProcessingSlipId] = useState<string | null>(null)
     const [signedSlipUrl, setSignedSlipUrl] = useState<string | null>(null)
+    const [slipYearFilter, setSlipYearFilter] = useState(new Date().getFullYear())
     const [paymentConfig, setPaymentConfig] = useState<{
         promptpay_number: string;
         promptpay_name: string;
@@ -84,13 +86,17 @@ export function InvoiceManager() {
 
     const fetchData = useCallback(async () => {
         try {
-            const [invoicesRes, packagesRes, paymentRes, submissionsRes] = await Promise.all([
+            const [invoicesRes, packagesRes, paymentRes, submissionsRes, approvedRes] = await Promise.all([
                 supabase.from('invoices').select('*').order('created_at', { ascending: false }),
                 supabase.from('packages').select('name, setup_price_min, monthly_price_min').eq('is_active', true).order('order', { ascending: true }),
                 supabase.from('payment_settings').select('*').limit(1).maybeSingle(),
                 supabase.from('payment_submissions')
                     .select('*, invoice:invoice_id(client_name, client_email, package_details, monthly_fee, setup_fee, due_date)')
                     .eq('status', 'pending')
+                    .order('submitted_at', { ascending: false }),
+                supabase.from('payment_submissions')
+                    .select('*, invoice:invoice_id(client_name, client_email, package_details, monthly_fee, setup_fee, due_date)')
+                    .eq('status', 'approved')
                     .order('submitted_at', { ascending: false })
             ])
 
@@ -101,6 +107,9 @@ export function InvoiceManager() {
             if (paymentRes.data) setPaymentConfig(paymentRes.data)
             if (!submissionsRes.error && submissionsRes.data) {
                 setPendingSubmissions(submissionsRes.data as unknown as PaymentSubmission[])
+            }
+            if (!approvedRes.error && approvedRes.data) {
+                setApprovedSubmissions(approvedRes.data as unknown as PaymentSubmission[])
             }
         } catch (error) {
             console.error('Error fetching data:', error)
@@ -415,6 +424,30 @@ export function InvoiceManager() {
         setSignedSlipUrl(null)
     }
 
+    const handleDownloadSlip = async (submission: PaymentSubmission) => {
+        try {
+            const urlPath = submission.slip_url.split('/payment-slips/')[1]
+            if (!urlPath) throw new Error('Invalid slip URL')
+            const { data, error } = await supabase.storage
+                .from('payment-slips')
+                .createSignedUrl(urlPath, 60) // 60 second download window
+            if (error) throw error
+
+            // Trigger download via temp anchor element
+            const a = document.createElement('a')
+            a.href = data.signedUrl
+            const ext = urlPath.split('.').pop() ?? 'jpg'
+            const date = new Date(submission.submitted_at).toISOString().split('T')[0]
+            a.download = `Slip_${submission.invoice?.client_name?.replace(/\s+/g, '_')}_${date}.${ext}`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'ดาวน์โหลดไม่สำเร็จ'
+            showAlert('ข้อผิดพลาด', msg, 'error')
+        }
+    }
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'paid': return 'bg-green-100 text-green-700'
@@ -686,6 +719,84 @@ export function InvoiceManager() {
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* Payment History Section - for tax filing */}
+            {approvedSubmissions.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+                    <div className="p-5 border-b border-secondary-200 flex items-center justify-between gap-4 flex-wrap">
+                        <div>
+                            <h3 className="font-bold text-secondary-900 flex items-center gap-2">
+                                <FileArchive className="w-5 h-5 text-indigo-500" />
+                                ประวัติการชำระเงิน
+                            </h3>
+                            <p className="text-xs text-secondary-500 mt-0.5">สลิปที่ยืนยันแล้ว — สำหรับรวบรวมยื่นภาษีเงินได้</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <select
+                                value={slipYearFilter}
+                                onChange={e => setSlipYearFilter(Number(e.target.value))}
+                                className="text-sm border border-secondary-200 rounded-lg px-3 py-1.5 bg-white text-secondary-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            >
+                                {Array.from(new Set(approvedSubmissions.map(s => new Date(s.submitted_at).getFullYear())))
+                                    .sort((a, b) => b - a)
+                                    .map(yr => <option key={yr} value={yr}>{yr}</option>)
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Year Summary */}
+                    {(() => {
+                        const filtered = approvedSubmissions.filter(s => new Date(s.submitted_at).getFullYear() === slipYearFilter)
+                        const totalYear = filtered.reduce((sum, s) => sum + Number(s.amount), 0)
+                        return (
+                            <>
+                                <div className="px-5 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center gap-4 text-sm">
+                                    <span className="text-indigo-700">ปี {slipYearFilter} | รายการ <strong>{filtered.length}</strong> บิล | รายรับรวม <strong className="text-indigo-900">฿{totalYear.toLocaleString('th-TH')}</strong></span>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr className="bg-secondary-50 border-b border-secondary-200 text-secondary-500 text-xs">
+                                                <th className="px-5 py-3 font-medium">ลูกค้า</th>
+                                                <th className="px-5 py-3 font-medium">บริการ</th>
+                                                <th className="px-5 py-3 font-medium">วันที่ชำระ</th>
+                                                <th className="px-5 py-3 font-medium text-right">ยอด (฿)</th>
+                                                <th className="px-5 py-3 font-medium text-center">สลิป</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-secondary-100">
+                                            {filtered.length === 0 ? (
+                                                <tr><td colSpan={5} className="px-5 py-6 text-center text-secondary-400">ไม่มีข้อมูลในปี {slipYearFilter}</td></tr>
+                                            ) : filtered.map(sub => (
+                                                <tr key={sub.id} className="hover:bg-secondary-50/60 transition-colors">
+                                                    <td className="px-5 py-3">
+                                                        <p className="font-medium text-secondary-900">{sub.invoice?.client_name}</p>
+                                                        <p className="text-xs text-secondary-400">{sub.invoice?.client_email}</p>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-secondary-700">{sub.invoice?.package_details}</td>
+                                                    <td className="px-5 py-3 text-secondary-700">{new Date(sub.submitted_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                                    <td className="px-5 py-3 text-right font-semibold text-secondary-900">฿{Number(sub.amount).toLocaleString('th-TH')}</td>
+                                                    <td className="px-5 py-3 text-center">
+                                                        <button
+                                                            onClick={() => handleDownloadSlip(sub)}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition-colors"
+                                                            title="ดาวน์โหลดสลิป"
+                                                        >
+                                                            <Download className="w-3.5 h-3.5" />
+                                                            ดาวน์โหลด
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        )
+                    })()}
                 </div>
             )}
 
