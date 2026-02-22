@@ -209,7 +209,7 @@ export function PackagesSection() {
                                         'text-sm',
                                         pkg.highlight ? 'text-white/70' : 'text-secondary-500'
                                     )}>
-                                        รายเดือน
+                                        ค่าดูแลรายเดือน
                                     </span>
                                     <div className={cn(
                                         'text-2xl font-display font-bold',

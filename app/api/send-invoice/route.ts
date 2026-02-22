@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-        const { invoice, pdfBase64 } = body
+        const { invoice, pdfBase64, serviceContractBase64, installmentScheduleBase64 } = body
 
         if (!invoice || !invoice.client_email) {
             return NextResponse.json(
@@ -151,6 +151,28 @@ export async function POST(req: Request) {
             const base64Data = pdfBase64.split('base64,')[1] || pdfBase64
             attachments.push({
                 filename: `Invoice_${invoice.client_name.replace(/\s+/g, '_')}_${new Date(invoice.created_at || Date.now()).getTime()}.pdf`,
+                content: base64Data,
+                encoding: 'base64',
+                contentType: 'application/pdf'
+            })
+        }
+
+        // Add Service Contract if provided
+        if (serviceContractBase64) {
+            const base64Data = serviceContractBase64.split('base64,')[1] || serviceContractBase64
+            attachments.push({
+                filename: `สัญญาจ้าง_${invoice.client_name.replace(/\s+/g, '_')}.pdf`,
+                content: base64Data,
+                encoding: 'base64',
+                contentType: 'application/pdf'
+            })
+        }
+
+        // Add Installment Schedule if provided
+        if (installmentScheduleBase64) {
+            const base64Data = installmentScheduleBase64.split('base64,')[1] || installmentScheduleBase64
+            attachments.push({
+                filename: `ตารางการแบ่งชำระ_${invoice.client_name.replace(/\s+/g, '_')}.pdf`,
                 content: base64Data,
                 encoding: 'base64',
                 contentType: 'application/pdf'

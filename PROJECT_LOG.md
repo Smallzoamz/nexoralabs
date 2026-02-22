@@ -8,6 +8,26 @@
 
 ---
 
+## Recent Updates
+
+### 2026-02-22 | File: InvoiceManager.tsx, send-invoice/route.ts | Status: ✅ Completed
+- **Change:** Email attachments - Added Service Contract and Installment Schedule PDFs to email
+- **Details:**
+  1. **Email Attachments:**
+     - First invoice (all payments): Service Contract PDF (สัญญาจ้าง)
+     - Installment payments: Add Installment Schedule PDF (ตารางการแบ่งชำระ)
+     - Invoice PDF is always attached
+  
+  2. **API Update:**
+     - Modified `/api/send-invoice` to accept multiple attachments
+     - Added `serviceContractBase64` and `installmentScheduleBase64` parameters
+  
+  3. **Frontend Update:**
+     - Modified `handleSendEmail` to generate and attach all required PDFs
+     - Automatic detection of first invoice and installment payments
+
+---
+
 ## Features Implemented
 
 ### ✅ Core Features
@@ -345,3 +365,5 @@ CREATE POLICY "Allow authenticated users to insert admin logs"
 - [2026-02-23T03:35:00] | File: AnalyticsDashboard.tsx | Line: ~80, ~800, ~1100 | Keyword: Dynamic Company Info | Status: Success | Change: Connected `site_config` to `fetchAnalytics`. Integrated the dynamic `site_name` and `contact_address` into both the Tax Form and Accounting PDF generation views instead of hardcoded strings.
 - [2026-02-23T03:40:00] | File: InvoiceManager.tsx, send-invoice/route.ts, send-receipt/route.ts | Line: Multiple | Keyword: Dynamic Company Info | Status: Success | Change: Updated both Invoice and Receipt generating PDFs and email endpoints to dynamically query `site_name` and `contact_email` from the `site_config` database table instead of displaying hardcoded strings.
 - [2026-02-23T03:43:00] | File: InvoiceManager.tsx, AnalyticsDashboard.tsx | Line: Multiple | Keyword: Dynamic Website URL | Status: Success | Change: Swapped the hardcoded `www.nexoralabs.com` website strings in the generated PDF forms to dynamically strip and render from the `.env` variable `NEXT_PUBLIC_SITE_URL`.
+- [2026-02-23T04:15:00] | File: `components/sections/PackagesSection.tsx`, `components/admin/InvoiceManager.tsx` | Line: Multiple | Keyword: `Copywriting & Fee logic` | Status: `Success` | Change: Replaced the word 'รายเดือน' with 'ค่าดูแลรายเดือน' in the Packages frontend grid per user request for clarity. Additionally, patched the logic for the Monthly Fee calculation inside `InvoiceManager` to be forcefully collected during the **first installment** instead of the last, updating both the UI hinting and Contract PDF Terms effectively.
+- [2026-02-23T04:26:00] | File: `components/admin/InvoiceManager.tsx` | Line: ~1450 | Keyword: `Contract Formalization & Lint Errors` | Status: `Success` | Change: Completely rewrote Contract HTML template in InvoiceManager to be a formal legal agreement (สัญญาจ้างพัฒนาระบบและจัดทำเว็บไซต์) with definitions, comprehensive legal clauses, and formal signatures lines for parties and witnesses. Fixed TypeScript/ESLint errors related to `siteInfo.address` and unescaped entities that arose from this formal phrasing.

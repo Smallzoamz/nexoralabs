@@ -65,6 +65,7 @@ export function InvoiceManager() {
     const [sendingEmailId, setSendingEmailId] = useState<string | null>(null)
     const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null)
     const [downloadingReceiptId, setDownloadingReceiptId] = useState<string | null>(null)
+    const [downloadingContractId, setDownloadingContractId] = useState<string | null>(null)
     const [pendingSubmissions, setPendingSubmissions] = useState<PaymentSubmission[]>([])
     const [approvedSubmissions, setApprovedSubmissions] = useState<PaymentSubmission[]>([])
     const [viewingSlip, setViewingSlip] = useState<PaymentSubmission | null>(null)
@@ -82,10 +83,15 @@ export function InvoiceManager() {
         name: 'Nexora Labs',
         description: 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
         email: 'contact@nexoralabs.com',
-        website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, '')
+        website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, ''),
+        address: ''
     })
 
     // Form state
+    const [paymentType, setPaymentType] = useState<'full' | 'installment'>('full')
+    const [installments, setInstallments] = useState<{ amount: number, dueDate: string }[]>([
+        { amount: 0, dueDate: new Date().toISOString().split('T')[0] }
+    ])
     const [formData, setFormData] = useState({
         client_name: '',
         client_email: '',
@@ -111,7 +117,7 @@ export function InvoiceManager() {
                     .select('*, invoice:invoice_id(client_name, client_email, package_details, monthly_fee, setup_fee, due_date)')
                     .eq('status', 'approved')
                     .order('submitted_at', { ascending: false }),
-                supabase.from('site_config').select('site_name, site_description, contact_email').limit(1).maybeSingle()
+                supabase.from('site_config').select('site_name, site_description, contact_email, contact_address').limit(1).maybeSingle()
             ])
 
             if (invoicesRes.error) throw invoicesRes.error
@@ -132,6 +138,7 @@ export function InvoiceManager() {
                     name: siteConfRes.data?.site_name || 'Nexora Labs',
                     description: siteConfRes.data?.site_description || 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
                     email: siteConfRes.data?.contact_email || 'contact@nexoralabs.com',
+                    address: siteConfRes.data?.contact_address || ''
                 }))
             }
         } catch (error) {
@@ -157,6 +164,7 @@ export function InvoiceManager() {
             project_status: invoice.project_status || 'pending'
         })
         setEditingId(invoice.id)
+        setPaymentType('full') // Always edit individually
         setIsEditing(true)
     }
 
@@ -187,6 +195,7 @@ export function InvoiceManager() {
             }
 
             if (editingId && editingId !== 'new') {
+                if (paymentType === 'installment') throw new Error('ไม่สามารถแก้ไขใบแจ้งหนี้เดิมให้เป็นแบบแบ่งงวดชำระได้ กรุณายกเลิกบิลเก่าและสร้างใหม่')
                 const { error, data } = await supabase
                     .from('invoices')
                     .update(payload)
@@ -210,15 +219,37 @@ export function InvoiceManager() {
                     ? { ...payload, tracking_code: existingInvoice.tracking_code }
                     : payload
 
-                const { error, data } = await supabase
-                    .from('invoices')
-                    .insert([insertPayload])
-                    .select()
-                    .single()
+                if (paymentType === 'installment') {
+                    const totalInst = installments.reduce((sum, inst) => sum + (+inst.amount), 0)
+                    if (totalInst !== formData.setup_fee) throw new Error(`ยอดรวมแบ่งชำระ (${totalInst.toLocaleString()} ฿) ไม่ตรงกับ Setup Fee (${formData.setup_fee.toLocaleString()} ฿)`)
 
-                if (error) throw error
-                setInvoices([data, ...invoices])
-                logAdminAction(user?.email || 'System', 'CREATE_INVOICE', `สร้างใบแจ้งหนี้ใหม่สำหรับ ${payload.client_name}`)
+                    const payloads = installments.map((inst, idx) => ({
+                        ...insertPayload,
+                        package_details: `${insertPayload.package_details} (งวดที่ ${idx + 1}/${installments.length})`,
+                        setup_fee: +inst.amount,
+                        monthly_fee: idx === 0 ? insertPayload.monthly_fee : 0, // Charge monthly fee on the first installment
+                        due_date: inst.dueDate
+                    }))
+
+                    const { error, data } = await supabase
+                        .from('invoices')
+                        .insert(payloads)
+                        .select()
+
+                    if (error) throw error
+                    setInvoices([...data, ...invoices])
+                    logAdminAction(user?.email || 'System', 'CREATE_INVOICE', `สร้างใบแจ้งหนี้แบ่งชำระ ${installments.length} งวด สำหรับ ${payload.client_name}`)
+                } else {
+                    const { error, data } = await supabase
+                        .from('invoices')
+                        .insert([insertPayload])
+                        .select()
+                        .single()
+
+                    if (error) throw error
+                    setInvoices([data, ...invoices])
+                    logAdminAction(user?.email || 'System', 'CREATE_INVOICE', `สร้างใบแจ้งหนี้ใหม่สำหรับ ${payload.client_name}`)
+                }
             }
 
             if (editingId && editingId !== 'new') {
@@ -244,28 +275,70 @@ export function InvoiceManager() {
         setSendingEmailId(invoice.id)
 
         try {
-            // 1. Generate PDF as Base64 String
+            // 1. Generate Invoice PDF as Base64 String
             const html2pdfModule = (await import('html2pdf.js')).default
 
-            const element = document.getElementById(`invoice-pdf-${invoice.id}`)
-            if (!element) throw new Error('ไม่พบแบบฟอร์มใบแจ้งหนี้เพื่อสร้าง PDF แนบอีเมล')
+            const invoiceElement = document.getElementById(`invoice-pdf-${invoice.id}`)
+            if (!invoiceElement) throw new Error('ไม่พบแบบฟอร์มใบแจ้งหนี้เพื่อสร้าง PDF แนบอีเมล')
 
-            element.style.display = 'block'
+            invoiceElement.style.display = 'block'
 
-            const opt = {
+            const invoiceOpt = {
                 margin: 0,
-                filename: `Invoice_${invoice.id}.pdf`, // Not used for base64 but required
+                filename: `Invoice_${invoice.id}.pdf`,
                 image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 }, // A4 width at 96dpi approx
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
             }
 
-            // Output base64 datauristring
-            const pdfBase64DataUri = await html2pdfModule().set(opt).from(element).outputPdf('datauristring')
+            const pdfBase64DataUri = await html2pdfModule().set(invoiceOpt).from(invoiceElement).outputPdf('datauristring')
+            invoiceElement.style.display = 'none'
 
-            element.style.display = 'none'
+            // 2. Check if this is first invoice of project to add Service Contract
+            const isFirstOfProject = !invoices.some(
+                inv => inv.client_name === invoice.client_name &&
+                    inv.id !== invoice.id &&
+                    new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
+            )
 
-            // 2. Send to API
+            let serviceContractBase64 = null
+            let installmentScheduleBase64 = null
+
+            // 3. Generate Service Contract PDF for first invoice of project
+            if (isFirstOfProject) {
+                const contractElement = document.getElementById(`service-contract-pdf-${invoice.id}`)
+                if (contractElement) {
+                    contractElement.style.display = 'block'
+                    const contractOpt = {
+                        margin: 0,
+                        filename: `สัญญาจ้าง_${invoice.client_name.replace(/\s+/g, '_')}.pdf`,
+                        image: { type: 'jpeg' as const, quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+                    }
+                    serviceContractBase64 = await html2pdfModule().set(contractOpt).from(contractElement).outputPdf('datauristring')
+                    contractElement.style.display = 'none'
+                }
+            }
+
+            // 4. Generate Installment Schedule PDF for installment payments
+            if (invoice.package_details.includes('(งวดที่ 1/') && isFirstOfProject) {
+                const instElement = document.getElementById(`contract-pdf-${invoice.id}`)
+                if (instElement) {
+                    instElement.style.display = 'block'
+                    const instOpt = {
+                        margin: 0,
+                        filename: `ตารางการแบ่งชำระ_${invoice.client_name.replace(/\s+/g, '_')}.pdf`,
+                        image: { type: 'jpeg' as const, quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+                    }
+                    installmentScheduleBase64 = await html2pdfModule().set(instOpt).from(instElement).outputPdf('datauristring')
+                    instElement.style.display = 'none'
+                }
+            }
+
+            // 5. Send to API
             const response = await fetch('/api/send-invoice', {
                 method: 'POST',
                 headers: {
@@ -273,7 +346,9 @@ export function InvoiceManager() {
                 },
                 body: JSON.stringify({
                     invoice,
-                    pdfBase64: pdfBase64DataUri
+                    pdfBase64: pdfBase64DataUri,
+                    serviceContractBase64,
+                    installmentScheduleBase64
                 }),
             })
 
@@ -283,15 +358,19 @@ export function InvoiceManager() {
                 throw new Error(result.error || 'ส่งอีเมลไม่สำเร็จ')
             }
 
-            showAlert('สำเร็จ', 'ส่งอีเมลและแนบ PDF สำเร็จเรียบร้อยแล้ว!', 'success')
+            showAlert('สำเร็จ', 'ส่งอีเมลพร้อมเอกสารแนบสำเร็จเรียบร้อยแล้ว!', 'success')
 
         } catch (error: unknown) {
             console.error('Error sending email:', error)
             const errorMessage = error instanceof Error ? error.message : 'Unknown error'
             showAlert('ข้อผิดพลาด', `ข้อผิดพลาด: ${errorMessage}`, 'error')
-            // Ensure element is hidden even if error occurs
-            const element = document.getElementById(`invoice-pdf-${invoice.id}`)
-            if (element) element.style.display = 'none'
+            // Ensure elements are hidden even if error occurs
+            const invoiceElement = document.getElementById(`invoice-pdf-${invoice.id}`)
+            if (invoiceElement) invoiceElement.style.display = 'none'
+            const contractElement = document.getElementById(`service-contract-pdf-${invoice.id}`)
+            if (contractElement) contractElement.style.display = 'none'
+            const instElement = document.getElementById(`contract-pdf-${invoice.id}`)
+            if (instElement) instElement.style.display = 'none'
         } finally {
             setSendingEmailId(null)
         }
@@ -360,6 +439,68 @@ export function InvoiceManager() {
             showAlert('ข้อผิดพลาด', `ข้อผิดพลาดในการสร้างใบเสร็จ: ${errorMessage}`, 'error')
         } finally {
             setDownloadingReceiptId(null)
+        }
+    }
+
+    const handleDownloadContract = async (invoice: InvoiceRecord) => {
+        setDownloadingContractId(invoice.id)
+        try {
+            const html2pdfModule = (await import('html2pdf.js')).default
+
+            const element = document.getElementById(`contract-pdf-${invoice.id}`)
+            if (!element) throw new Error('ไม่พบแบบฟอร์มเอกสารสัญญา')
+
+            element.style.display = 'block'
+
+            const opt = {
+                margin: 0,
+                filename: `Contract_${invoice.client_name.replace(/\s+/g, '_')}_${new Date(invoice.created_at || Date.now()).getTime()}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+            }
+
+            await html2pdfModule().set(opt).from(element).save()
+
+            element.style.display = 'none'
+
+        } catch (error: unknown) {
+            console.error('Error generating Contract PDF:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+            showAlert('ข้อผิดพลาด', `ข้อผิดพลาดในการสร้างสัญญา: ${errorMessage}`, 'error')
+        } finally {
+            setDownloadingContractId(null)
+        }
+    }
+
+    const handleDownloadServiceContract = async (invoice: InvoiceRecord) => {
+        setDownloadingContractId(invoice.id)
+        try {
+            const html2pdfModule = (await import('html2pdf.js')).default
+
+            const element = document.getElementById(`service-contract-pdf-${invoice.id}`)
+            if (!element) throw new Error('ไมพบแบบฟอร์มสัญญาจ้าง')
+
+            element.style.display = 'block'
+
+            const opt = {
+                margin: 0,
+                filename: `สัญญาจ้าง_${invoice.client_name.replace(/\s+/g, '_')}_${new Date(invoice.created_at || Date.now()).getTime()}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 793, width: 793 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+            }
+
+            await html2pdfModule().set(opt).from(element).save()
+
+            element.style.display = 'none'
+
+        } catch (error: unknown) {
+            console.error('Error generating Service Contract PDF:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+            showAlert('ข้อผิดพลาด', `ข้อผิดพลาดในการสร้างสัญญาจ้าง: ${errorMessage}`, 'error')
+        } finally {
+            setDownloadingContractId(null)
         }
     }
 
@@ -655,16 +796,100 @@ export function InvoiceManager() {
                                     <option value="completed">ส่งมอบงานแล้ว (Completed)</option>
                                 </select>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-secondary-700 mb-2">วันครบกำหนดชำระ</label>
-                                <input
-                                    type="date"
-                                    value={formData.due_date}
-                                    onChange={e => setFormData({ ...formData, due_date: e.target.value })}
-                                    className="w-full px-4 py-2 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                                    required
-                                />
-                            </div>
+
+                            {/* Payment Type Selection */}
+                            {editingId === 'new' && (
+                                <div className="md:col-span-2 mt-2 space-y-4">
+                                    <label className="block text-sm font-medium text-secondary-700">รูปแบบการชำระเงิน</label>
+                                    <div className="flex gap-6">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" checked={paymentType === 'full'} onChange={() => setPaymentType('full')} className="text-primary-600 focus:ring-primary-500 w-4 h-4 cursor-pointer" />
+                                            <span>จ่ายเต็มจำนวน</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" checked={paymentType === 'installment'} onChange={() => setPaymentType('installment')} className="text-primary-600 focus:ring-primary-500 w-4 h-4 cursor-pointer" />
+                                            <span>แบ่งชำระเป็นงวด</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Installment configuration */}
+                            {paymentType === 'installment' && editingId === 'new' && (
+                                <div className="md:col-span-2 bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                                    <div className="flex justify-between items-center mb-2 pb-3 border-b border-slate-200">
+                                        <h4 className="font-semibold text-slate-800">ตั้งค่างวดชำระ (แบ่งเฉพาะยอด Setup Fee)</h4>
+                                        <div className="text-sm">
+                                            ยอดรวมที่ต้องแบ่ง: <span className="font-bold text-primary-600">฿{formData.setup_fee.toLocaleString()}</span> |
+                                            คงเหลือ: <span className={`ml-1 font-bold ${formData.setup_fee - installments.reduce((sum, inst) => sum + (+inst.amount), 0) === 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                ฿{(formData.setup_fee - installments.reduce((sum, inst) => sum + (+inst.amount), 0)).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {installments.map((inst, idx) => (
+                                            <div key={idx} className="flex gap-4 items-end bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                                                <div className="flex-1">
+                                                    <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                        งวดที่ {idx + 1} (฿)
+                                                        {idx === 0 && <span className="text-primary-600 font-bold ml-1">+ ค่าดูแลรายเดือน {formData.monthly_fee.toLocaleString()}</span>}
+                                                    </label>
+                                                    <input
+                                                        type="number" min="0"
+                                                        value={inst.amount === 0 ? '' : inst.amount}
+                                                        onChange={(e) => {
+                                                            const newArr = [...installments];
+                                                            newArr[idx].amount = Number(e.target.value);
+                                                            setInstallments(newArr)
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" required
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="block text-xs font-medium text-slate-500 mb-1">วันครบกำหนด</label>
+                                                    <input
+                                                        type="date"
+                                                        value={inst.dueDate}
+                                                        onChange={(e) => {
+                                                            const newArr = [...installments];
+                                                            newArr[idx].dueDate = e.target.value;
+                                                            setInstallments(newArr)
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" required
+                                                    />
+                                                </div>
+                                                {installments.length > 1 && (
+                                                    <button type="button" onClick={() => setInstallments(installments.filter((_, i) => i !== idx))} className="pb-2 px-2 text-red-500 hover:text-red-700 text-sm font-medium">ลบ</button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const remaining = Math.max(0, formData.setup_fee - installments.reduce((sum, inst) => sum + (+inst.amount), 0));
+                                            setInstallments([...installments, { amount: remaining, dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }])
+                                        }}
+                                        className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 mt-4 px-2"
+                                    >
+                                        <Plus className="w-4 h-4" /> เพิ่มงวดชำระ
+                                    </button>
+                                </div>
+                            )}
+
+                            {paymentType === 'full' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary-700 mb-2">วันครบกำหนดชำระ</label>
+                                    <input
+                                        type="date"
+                                        value={formData.due_date}
+                                        onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                                        className="w-full px-4 py-2 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                                        required={paymentType === 'full'}
+                                    />
+                                </div>
+                            )}
                         </div>
                         <div className="flex justify-end gap-4 pt-4 border-t border-secondary-200">
                             <button
@@ -706,6 +931,8 @@ export function InvoiceManager() {
                             status: 'pending',
                             project_status: 'pending'
                         })
+                        setPaymentType('full')
+                        setInstallments([{ amount: 0, dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }])
                         setEditingId('new')
                         setIsEditing(true)
                     }}
@@ -898,112 +1125,147 @@ export function InvoiceManager() {
                                     </td>
                                 </tr>
                             ) : (
-                                invoices.map((invoice) => (
-                                    <tr key={invoice.id} className="hover:bg-secondary-50/50 transition-colors">
-                                        <td className="p-4">
-                                            <div className="font-medium text-secondary-900">{invoice.client_name}</div>
-                                            <div className="text-sm text-secondary-500">{invoice.client_email}</div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="text-sm text-secondary-900">{invoice.package_details}</div>
-                                            <div className="text-xs text-secondary-500 mt-1">
-                                                Due: {new Date(invoice.due_date).toLocaleDateString('th-TH')}
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-sm font-medium text-secondary-900">
-                                            {(Number(invoice.setup_fee) + Number(invoice.monthly_fee)).toLocaleString()}
-                                        </td>
-                                        <td className="p-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
-                                                {getStatusText(invoice.status)}
-                                            </span>
-                                        </td>
-                                        <td className="p-4">
-                                            {(() => {
-                                                // Show tracking code only for the first invoice of each project (oldest by created_at)
-                                                const isFirstOfProject = !invoices.some(
-                                                    inv => inv.client_name === invoice.client_name &&
-                                                        inv.id !== invoice.id &&
-                                                        new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
-                                                )
+                                invoices.map((invoice) => {
+                                    const isFirstOfProject = !invoices.some(
+                                        inv => inv.client_name === invoice.client_name &&
+                                            inv.id !== invoice.id &&
+                                            new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
+                                    )
+                                    const isInstallmentContract = invoice.package_details.includes('(งวดที่ 1/') && isFirstOfProject;
 
-                                                if (invoice.tracking_code && isFirstOfProject) {
-                                                    return (
-                                                        <div className="flex flex-col items-start gap-1">
-                                                            <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{invoice.tracking_code}</span>
-                                                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${invoice.project_status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                                                                invoice.project_status === 'testing' ? 'bg-purple-100 text-purple-700' :
-                                                                    invoice.project_status === 'developing' ? 'bg-blue-100 text-blue-700' :
-                                                                        invoice.project_status === 'designing' ? 'bg-pink-100 text-pink-700' :
-                                                                            invoice.project_status === 'planning' ? 'bg-amber-100 text-amber-700' :
-                                                                                'bg-slate-100 text-slate-700'
-                                                                }`}>
-                                                                {invoice.project_status?.toUpperCase() || 'PENDING'}
-                                                            </span>
-                                                        </div>
-                                                    )
-                                                }
-                                                return <span className="text-[10px] text-secondary-400">รายเดือน</span>
-                                            })()}
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => handleDownloadPdf(invoice)}
-                                                    disabled={downloadingPdfId === invoice.id || downloadingReceiptId === invoice.id}
-                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
-                                                    title="ดาวน์โหลดใบแจ้งหนี้ (Invoice)"
-                                                >
-                                                    {downloadingPdfId === invoice.id ? (
-                                                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                                    ) : (
-                                                        <FileDown className="w-5 h-5" />
+                                    return (
+                                        <tr key={invoice.id} className="hover:bg-secondary-50/50 transition-colors">
+                                            <td className="p-4">
+                                                <div className="font-medium text-secondary-900">{invoice.client_name}</div>
+                                                <div className="text-sm text-secondary-500">{invoice.client_email}</div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="text-sm text-secondary-900">{invoice.package_details}</div>
+                                                <div className="text-xs text-secondary-500 mt-1">
+                                                    Due: {new Date(invoice.due_date).toLocaleDateString('th-TH')}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-sm font-medium text-secondary-900">
+                                                {(Number(invoice.setup_fee) + Number(invoice.monthly_fee)).toLocaleString()}
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
+                                                    {getStatusText(invoice.status)}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                {(() => {
+                                                    // Show tracking code only for the first invoice of each project (oldest by created_at)
+                                                    if (invoice.tracking_code && isFirstOfProject) {
+                                                        return (
+                                                            <div className="flex flex-col items-start gap-1">
+                                                                <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{invoice.tracking_code}</span>
+                                                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${invoice.project_status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                                    invoice.project_status === 'testing' ? 'bg-purple-100 text-purple-700' :
+                                                                        invoice.project_status === 'developing' ? 'bg-blue-100 text-blue-700' :
+                                                                            invoice.project_status === 'designing' ? 'bg-pink-100 text-pink-700' :
+                                                                                invoice.project_status === 'planning' ? 'bg-amber-100 text-amber-700' :
+                                                                                    'bg-slate-100 text-slate-700'
+                                                                    }`}>
+                                                                    {invoice.project_status?.toUpperCase() || 'PENDING'}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    }
+                                                    return <span className="text-[10px] text-secondary-400">รายเดือน</span>
+                                                })()}
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleDownloadPdf(invoice)}
+                                                        disabled={downloadingPdfId === invoice.id || downloadingReceiptId === invoice.id}
+                                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                                                        title="ดาวน์โหลดใบแจ้งหนี้ (Invoice)"
+                                                    >
+                                                        {downloadingPdfId === invoice.id ? (
+                                                            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <FileDown className="w-5 h-5" />
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDownloadReceipt(invoice)}
+                                                        disabled={downloadingReceiptId === invoice.id || downloadingPdfId === invoice.id}
+                                                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                                                        title="ดาวน์โหลดใบเสร็จรับเงิน (Receipt)"
+                                                    >
+                                                        {downloadingReceiptId === invoice.id ? (
+                                                            <div className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <Receipt className="w-5 h-5" />
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSendEmail(invoice)}
+                                                        disabled={sendingEmailId === invoice.id || invoice.status === 'paid' || downloadingPdfId === invoice.id}
+                                                        className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                                                        title="ส่ง E-Invoice ผ่านอีเมล"
+                                                    >
+                                                        {sendingEmailId === invoice.id ? (
+                                                            <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <Mail className="w-5 h-5" />
+                                                        )}
+                                                    </button>
+                                                    {isInstallmentContract && (
+                                                        <button
+                                                            onClick={() => handleDownloadContract(invoice)}
+                                                            disabled={downloadingContractId === invoice.id || downloadingPdfId === invoice.id}
+                                                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                                                            title="ดาวน์โหลดเอกสารแบ่งชำระ (Installment Schedule)"
+                                                        >
+                                                            {downloadingContractId === invoice.id ? (
+                                                                <div className="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                                                            ) : (
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                                </svg>
+                                                            )}
+                                                        </button>
                                                     )}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDownloadReceipt(invoice)}
-                                                    disabled={downloadingReceiptId === invoice.id || downloadingPdfId === invoice.id}
-                                                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
-                                                    title="ดาวน์โหลดใบเสร็จรับเงิน (Receipt)"
-                                                >
-                                                    {downloadingReceiptId === invoice.id ? (
-                                                        <div className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                                                    ) : (
-                                                        <Receipt className="w-5 h-5" />
+                                                    {isFirstOfProject && (
+                                                        <button
+                                                            onClick={() => handleDownloadServiceContract(invoice)}
+                                                            disabled={downloadingContractId === invoice.id || downloadingPdfId === invoice.id}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                                                            title="ดาวน์โหลดสัญญาจ้าง (Service Contract)"
+                                                        >
+                                                            {downloadingContractId === invoice.id ? (
+                                                                <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                                            ) : (
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                            )}
+                                                        </button>
                                                     )}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSendEmail(invoice)}
-                                                    disabled={sendingEmailId === invoice.id || invoice.status === 'paid' || downloadingPdfId === invoice.id}
-                                                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group relative"
-                                                    title="ส่ง E-Invoice ผ่านอีเมล"
-                                                >
-                                                    {sendingEmailId === invoice.id ? (
-                                                        <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                                                    ) : (
-                                                        <Mail className="w-5 h-5" />
-                                                    )}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(invoice)}
-                                                    disabled={downloadingPdfId === invoice.id}
-                                                    className="p-2 text-secondary-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="แก้ไข"
-                                                >
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(invoice.id)}
-                                                    disabled={downloadingPdfId === invoice.id}
-                                                    className="p-2 text-secondary-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="ลบ"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                    <button
+                                                        onClick={() => handleEdit(invoice)}
+                                                        disabled={downloadingPdfId === invoice.id}
+                                                        className="p-2 text-secondary-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title="แก้ไข"
+                                                    >
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(invoice.id)}
+                                                        disabled={downloadingPdfId === invoice.id}
+                                                        className="p-2 text-secondary-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title="ลบ"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
                             )}
                         </tbody>
                     </table>
@@ -1027,6 +1289,14 @@ export function InvoiceManager() {
                     })
                     const invoiceNo = `INV-${new Date(invoice.created_at || Date.now()).getFullYear()}${String(new Date(invoice.created_at || Date.now()).getMonth() + 1).padStart(2, '0')}-${invoice.id.substring(0, 4).toUpperCase()}`
 
+                    // Check if this is the first invoice of the project
+                    const isFirstOfProject = !invoices.some(
+                        inv => inv.client_name === invoice.client_name &&
+                            inv.id !== invoice.id &&
+                            new Date(inv.created_at || 0) < new Date(invoice.created_at || 0)
+                    )
+                    const isInstallmentContract = invoice.package_details.includes('(งวดที่ 1/') && isFirstOfProject;
+
                     return (
                         <>
                             <div key={`pdf-${invoice.id}`} id={`invoice-pdf-${invoice.id}`} className="bg-white p-10 font-sans text-slate-800 box-border mx-auto relative overflow-hidden" style={{ display: 'none', width: '210mm', height: '297mm' }}>
@@ -1034,6 +1304,17 @@ export function InvoiceManager() {
                                 <div className="flex justify-between items-start mb-8 border-b-2 border-black pb-6">
                                     <div>
                                         <h1 className="text-4xl font-bold text-black mb-2 uppercase tracking-wide">{siteInfo.name}</h1>
+                                        {invoice.package_details.includes('(งวดที่ 1/') && (
+                                            <div className="flex justify-between items-center bg-slate-100 p-4 rounded-xl mt-4">
+                                                <div>
+                                                    <p className="text-secondary-600 font-medium">รวม Setup Fee และ Monthly Fee</p>
+                                                    <p className="text-xs text-secondary-500 mt-1">* ค่าบริการรายเดือน (Monthly Fee) จะถูกรวมในงวดแรก</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-bold text-primary-600">{(Number(invoice.setup_fee) + Number(invoice.monthly_fee)).toLocaleString()} ฿</p>
+                                                </div>
+                                            </div>
+                                        )}
                                         <p className="text-sm text-slate-800">{siteInfo.description}</p>
                                         <p className="text-sm text-slate-800 mt-2">Email: {siteInfo.email}</p>
                                         <p className="text-sm text-slate-800">Website: {siteInfo.website}</p>
@@ -1244,6 +1525,409 @@ export function InvoiceManager() {
                                     <p className="mt-1 font-bold">© {new Date().getFullYear()} {siteInfo.name}.</p>
                                 </div>
                             </div>
+
+                            {/* CONTRACT PDF HTML TEMPLATE (Only renders for first installment) */}
+                            {invoice.package_details.includes('(งวดที่ 1/') && (() => {
+                                const basePackageDetails = invoice.package_details.replace(/ \(งวดที่ \d+\/.*?\)/, '').trim()
+                                const contractInvoices = invoices
+                                    .filter(i => i.client_name === invoice.client_name && i.package_details.startsWith(basePackageDetails))
+                                    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+
+                                const totalContractValue = contractInvoices.reduce((sum, inv) => sum + Number(inv.setup_fee), 0)
+                                const contractMonthlyFee = contractInvoices[0]?.monthly_fee || 0;
+
+                                return (
+                                    <div key={`contract-pdf-${invoice.id}`} id={`contract-pdf-${invoice.id}`} className="bg-white p-10 font-sans text-slate-800 box-border mx-auto relative overflow-hidden mt-8" style={{ display: 'none', width: '210mm', minHeight: '297mm' }}>
+                                        {/* Document Header - Formal Style */}
+                                        <div className="text-center mb-8 pb-4 border-b-2 border-slate-800">
+                                            <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-wider mb-2">ตารางการแบ่งชำระค่าบริการ</h1>
+                                            <h2 className="text-base font-medium text-slate-600">INSTALLMENT PAYMENT SCHEDULE</h2>
+                                        </div>
+
+                                        {/* Document Meta */}
+                                        <div className="flex justify-between mb-6 text-sm">
+                                            <div className="text-left">
+                                                <p className="font-bold text-slate-800">เลขที่เอกสาร: IPS-{invoice.id.substring(0, 8).toUpperCase()}</p>
+                                                <p className="text-slate-600">วันที่ออกเอกสาร: {issuedDate}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-slate-800">{siteInfo.name}</p>
+                                                <p className="text-slate-600">{siteInfo.email}</p>
+                                                <p className="text-slate-600">{siteInfo.website}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Parties Info */}
+                                        <div className="mb-6">
+                                            <table className="w-full text-sm border-collapse border border-slate-300">
+                                                <thead>
+                                                    <tr className="bg-slate-100">
+                                                        <th className="p-3 text-left font-bold border border-slate-300 w-1/2">ผู้ให้บริการ (Service Provider)</th>
+                                                        <th className="p-3 text-left font-bold border border-slate-300 w-1/2">ผู้รับบริการ (Customer)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="p-3 border border-slate-300">
+                                                            <p className="font-bold">{siteInfo.name}</p>
+                                                            {siteInfo.address && <p className="text-slate-600">ที่อยู่: {siteInfo.address}</p>}
+                                                            <p className="text-slate-600">อีเมล: {siteInfo.email}</p>
+                                                        </td>
+                                                        <td className="p-3 border border-slate-300">
+                                                            <p className="font-bold">{invoice.client_name}</p>
+                                                            <p className="text-slate-600">อีเมล: {invoice.client_email}</p>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Package Details */}
+                                        <div className="mb-6">
+                                            <h3 className="text-base font-bold text-slate-800 mb-2 pb-1 border-b border-slate-300">1. รายละเอียดแพ็กเกจบริการ</h3>
+                                            <table className="w-full text-sm border-collapse border border-slate-300">
+                                                <tbody>
+                                                    <tr className="bg-slate-50">
+                                                        <td className="p-2 border border-slate-300 font-bold w-1/3">แพ็กเกจ</td>
+                                                        <td className="p-2 border border-slate-300">{basePackageDetails.replace(/[A-Za-z0-9]+ package:/i, '').trim()}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="p-2 border border-slate-300 font-bold">ค่าบริการรายเดือน</td>
+                                                        <td className="p-2 border border-slate-300">฿{Number(contractMonthlyFee).toLocaleString('th-TH')}/เดือน</td>
+                                                    </tr>
+                                                    <tr className="bg-slate-50">
+                                                        <td className="p-2 border border-slate-300 font-bold">จำนวนงวดการชำระ</td>
+                                                        <td className="p-2 border border-slate-300">{contractInvoices.length} งวด</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="p-2 border border-slate-300 font-bold">มูลค่ารวมทั้งสิ้น</td>
+                                                        <td className="p-2 border border-slate-300 font-bold text-lg">฿{totalContractValue.toLocaleString('th-TH')}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Payment Schedule Table */}
+                                        <div className="mb-6">
+                                            <h3 className="text-base font-bold text-slate-800 mb-2 pb-1 border-b border-slate-300">2. ตารางการชำระเงิน (Payment Schedule)</h3>
+                                            <table className="w-full text-left border-collapse border border-slate-300 text-sm">
+                                                <thead>
+                                                    <tr className="bg-slate-800 text-white">
+                                                        <th className="p-3 font-bold border border-slate-600 w-16 text-center">งวด</th>
+                                                        <th className="p-3 font-bold border border-slate-600">รายละเอียด</th>
+                                                        <th className="p-3 font-bold border border-slate-600 w-28 text-center">วันครบกำหนด</th>
+                                                        <th className="p-3 font-bold border border-slate-600 w-28 text-right">จำนวนเงิน</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-200">
+                                                    {contractInvoices.map((inv, idx) => {
+                                                        const isFirst = idx === 0;
+                                                        const feeText = isFirst && contractMonthlyFee > 0
+                                                            ? `+ ค่าบริการรายเดือน ฿${Number(contractMonthlyFee).toLocaleString('th-TH')}`
+                                                            : '';
+                                                        const totalForInst = Number(inv.setup_fee) + (isFirst ? Number(contractMonthlyFee) : 0);
+
+                                                        return (
+                                                            <tr key={`contract-item-${inv.id}`} className="hover:bg-slate-50">
+                                                                <td className="p-3 text-center border border-slate-200 font-bold">{idx + 1}</td>
+                                                                <td className="p-3 border border-slate-200">
+                                                                    <span className="text-slate-800">{inv.package_details.replace(/\(งวดที่ \d+\/\d+\)/, '').trim()}</span>
+                                                                    {feeText && <div className="text-slate-500 text-xs mt-1">{feeText}</div>}
+                                                                </td>
+                                                                <td className="p-3 border border-slate-200 text-center text-slate-600">
+                                                                    {new Date(inv.due_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                </td>
+                                                                <td className="p-3 text-right border border-slate-200 font-bold text-slate-800">{totalForInst.toLocaleString('th-TH')}</td>
+                                                            </tr>
+                                                        )
+                                                    })}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr className="bg-slate-100 font-bold">
+                                                        <td colSpan={3} className="p-3 text-right border border-slate-300">รวมทั้งสิ้น (Total)</td>
+                                                        <td className="p-3 text-right border border-slate-300 text-lg">
+                                                            {contractInvoices.reduce((sum, inv, idx) => {
+                                                                const isFirst = idx === 0;
+                                                                return sum + Number(inv.setup_fee) + (isFirst ? Number(contractMonthlyFee) : 0);
+                                                            }, 0).toLocaleString('th-TH')}
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        {/* Cancellation & Refund Policy - Fixed */}
+                                        <div className="mb-6 mt-8 pt-4 border-t-2 border-slate-400">
+                                            <h3 className="text-base font-bold text-slate-800 mb-3 pb-1 border-b border-slate-300">3. เงื่อนไขการยกเลิกและการคืนเงิน</h3>
+                                            <div className="text-sm text-slate-700 leading-relaxed text-justify space-y-3">
+                                                <div className="p-3 border border-slate-300">
+                                                    <p className="font-bold text-slate-800 mb-2">3.1 เงื่อนไขการยกเลิก</p>
+                                                    <ul className="list-disc list-inside space-y-1 text-slate-700">
+                                                        <li>การยกเลิกต้องแจ้งล่วงหน้าเป็นลายลักษณ์อักษรไม่น้อยกว่า 7 วันทำการ</li>
+                                                        <li>หากผู้ว่าจ้างผิดนัดชำระเงินเกินกว่า 7 วัน ผู้รับจ้างขอสงวนสิทธิ์ในการระงับและยกเลิกบริการทันที โดยไม่ต้องแจ้งล่วงหน้า</li>
+                                                        <li>เมื่อเกิดการยกเลิก ไม่ว่ากรณีใดก็ตาม ผู้ว่าจ้างจะไม่สามารถใช้งานระบบหรือเรียกร้องใดๆ จากผู้รับจ้างได้อีก</li>
+                                                    </ul>
+                                                </div>
+                                                <div className="p-3 border border-slate-300">
+                                                    <p className="font-bold text-slate-800 mb-2">3.2 เงื่อนไขการคืนเงิน</p>
+                                                    <ul className="list-disc list-inside space-y-1 text-slate-700">
+                                                        <li><strong>เงินค่าบริการที่ชำระแล้ว ถือเป็นที่สิ้นสุด ไม่สามารถขอคืนได้ในทุกกรณี</strong> รวมถึงแต่ไม่จำกัดเพียงกรณียกเลิกบริการ, การหยุดใช้งาน, หรือความไม่พอใจใดๆ</li>
+                                                        <li>กรณียกเลิกก่อนเริ่มดำเนินการ: หักค่าใช้จ่ายที่เกิดขึ้นจริง และคืนส่วนที่เหลือ</li>
+                                                        <li>กรณียกเลิกหลังเริ่มดำเนินการแล้ว: ไม่สามารถขอคืนเงินได้ เนื่องจากงานได้เริ่มดำเนินการแล้ว</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Monthly Service Fee Note */}
+                                        <div className="mb-6 p-3 bg-slate-50 border border-slate-300">
+                                            <p className="text-sm text-slate-700 font-bold mb-1">หมายเหตุ: ค่าบริการรายเดือน</p>
+                                            <p className="text-sm text-slate-600">
+                                                ค่าบริการรายเดือน (฿{Number(contractMonthlyFee).toLocaleString('th-TH')}/เดือน) จะเริ่มนับพ้นจากวันส่งมอบงานเสร็จสิ้นในงวดสุดท้าย และจะต่ออายุโดยอัตโนมัติทุกเดือนจนกว่าจะมีการยกเลิก
+                                            </p>
+                                        </div>
+
+                                        {/* Agreement Statement */}
+                                        <div className="text-sm text-slate-700 leading-relaxed text-justify mb-8 p-4 border border-slate-300">
+                                            <p className="indent-4">
+                                                คู่สัญญาทั้งสองฝ่ายได้อ่านและเข้าใจเงื่อนไขการชำระเงิน เงื่อนไขการยกเลิก และเงื่อนไขการคืนเงินโดยตลอดแล้ว เห็นว่าถูกต้องตรงตามความประสงค์ จึงได้ตกลงยอมรับและปฏิบัติตามเอกสารฉบับนี้
+                                            </p>
+                                        </div>
+
+                                        {/* Signatures */}
+                                        <div className="flex justify-between px-8 text-center text-slate-800 mb-8">
+                                            <div className="w-56">
+                                                <div className="border-b-2 border-slate-800 mb-1"></div>
+                                                <p className="text-sm font-bold">ลงชื่อ ผู้ว่าจ้าง</p>
+                                                <p className="text-xs mt-2">({invoice.client_name})</p>
+                                                <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
+                                            </div>
+                                            <div className="w-56">
+                                                <div className="border-b-2 border-slate-800 mb-1"></div>
+                                                <p className="text-sm font-bold">ลงชื่อ ผู้รับจ้าง</p>
+                                                <p className="text-xs mt-2">({siteInfo.name})</p>
+                                                <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className="absolute bottom-6 left-0 right-0 text-center text-xs text-slate-400 border-t border-dashed border-slate-300 pt-4 mx-10">
+                                            <p>เอกสารฉบับนี้พิมพ์จากระบบอิเล็กทรอนิกส์ • Document Generated via {siteInfo.name} System</p>
+                                            <p className="mt-1">© {new Date().getFullYear()} {siteInfo.name} • REF: IPS-{invoice.id.substring(0, 12).toUpperCase()}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })()}
+
+                            {/* SERVICE CONTRACT PDF - For ALL invoices (Full Payment & Installment) */}
+                            {isFirstOfProject && (() => {
+                                const basePackageDetails = invoice.package_details.replace(/ \(งวดที่ \d+\/.*?\)/, '').trim()
+                                const contractInvoices = invoices
+                                    .filter(i => i.client_name === invoice.client_name && (i.package_details.startsWith(basePackageDetails) || i.package_details.replace(/ \(งวดที่ \d+\/.*?\)/, '').trim() === basePackageDetails))
+                                    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+
+                                const totalContractValue = contractInvoices.reduce((sum, inv) => sum + Number(inv.setup_fee), 0)
+                                const contractMonthlyFee = contractInvoices[0]?.monthly_fee || 0;
+                                const isInstallment = contractInvoices.length > 1;
+
+                                return (
+                                    <div key={`service-contract-pdf-${invoice.id}`} id={`service-contract-pdf-${invoice.id}`} className="bg-white p-10 font-sans text-slate-800 box-border mx-auto relative overflow-hidden mt-8" style={{ display: 'none', width: '210mm', minHeight: '297mm' }}>
+                                        {/* Contract Header */}
+                                        <div className="text-center mb-6 pb-4 border-b-2 border-slate-800">
+                                            <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-wider mb-2">สัญญาจ้าง</h1>
+                                            <h2 className="text-lg font-medium text-slate-600">SERVICE CONTRACT</h2>
+                                        </div>
+
+                                        {/* Document Meta */}
+                                        <div className="flex justify-between mb-6 text-sm">
+                                            <div className="text-left">
+                                                <p className="font-bold text-slate-800">เลขที่สัญญา: CTR-{invoice.id.substring(0, 8).toUpperCase()}</p>
+                                                <p className="text-slate-600">วันที่ทำสัญญา: {issuedDate}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-slate-800">{siteInfo.name}</p>
+                                                <p className="text-slate-600">{siteInfo.email}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Parties */}
+                                        <div className="mb-6 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="indent-4 mb-2">
+                                                <strong>สัญญาจ้าง</strong>ฉบับนี้ทำขึ้น ณ วันที่ {issuedDate}
+                                                ระหว่าง <strong>{siteInfo.name}</strong>
+                                                {siteInfo.address ? ` ตั้งอยู่เลขที่ ${siteInfo.address}` : ''}
+                                                ผู้ให้บริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้รับจ้าง"</strong> ฝ่ายหนึ่ง
+                                            </p>
+                                            <p className="indent-4 mb-2">
+                                                กับ <strong>{invoice.client_name}</strong> ผู้รับบริการ ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้ว่าจ้าง"</strong> อีกฝ่ายหนึ่ง
+                                            </p>
+                                            <p className="indent-4">
+                                                คู่สัญญาทั้งสองฝ่ายตกลงทำสัญญากันโดยมีข้อตกลงและเงื่อนไขดังต่อไปนี้:
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 1: Scope of Work */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 1. ขอบเขตงาน</p>
+                                            <p className="indent-4 mb-2">
+                                                ผู้ว่าจ้างตกลงว่าจ้างและผู้รับจ้างตกลงรับจ้างพัฒนาระบบและจัดทำเว็บไซต์ใน <strong>แพ็กเกจ {basePackageDetails.replace(/[A-Za-z0-9]+ package:/i, '').trim()}</strong>
+                                            </p>
+                                            <p className="indent-4">
+                                                โดยมีขอบเขตการทำงาน ฟังก์ชันการใช้งาน และระยะเวลาดำเนินการ ตามที่ระบุในเอกสารเสนอราคาหรือตกลงกันไว้เป็นลายลักษณ์อักษร
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 2: Payment */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 2. ค่าจ้างและการชำระเงิน</p>
+                                            <p className="indent-4 mb-2">
+                                                คู่สัญญาตกลงค่าจ้างเหมาเพื่อการพัฒนาระบบและติดตั้งระบบ (Setup Fee) ทั้งสิ้นเป็นจำนวนเงิน <strong>฿{totalContractValue.toLocaleString('th-TH')}</strong> (รวมภาษีมูลค่าเพิ่มแล้ว)
+                                            </p>
+                                            {isInstallment ? (
+                                                <p className="indent-4 mb-2">
+                                                    โดยผู้ว่าจ้างตกลงจะแบ่งชำระเงินค่าจ้างให้แก่ผู้รับจ้างเป็นรายงวด จำนวน {contractInvoices.length} งวด ดังรายละเอียดต่อไปนี้:
+                                                </p>
+                                            ) : (
+                                                <p className="indent-4">
+                                                    โดยผู้ว่าจ้างตกลงชำระเงินค่าจ้างเต็มจำนวนในครั้งเดียว
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Payment Schedule for Installment */}
+                                        {isInstallment && (
+                                            <div className="mb-4 px-2">
+                                                <table className="w-full text-left border-collapse border border-slate-300 text-xs">
+                                                    <thead>
+                                                        <tr className="bg-slate-800 text-white">
+                                                            <th className="p-2 font-bold border border-slate-600 w-12 text-center">งวด</th>
+                                                            <th className="p-2 font-bold border border-slate-600">รายละเอียด</th>
+                                                            <th className="p-2 font-bold border border-slate-600 w-24 text-center">กำหนดชำระ</th>
+                                                            <th className="p-2 font-bold border border-slate-600 text-right w-20">จำนวน</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-200">
+                                                        {contractInvoices.map((inv, idx) => {
+                                                            const isFirst = idx === 0;
+                                                            const feeText = isFirst && contractMonthlyFee > 0
+                                                                ? `+ ค่าบริการรายเดือน ฿${Number(contractMonthlyFee).toLocaleString('th-TH')}`
+                                                                : '';
+                                                            const totalForInst = Number(inv.setup_fee) + (isFirst ? Number(contractMonthlyFee) : 0);
+                                                            return (
+                                                                <tr key={`sc-item-${inv.id}`}>
+                                                                    <td className="p-2 text-center border border-slate-200">{idx + 1}</td>
+                                                                    <td className="p-2 border border-slate-200">
+                                                                        {inv.package_details.replace(/\(งวดที่ \d+\/\d+\)/, '').trim()}
+                                                                        {feeText && <div className="text-slate-500 text-xs">{feeText}</div>}
+                                                                    </td>
+                                                                    <td className="p-2 text-center border border-slate-200">
+                                                                        {new Date(inv.due_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                    </td>
+                                                                    <td className="p-2 text-right border border-slate-200 font-bold">{totalForInst.toLocaleString('th-TH')}</td>
+                                                                </tr>
+                                                            )
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+
+                                        {/* Clause 3: Maintenance */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 3. ค่าบริการดูแลรักษาระบบ</p>
+                                            <p className="indent-4">
+                                                ค่าบริการรายเดือนสำหรับดูแลระบบ โฮสติ้ง และการอำนวยความสะดวกอื่นๆ รายเดือนละ <strong>฿{Number(contractMonthlyFee).toLocaleString('th-TH')}</strong>
+                                                ซึ่งจะเริ่มนับตั้งแต่วันส่งมอบงานเสร็จสิ้น และจะต่ออายุโดยอัตโนมัติทุกเดือนจนกว่าจะมีการยกเลิก
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 4: Acceptance */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 4. การตรวจรับงานและส่งมอบ</p>
+                                            <p className="indent-4">
+                                                ผู้รับจ้างจะนำส่งผลงานให้ผู้ว่าจ้างตรวจสอบในแต่ละงวด ผู้ว่าจ้างมีหน้าที่ตรวจสอบและแจ้งเบาะแสการแก้ไขปรับปรุงภายใน 7 วันทำการ
+                                                หากพ้นกำหนดดังกล่าวโดยไม่มีการทักท้วง ให้ถือว่าผู้ว่าจ้างยอมรับผลงานในงวดนั้นๆ อย่างสมบูรณ์
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 5: Cancellation & Default */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 5. การผิดสัญญาและการยกเลิก</p>
+                                            <p className="indent-4 mb-2">
+                                                หากผู้ว่าจ้างผิดนัดชำระเงินเกินกว่า 7 วัน ผู้รับจ้างมีสิทธิ์ระงับการให้บริการและยกเลิกสัญญาได้ทันที โดยไม่ต้องแจ้งล่วงหน้า
+                                            </p>
+                                            <p className="indent-4 mb-2">
+                                                หากคู่สัญญาฝ่ายใดฝ่ายหนึ่งประสงค์จะพ้นสภาพข้อตกลงนี้ จะต้องแจ้งล่วงหน้าเป็นลายลักษณ์อักษรไม่น้อยกว่า 15 วัน
+                                            </p>
+                                            <p className="indent-4">
+                                                <strong>เงินค่าจ้างทั้งหมดที่ผู้ว่าจ้างได้ชำระมาแล้ว ถือเป็นการชำระที่สมบูรณ์ ไม่สามารถเรียกร้องเพื่อขอคืนได้ในทุกกรณี</strong>
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 6: IP & Confidentiality */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 6. ทรัพย์สินทางปัญญาและความลับ</p>
+                                            <p className="indent-4 mb-2">
+                                                ซอร์สโค้ดและข้อมูลที่พัฒนาขึ้นจะตกเป็นกรรมสิทธิ์ของผู้ว่าจ้างหลังจากชำระเงินค่าจ้างครบถ้วนทั้งหมดแล้ว
+                                            </p>
+                                            <p className="indent-4">
+                                                ผู้ว่าจ้างรับรองว่าเนื้อหาและข้อมูลต่างๆ ที่นำมาใส่ในเว็บไซต์ไม่ละเมิดลิขสิทธิ์หรือสิทธิ์ของบุคคลอื่นใด
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 7: Amendment */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 7. การแก้ไขสัญญา</p>
+                                            <p className="indent-4">
+                                                การเปลี่ยนแปลงเงื่อนไขหรือข้อความในสัญญานี้ ต้องทำเป็นลายลักษณ์อักษรและได้รับการยินยอมจากคู่สัญญาทั้งสองฝ่าย
+                                            </p>
+                                        </div>
+
+                                        {/* Clause 8: Force Majeure */}
+                                        <div className="mb-4 text-sm text-slate-700 leading-relaxed text-justify">
+                                            <p className="font-bold text-slate-800 mb-1">ข้อ 8. การลงนามและผลของสัญญา</p>
+                                            <p className="indent-4">
+                                                สัญญานี้ทำขึ้นเป็นรูปแบบอิเล็กทรอนิกส์ คู่สัญญาทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยตลอดแล้ว
+                                                เห็นว่าถูกต้องตรงตามเจตนา จึงได้ทำความตกลงร่วมกันไว้เป็นหลักฐานสำคัญ และตกลงปฏิบัติตามข้อตกลงในสัญญานี้โดยสุจริต
+                                            </p>
+                                        </div>
+
+                                        {/* Signatures */}
+                                        <div className="flex justify-between px-8 text-center text-slate-800 mb-8 mt-12">
+                                            <div className="w-56">
+                                                <div className="border-b-2 border-slate-800 mb-1"></div>
+                                                <p className="text-sm font-bold">ลงชื่อ ผู้ว่าจ้าง</p>
+                                                <p className="text-xs mt-2">({invoice.client_name})</p>
+                                                <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
+                                            </div>
+                                            <div className="w-56">
+                                                <div className="border-b-2 border-slate-800 mb-1"></div>
+                                                <p className="text-sm font-bold">ลงชื่อ ผู้รับจ้าง</p>
+                                                <p className="text-xs mt-2">({siteInfo.name})</p>
+                                                <p className="text-xs mt-2 text-slate-500">วันที่: ______________</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Witnesses */}
+                                        <div className="flex justify-between px-8 text-center text-slate-800">
+                                            <div className="w-56">
+                                                <div className="border-b border-slate-400 mb-1"></div>
+                                                <p className="text-xs">พยาน (ฝ่ายผู้ว่าจ้าง)</p>
+                                            </div>
+                                            <div className="w-56">
+                                                <div className="border-b border-slate-400 mb-1"></div>
+                                                <p className="text-xs">พยาน (ฝ่ายผู้รับจ้าง)</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className="absolute bottom-6 left-0 right-0 text-center text-xs text-slate-400 border-t border-dashed border-slate-300 pt-4 mx-10">
+                                            <p>สัญญาจ้างฉบับนี้พิมพ์จากระบบอิเล็กทรอนิกส์ • Contract Generated via {siteInfo.name} System</p>
+                                            <p className="mt-1">© {new Date().getFullYear()} {siteInfo.name} • REF: CTR-{invoice.id.substring(0, 12).toUpperCase()}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })()}
                         </>
                     )
                 })}
