@@ -176,6 +176,7 @@ export function AnalyticsDashboard() {
     // Calculations for Progress Bars — use ?? [] to guard against null arrays from API
     const popularPackages = data.popularPackages ?? []
     const businessTypes = data.businessTypes ?? []
+    const commonIssues = data.commonIssues ?? []
     const maxPackage = Math.max(...(popularPackages.length ? popularPackages.map(p => p.count) : [1])) || 1
     const maxBusiness = Math.max(...(businessTypes.length ? businessTypes.map(b => b.count) : [1])) || 1
 
@@ -320,7 +321,7 @@ export function AnalyticsDashboard() {
                                 </div>
                             )
                         })}
-                        {data.businessTypes.filter(b => b.count > 0).length === 0 && <p className="text-sm text-secondary-500 text-center py-4">ระบบไม่พบ Keyword ที่จัดกลุ่มได้</p>}
+                        {businessTypes.filter(b => b.count > 0).length === 0 && <p className="text-sm text-secondary-500 text-center py-4">ระบบไม่พบ Keyword ที่จัดกลุ่มได้</p>}
                     </div>
                 </div>
 
@@ -331,7 +332,7 @@ export function AnalyticsDashboard() {
                         ปัญหา/ความต้องการที่เจอบ่อย (Pain points extraction)
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {data.commonIssues.filter(i => i.count > 0).map((issue, idx) => {
+                        {commonIssues.filter(i => i.count > 0).map((issue, idx) => {
                             const colors = ['bg-rose-50 border-rose-200 text-rose-700', 'bg-orange-50 border-orange-200 text-orange-700', 'bg-amber-50 border-amber-200 text-amber-700', 'bg-blue-50 border-blue-200 text-blue-700']
                             const colorClass = colors[idx % colors.length]
                             return (
@@ -344,7 +345,7 @@ export function AnalyticsDashboard() {
                                 </div>
                             )
                         })}
-                        {data.commonIssues.filter(i => i.count > 0).length === 0 && <div className="col-span-full text-center text-sm text-secondary-500 py-8">ไม่มีข้อมูลการวิเคราะห์ข้อความจาก Contact Form</div>}
+                        {commonIssues.filter(i => i.count > 0).length === 0 && <div className="col-span-full text-center text-sm text-secondary-500 py-8">ไม่มีข้อมูลการวิเคราะห์ข้อความจาก Contact Form</div>}
                     </div>
                 </div>
 
