@@ -1,8 +1,9 @@
 import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { ArrowLeft, Calendar, Eye, User, Share2, Tag } from 'lucide-react'
+import { ArrowLeft, Calendar, Eye, User, Tag } from 'lucide-react'
 import Link from 'next/link'
+import { ArticleShareButtons } from '@/components/frontend/ArticleShareButtons'
 
 
 // 1. Generate Static Params for SEO (Tells Next.js which URLs to pre-render)
@@ -143,15 +144,14 @@ export default async function ArticleReadPage({ params }: { params: { slug: stri
                 </div>
 
                 {/* Footer Share */}
-                <div className="mt-20 pt-8 border-t border-secondary-200 flex items-center justify-between">
+                <div className="mt-20 pt-8 border-t border-secondary-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <p className="text-secondary-500 font-medium text-sm">
                         แบ่งปันบทความนี้
                     </p>
-                    <div className="flex gap-3">
-                        <button className="w-10 h-10 rounded-full bg-secondary-50 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 flex items-center justify-center transition-colors">
-                            <Share2 className="w-5 h-5" />
-                        </button>
-                    </div>
+                    <ArticleShareButtons
+                        title={article.title}
+                        url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexoralabs.com'}/articles/${article.slug}`}
+                    />
                 </div>
             </div>
         </article>
