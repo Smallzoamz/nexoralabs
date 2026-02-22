@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     BarChart3, TrendingUp, Users, Activity,
-    Download, FileText, X, Calculator, RefreshCw, Package
+    Download, FileText, X, Calculator, RefreshCw, Package, BookOpen, ArrowUpRight, ArrowDownRight, Clock
 } from 'lucide-react'
 import { bahttext } from 'bahttext'
 import { useModal } from '@/lib/modal-context'
@@ -26,6 +26,14 @@ export function AnalyticsDashboard() {
     const [isLoading, setIsLoading] = useState(true)
     const [isTaxModalOpen, setIsTaxModalOpen] = useState(false)
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+    const [isAccModalOpen, setIsAccModalOpen] = useState(false)
+    const [accLoading, setAccLoading] = useState(false)
+    const [accData, setAccData] = useState<{
+        paidInvoices: { id: string; client_name: string; client_email: string; package_details: string; setup_fee: number; monthly_fee: number; created_at: string; due_date: string }[]
+        pendingInvoices: { id: string; client_name: string; client_email: string; package_details: string; setup_fee: number; monthly_fee: number; due_date: string }[]
+        accYear: number
+    } | null>(null)
+    const [accYear, setAccYear] = useState(new Date().getFullYear())
 
     // Tax Form State
     const [taxData, setTaxData] = useState({
@@ -112,6 +120,50 @@ export function AnalyticsDashboard() {
         }
     }
 
+    const openAccountingModal = async () => {
+        setIsAccModalOpen(true)
+        setAccLoading(true)
+        try {
+            const { data: paid } = await supabase
+                .from('invoices')
+                .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, created_at, due_date')
+                .eq('status', 'paid')
+                .order('created_at', { ascending: false })
+            const { data: pending } = await supabase
+                .from('invoices')
+                .select('id, client_name, client_email, package_details, setup_fee, monthly_fee, due_date')
+                .eq('status', 'pending')
+                .order('due_date', { ascending: true })
+            setAccData({
+                paidInvoices: paid ?? [],
+                pendingInvoices: pending ?? [],
+                accYear,
+            })
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setAccLoading(false)
+        }
+    }
+
+    const handleDownloadAccPdf = async () => {
+        const el = document.getElementById('accounting-report-pdf')
+        if (!el) return
+        setIsGeneratingPdf(true)
+        try {
+            const html2pdfModule = (await import('html2pdf.js')).default
+            el.style.display = 'block'
+            await html2pdfModule().set({
+                margin: 8,
+                filename: `AccountingReport_Nexora_${accYear}.pdf`,
+                image: { type: 'jpeg', quality: 0.97 },
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 794, width: 794 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(el).save()
+            el.style.display = 'none'
+        } catch (e) { console.error(e) } finally { setIsGeneratingPdf(false) }
+    }
+
     if (isLoading || !data) {
         return (
             <div className="flex flex-col items-center justify-center p-24 text-secondary-500">
@@ -144,6 +196,13 @@ export function AnalyticsDashboard() {
                         title="รีเฟรชข้อมูล"
                     >
                         <RefreshCw className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={openAccountingModal}
+                        className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-xl transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <BookOpen className="w-4 h-4" />
+                        ทำบัญชี
                     </button>
                     <button
                         onClick={() => setIsTaxModalOpen(true)}
@@ -469,6 +528,259 @@ export function AnalyticsDashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* ===== ACCOUNTING MODAL ===== */}
+            <AnimatePresence>
+                {isAccModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={() => setIsAccModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 20 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-t-2xl">
+                                <div className="flex items-center gap-3">
+                                    <BookOpen className="w-5 h-5" />
+                                    <div>
+                                        <h2 className="font-bold text-lg leading-tight">รายงานทางบัญชี (Accounting Report)</h2>
+                                        <p className="text-emerald-200 text-xs">Nexora Labs — สำหรับตรวจสอบบัญชีประจำปี</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={accYear}
+                                        onChange={e => setAccYear(Number(e.target.value))}
+                                        className="text-sm bg-white/20 border border-white/30 text-white rounded-lg px-3 py-1.5 focus:outline-none"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        {[2024, 2025, 2026, 2027].map(y => (
+                                            <option key={y} value={y} className="text-slate-900">{y}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={handleDownloadAccPdf}
+                                        disabled={isGeneratingPdf || accLoading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        {isGeneratingPdf ? <Calculator className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                        ดาวน์โหลด PDF
+                                    </button>
+                                    <button onClick={() => setIsAccModalOpen(false)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="overflow-y-auto flex-1 p-6 space-y-6">
+                                {accLoading ? (
+                                    <div className="flex items-center justify-center py-20 text-slate-400">
+                                        <Calculator className="w-8 h-8 animate-spin mr-3" />
+                                        <span>กำลังโหลดข้อมูลบัญชี...</span>
+                                    </div>
+                                ) : accData ? (() => {
+                                    const yearPaid = accData.paidInvoices.filter(inv => new Date(inv.created_at).getFullYear() === accYear)
+                                    const yearPending = accData.pendingInvoices.filter(inv => new Date(inv.due_date).getFullYear() === accYear)
+                                    const totalRevenue = yearPaid.reduce((s, inv) => s + Number(inv.setup_fee) + Number(inv.monthly_fee), 0)
+                                    const totalSetup = yearPaid.reduce((s, inv) => s + Number(inv.setup_fee), 0)
+                                    const totalMonthly = yearPaid.reduce((s, inv) => s + Number(inv.monthly_fee), 0)
+                                    const totalAR = yearPending.reduce((s, inv) => s + Number(inv.setup_fee) + Number(inv.monthly_fee), 0)
+
+                                    return (
+                                        <div id="accounting-report-pdf" className="space-y-6" style={{ display: 'block' }}>
+                                            {/* Header for PDF */}
+                                            <div className="text-center border-b-2 border-slate-800 pb-4 mb-6">
+                                                <p className="text-xs text-slate-500 uppercase tracking-widest">NEXORA LABS CO., LTD.</p>
+                                                <h1 className="text-xl font-bold text-slate-900 mt-1">รายงานทางบัญชี (Accounting Report)</h1>
+                                                <p className="text-sm text-slate-600">สำหรับปีสิ้นสุดวันที่ 31 ธันวาคม พ.ศ. {accYear}</p>
+                                            </div>
+
+                                            {/* ── SECTION 1: Income Statement ── */}
+                                            <div>
+                                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                    <span className="w-1 h-4 bg-emerald-600 rounded-full inline-block"></span>
+                                                    งบกำไรขาดทุน (Income Statement) — ปี {accYear}
+                                                </h3>
+                                                <table className="w-full text-sm border-collapse">
+                                                    <thead>
+                                                        <tr className="bg-slate-800 text-white">
+                                                            <th className="px-4 py-2.5 text-left font-medium">รหัสบัญชี</th>
+                                                            <th className="px-4 py-2.5 text-left font-medium">รายการ</th>
+                                                            <th className="px-4 py-2.5 text-right font-medium">เดบิต (฿)</th>
+                                                            <th className="px-4 py-2.5 text-right font-medium">เครดิต (฿)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100">
+                                                        <tr className="bg-emerald-50">
+                                                            <td className="px-4 py-2 text-slate-500 font-mono text-xs">4100</td>
+                                                            <td className="px-4 py-2 font-semibold text-emerald-800">รายได้จากบริการ (Service Revenue)</td>
+                                                            <td className="px-4 py-2 text-right">—</td>
+                                                            <td className="px-4 py-2 text-right font-bold text-emerald-700">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="px-4 py-2 text-slate-400 font-mono text-xs pl-8">4101</td>
+                                                            <td className="px-4 py-2 text-slate-600 pl-8">↳ ค่าติดตั้ง / พัฒนาระบบ (Setup Fee)</td>
+                                                            <td className="px-4 py-2 text-right text-slate-600">—</td>
+                                                            <td className="px-4 py-2 text-right text-slate-600">{totalSetup.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="px-4 py-2 text-slate-400 font-mono text-xs pl-8">4102</td>
+                                                            <td className="px-4 py-2 text-slate-600 pl-8">↳ ค่าบริการรายเดือน (Monthly Service)</td>
+                                                            <td className="px-4 py-2 text-right text-slate-600">—</td>
+                                                            <td className="px-4 py-2 text-right text-slate-600">{totalMonthly.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                        <tr className="bg-amber-50">
+                                                            <td className="px-4 py-2 text-slate-500 font-mono text-xs">1200</td>
+                                                            <td className="px-4 py-2 font-semibold text-amber-800">ลูกหนี้การค้า (Accounts Receivable)</td>
+                                                            <td className="px-4 py-2 text-right font-bold text-amber-700">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                            <td className="px-4 py-2 text-right">—</td>
+                                                        </tr>
+                                                        <tr className="bg-slate-100 font-bold">
+                                                            <td colSpan={2} className="px-4 py-3 text-slate-800">รายได้รับจริง (Cash Collected)</td>
+                                                            <td className="px-4 py-3 text-right text-blue-700">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                            <td className="px-4 py-3 text-right text-blue-700">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* ── SECTION 2: Revenue Ledger ── */}
+                                            <div>
+                                                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                    <span className="w-1 h-4 bg-blue-600 rounded-full inline-block"></span>
+                                                    สมุดรายวัน — รายการรับชำระ (General Ledger — Paid)
+                                                </h3>
+                                                <table className="w-full text-xs border-collapse">
+                                                    <thead>
+                                                        <tr className="bg-slate-700 text-white">
+                                                            <th className="px-3 py-2 text-left font-medium">วันที่</th>
+                                                            <th className="px-3 py-2 text-left font-medium">รายการ / ลูกค้า</th>
+                                                            <th className="px-3 py-2 text-right font-medium">เดบิต (฿)</th>
+                                                            <th className="px-3 py-2 text-right font-medium">เครดิต (฿)</th>
+                                                            <th className="px-3 py-2 text-right font-medium">คงเหลือ (฿)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100">
+                                                        {yearPaid.length === 0 ? (
+                                                            <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-400">ไม่มีรายการชำระเงินในปี {accYear}</td></tr>
+                                                        ) : (() => {
+                                                            let running = 0
+                                                            return yearPaid.map((inv, idx) => {
+                                                                const amt = Number(inv.setup_fee) + Number(inv.monthly_fee)
+                                                                running += amt
+                                                                return (
+                                                                    <tr key={inv.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                                                        <td className="px-3 py-2 text-slate-500 whitespace-nowrap">{new Date(inv.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
+                                                                        <td className="px-3 py-2">
+                                                                            <p className="font-medium text-slate-800">{inv.client_name}</p>
+                                                                            <p className="text-slate-400">{inv.package_details}</p>
+                                                                        </td>
+                                                                        <td className="px-3 py-2 text-right text-slate-700">{amt.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                        <td className="px-3 py-2 text-right text-slate-400">—</td>
+                                                                        <td className="px-3 py-2 text-right font-semibold text-emerald-700">{running.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                    </tr>
+                                                                )
+                                                            })
+                                                        })()}
+                                                        <tr className="bg-slate-800 text-white font-bold">
+                                                            <td colSpan={2} className="px-3 py-2.5">รวมรายได้ทั้งสิ้น</td>
+                                                            <td className="px-3 py-2.5 text-right">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                            <td className="px-3 py-2.5 text-right">—</td>
+                                                            <td className="px-3 py-2.5 text-right text-emerald-300">{totalRevenue.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* ── SECTION 3: Accounts Receivable ── */}
+                                            {yearPending.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                        <span className="w-1 h-4 bg-amber-500 rounded-full inline-block"></span>
+                                                        ลูกหนี้การค้า (Accounts Receivable — Outstanding)
+                                                    </h3>
+                                                    <table className="w-full text-xs border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-amber-700 text-white">
+                                                                <th className="px-3 py-2 text-left font-medium">ลูกหนี้</th>
+                                                                <th className="px-3 py-2 text-left font-medium">รายการ</th>
+                                                                <th className="px-3 py-2 text-left font-medium">ครบกำหนด</th>
+                                                                <th className="px-3 py-2 text-right font-medium">ยอดค้างชำระ (฿)</th>
+                                                                <th className="px-3 py-2 text-center font-medium">สถานะ</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-amber-50">
+                                                            {yearPending.map((inv, idx) => {
+                                                                const amt = Number(inv.setup_fee) + Number(inv.monthly_fee)
+                                                                const overdue = new Date(inv.due_date) < new Date()
+                                                                return (
+                                                                    <tr key={inv.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-amber-50/40'}>
+                                                                        <td className="px-3 py-2">
+                                                                            <p className="font-medium text-slate-800">{inv.client_name}</p>
+                                                                            <p className="text-slate-400">{inv.client_email}</p>
+                                                                        </td>
+                                                                        <td className="px-3 py-2 text-slate-600">{inv.package_details}</td>
+                                                                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{new Date(inv.due_date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
+                                                                        <td className="px-3 py-2 text-right font-semibold text-amber-700">{amt.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                        <td className="px-3 py-2 text-center">
+                                                                            {overdue
+                                                                                ? <span className="inline-flex items-center gap-1 text-red-600 font-semibold"><ArrowDownRight className="w-3 h-3" />เกินกำหนด</span>
+                                                                                : <span className="inline-flex items-center gap-1 text-amber-600"><Clock className="w-3 h-3" />รอชำระ</span>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            })}
+                                                            <tr className="bg-amber-700 text-white font-bold">
+                                                                <td colSpan={3} className="px-3 py-2.5">รวมลูกหนี้คงค้าง</td>
+                                                                <td className="px-3 py-2.5 text-right">{totalAR.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                                                <td></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+
+                                            {/* Summary box */}
+                                            <div className="grid grid-cols-3 gap-4 mt-4">
+                                                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                                                    <p className="text-xs text-emerald-600 font-medium">รายได้รวม (Revenue)</p>
+                                                    <p className="text-xl font-bold text-emerald-800 mt-1">฿{totalRevenue.toLocaleString('th-TH')}</p>
+                                                    <p className="text-xs text-emerald-500 mt-1">{yearPaid.length} รายการ</p>
+                                                </div>
+                                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                                                    <p className="text-xs text-amber-600 font-medium">ลูกหนี้คงค้าง (A/R)</p>
+                                                    <p className="text-xl font-bold text-amber-800 mt-1">฿{totalAR.toLocaleString('th-TH')}</p>
+                                                    <p className="text-xs text-amber-500 mt-1">{yearPending.length} รายการ</p>
+                                                </div>
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                                                    <p className="text-xs text-blue-600 font-medium">ยอดรวมทั้งหมด</p>
+                                                    <p className="text-xl font-bold text-blue-800 mt-1">฿{(totalRevenue + totalAR).toLocaleString('th-TH')}</p>
+                                                    <p className="text-xs text-blue-500 mt-1">{yearPaid.length + yearPending.length} รายการ</p>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-center text-xs text-slate-400 pb-2">
+                                                จัดทำโดย Nexora Labs System — {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    )
+                                })() : null}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
         </div>
     )
