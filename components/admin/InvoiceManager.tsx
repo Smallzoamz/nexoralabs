@@ -430,18 +430,23 @@ export function InvoiceManager() {
             if (!urlPath) throw new Error('Invalid slip URL')
             const { data, error } = await supabase.storage
                 .from('payment-slips')
-                .createSignedUrl(urlPath, 60) // 60 second download window
+                .createSignedUrl(urlPath, 60)
             if (error) throw error
 
-            // Trigger download via temp anchor element
-            const a = document.createElement('a')
-            a.href = data.signedUrl
+            // Fetch as Blob → create object URL → force download (bypasses cross-origin restriction on `download` attr)
+            const res = await fetch(data.signedUrl)
+            const blob = await res.blob()
+            const objectUrl = URL.createObjectURL(blob)
+
             const ext = urlPath.split('.').pop() ?? 'jpg'
             const date = new Date(submission.submitted_at).toISOString().split('T')[0]
+            const a = document.createElement('a')
+            a.href = objectUrl
             a.download = `Slip_${submission.invoice?.client_name?.replace(/\s+/g, '_')}_${date}.${ext}`
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
+            URL.revokeObjectURL(objectUrl)
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'ดาวน์โหลดไม่สำเร็จ'
             showAlert('ข้อผิดพลาด', msg, 'error')
