@@ -160,8 +160,8 @@ export function Header() {
 
                     {/* CTA Button */}
                     <div className="hidden md:flex items-center gap-4">
-                        <Link href="/admin" className="btn-outline text-sm py-2">
-                            Admin
+                        <Link href="/login" className="btn-outline text-sm py-2">
+                            เข้าสู่ระบบ
                         </Link>
                         <Link href="#contact" className="btn-primary text-sm py-2">
                             ปรึกษาฟรี
@@ -223,8 +223,8 @@ export function Header() {
                                     ))}
                                 </div>
                                 <div className="pt-4 px-4 space-y-2">
-                                    <Link href="/admin" className="btn-outline w-full justify-center">
-                                        Admin
+                                    <Link href="/login" className="btn-outline w-full justify-center">
+                                        เข้าสู่ระบบ
                                     </Link>
                                     <Link href="#contact" className="btn-primary w-full justify-center">
                                         ปรึกษาฟรี

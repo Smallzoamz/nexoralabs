@@ -63,6 +63,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     // --- Analytics Tracking (Fire & Forget) ---
     // Only track public-facing pages — skip admin, api, _next, static, payment routes
     const publicPath = !url.pathname.startsWith('/admin') &&
+        !url.pathname.startsWith('/login') &&
         !url.pathname.startsWith('/api') &&
         !url.pathname.startsWith('/_next') &&
         !url.pathname.startsWith('/favicon') &&

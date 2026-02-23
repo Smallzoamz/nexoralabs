@@ -1,29 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth, AuthProvider } from '@/lib/auth-context'
 import { ModalProvider } from '@/lib/modal-context'
-import { LoginPage } from '@/components/admin/LoginPage'
 import { AccountSettingsModal } from '@/components/admin/AccountSettingsModal'
 import { Settings, LogOut } from 'lucide-react'
 
 function AdminContent({ children }: { children: React.ReactNode }) {
-    const { isAuthenticated, isLoading, user, logout } = useAuth()
+    const { isAuthenticated, isAdmin, isClient, isLoading, user, logout } = useAuth()
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+    const router = useRouter()
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-secondary-50">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-secondary-600">กำลังโหลด...</p>
-                </div>
-            </div>
-        )
-    }
+    useEffect(() => {
+        if (!isLoading && isAuthenticated && isClient) {
+            router.push('/client')
+        }
+    }, [isLoading, isAuthenticated, isClient, router])
 
-    if (!isAuthenticated) {
-        return <LoginPage />
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push('/login')
+        }
+    }, [isLoading, isAuthenticated, router])
+
+    if (isLoading || !isAuthenticated || !isAdmin) {
+        return null // Will redirect in useEffect
     }
 
     return (

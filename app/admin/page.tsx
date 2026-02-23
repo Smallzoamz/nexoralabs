@@ -36,6 +36,7 @@ import { SEOSettings } from '@/components/admin/SEOSettings'
 import { FAQManager } from '@/components/admin/FAQManager'
 import { ActivityLogManager } from '@/components/admin/ActivityLogManager'
 import { EmailTemplateManager } from '@/components/admin/EmailTemplateManager'
+import { SupportTicketManager } from '@/components/admin/SupportTicketManager'
 import { CreditCard, Landmark, LineChart, MessageCircleQuestion } from 'lucide-react'
 
 const menuGroups = [
@@ -68,6 +69,7 @@ const menuGroups = [
             { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users },
             { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard },
             { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark },
+            { id: 'support', label: 'Support Tickets', icon: MessageSquare },
         ]
     }
 ]
@@ -113,6 +115,8 @@ export default function AdminPage() {
                 return <TrustBadgeManager />
             case 'clients':
                 return <ClientManager />
+            case 'support':
+                return <SupportTicketManager />
             default:
                 return <AdminDashboard onNavigate={setActiveMenu} />
         }

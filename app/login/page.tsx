@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { Lock, Mail, Eye, EyeOff, LogIn, RefreshCw, AlertTriangle } from 'lucide-react'
-import { ForgotPasswordModal } from './ForgotPasswordModal'
+import { Lock, Mail, Eye, EyeOff, LogIn, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { ForgotPasswordModal } from '@/components/admin/ForgotPasswordModal'
 import { logAdminAction } from '@/lib/admin-logger'
+import Link from 'next/link'
 
-export function LoginPage() {
-    const { login, isLoading: authLoading } = useAuth()
+export default function UniversalLoginPage() {
+    const { login, isLoading: authLoading, isAuthenticated, isAdmin, isClient } = useAuth()
+    const router = useRouter()
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -29,6 +33,14 @@ export function LoginPage() {
         setCaptcha({ num1: n1, num2: n2, result: n1 + n2 })
         setUserCaptcha('')
     }
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            if (isClient) router.push('/client')
+            else if (isAdmin) router.push('/admin')
+        }
+    }, [authLoading, isAuthenticated, isClient, isAdmin, router])
 
     // Initialize CAPTCHA and handle lockout timer
     useEffect(() => {
@@ -80,54 +92,65 @@ export function LoginPage() {
                 setError('ใส่รหัสผ่านผิดเกินกำหนด ระงับการใช้งาน 60 วินาที')
             }
             generateCaptcha() // Regenerate captcha on failed login
+            setIsLoading(false)
         } else {
             // Reset on success
             setFailedAttempts(0)
             setLockoutTimer(0)
 
             try {
-                // Background log
+                // Background log - we don't await this so it doesn't block the UI
                 logAdminAction(email, 'LOGIN', 'เข้าสู่ระบบสำเร็จ')
             } catch (e) {
                 console.error(e)
             }
+            // Let the useEffect handle the redirection once auth state updates
         }
+    }
 
-        setIsLoading(false)
+    if (authLoading || isAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-secondary-50">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-secondary-600">กำลังพาคุณเข้าสู่ระบบ...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary-50 to-secondary-100 p-4">
             <div className="w-full max-w-md">
-                {/* Logo & Title */}
+                {/* Back to Home & Logo Area */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg mb-4">
-                        <Lock className="w-8 h-8 text-primary-600" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-white mb-2">Admin Panel</h1>
-                    <p className="text-primary-100">Nexora Labs</p>
+                    <Link href="/" className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-xl shadow-primary-500/10 mb-6 group transition-all hover:scale-105">
+                        <ShieldCheck className="w-8 h-8 text-primary-600 group-hover:text-primary-500 transition-colors" />
+                    </Link>
+                    <h1 className="text-3xl font-display font-bold text-secondary-900 mb-2">Nexora Labs</h1>
+                    <p className="text-secondary-500">ลงชื่อเข้าใช้งานระบบ</p>
                 </div>
 
                 {/* Login Form */}
-                <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="bg-white rounded-3xl shadow-xl shadow-secondary-900/5 p-8 border border-secondary-100">
                     <h2 className="text-xl font-semibold text-secondary-900 mb-6 text-center">
-                        เข้าสู่ระบบ
+                        เข้าสู่ระบบส่วนกลาง
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Email Field */}
                         <div>
                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                อีเมล
+                                อีเมลแอดเดรส
                             </label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                            <div className="relative group">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                                    placeholder="admin@nexoralabs.com"
+                                    className="w-full pl-10 pr-4 py-3 bg-secondary-50 border border-secondary-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="your@email.com"
                                     required
                                 />
                             </div>
@@ -138,20 +161,20 @@ export function LoginPage() {
                             <label className="block text-sm font-medium text-secondary-700 mb-2">
                                 รหัสผ่าน
                             </label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                            <div className="relative group">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-12 py-3 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                                    className="w-full pl-10 pr-12 py-3 bg-secondary-50 border border-secondary-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                                     placeholder="••••••••"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-secondary-400 hover:text-secondary-600 rounded-lg transition-colors"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -161,15 +184,15 @@ export function LoginPage() {
                         {/* Math CAPTCHA Field */}
                         <div>
                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                ยืนยันว่าเป็นมนุษย์: {captcha.num1} + {captcha.num2} = ?
+                                ยืนยันความปลอดภัย: <span className="text-primary-600 font-bold">{captcha.num1} + {captcha.num2}</span> = ?
                             </label>
                             <div className="flex gap-2">
                                 <input
                                     type="number"
                                     value={userCaptcha}
                                     onChange={(e) => setUserCaptcha(e.target.value)}
-                                    className="w-full px-4 py-3 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                                    placeholder="ใส่คำตอบ"
+                                    className="w-full px-4 py-3 bg-secondary-50 border border-secondary-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="ใส่คำตอบตัวเลข"
                                     required
                                     disabled={lockoutTimer > 0}
                                 />
@@ -187,9 +210,9 @@ export function LoginPage() {
 
                         {/* Error Message & Lockout Feedback */}
                         {error && (
-                            <div className={`p-3 border rounded-xl text-sm flex items-start gap-2 ${lockoutTimer > 0
-                                ? 'bg-orange-50 border-orange-200 text-orange-700'
-                                : 'bg-red-50 border-red-200 text-red-600'
+                            <div className={`p-4 rounded-xl text-sm flex items-start gap-3 ${lockoutTimer > 0
+                                ? 'bg-orange-50 border border-orange-200 text-orange-700'
+                                : 'bg-red-50 border border-red-200 text-red-600'
                                 }`}>
                                 <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                                 <div>
@@ -217,16 +240,16 @@ export function LoginPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={isLoading || authLoading || lockoutTimer > 0}
-                            className={`w-full py-3 px-4 mt-6 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 ${lockoutTimer > 0
-                                ? 'bg-secondary-400 cursor-not-allowed'
-                                : 'bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400'
+                            disabled={isLoading || lockoutTimer > 0}
+                            className={`w-full py-3.5 px-4 mt-6 text-white font-medium rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 ${lockoutTimer > 0
+                                ? 'bg-secondary-400 shadow-none cursor-not-allowed'
+                                : 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5'
                                 }`}
                         >
                             {isLoading ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    กำลังเข้าสู่ระบบ...
+                                    กำลังตรวจสอบข้อมูล...
                                 </>
                             ) : lockoutTimer > 0 ? (
                                 <>
@@ -243,9 +266,16 @@ export function LoginPage() {
                     </form>
                 </div>
 
+                {/* Back Link */}
+                <div className="mt-8 text-center">
+                    <Link href="/" className="text-sm text-secondary-500 hover:text-primary-600 transition-colors">
+                        &larr; กลับหน้าเว็บไซต์
+                    </Link>
+                </div>
+
                 {/* Footer */}
-                <p className="text-center text-primary-100 text-sm mt-6">
-                    © 2024 Nexora Labs. All rights reserved.
+                <p className="text-center text-secondary-400 text-sm mt-8">
+                    © {new Date().getFullYear()} Nexora Labs. All rights reserved.
                 </p>
             </div>
 
