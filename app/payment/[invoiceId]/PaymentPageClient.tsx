@@ -88,17 +88,23 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
 
             const slipUrl = urlData.publicUrl
 
-            // 3. Insert record into payment_submissions
-            const { error: dbError } = await supabase
-                .from('payment_submissions')
-                .insert({
+            // 3. Insert record into payment_submissions via API and Trigger Telegram Push
+            const response = await fetch('/api/payment-submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     invoice_id: invoice.id,
                     amount: totalAmount,
                     slip_url: slipUrl,
-                    status: 'pending'
+                    client_name: invoice.client_name,
+                    package_details: invoice.package_details
                 })
+            })
 
-            if (dbError) throw dbError
+            if (!response.ok) {
+                const errData = await response.json()
+                throw new Error(errData.error || 'Failed to submit payment')
+            }
 
             setUploadState('success')
         } catch (err: unknown) {

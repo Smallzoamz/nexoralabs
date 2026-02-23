@@ -81,26 +81,27 @@ export function ContactSection() {
         setSubmitError(null)
 
         try {
-            const { error } = await supabase
-                .from('contact_submissions')
-                .insert([
-                    {
-                        name: data.name,
-                        email: data.email,
-                        phone: data.phone,
-                        company: data.company || null,
-                        package_interest: data.package || null,
-                        message: data.message,
-                        status: 'new'
-                    }
-                ])
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                    company: data.company || null,
+                    package_interest: data.package || null,
+                    message: data.message,
+                })
+            })
 
-            if (error) {
-                console.error('Supabase error:', error)
-                if (error.message.includes('Rate limit exceeded')) {
+            const result = await response.json()
+
+            if (!response.ok) {
+                console.error('API error:', result.error)
+                if (result.error?.includes('Rate limit exceeded')) {
                     throw new Error('คุณส่งข้อความบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่ครับ')
                 }
-                throw new Error('เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง')
+                throw new Error(result.error || 'เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง')
             }
 
             setIsSubmitted(true)
