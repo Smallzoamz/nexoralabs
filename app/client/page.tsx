@@ -18,6 +18,7 @@ import { ClientDashboardView } from '@/components/client/ClientDashboardView'
 import { ClientInvoicesView } from '@/components/client/ClientInvoicesView'
 import { ClientBackupsView } from '@/components/client/ClientBackupsView'
 import { ClientSupportView } from '@/components/client/ClientSupportView'
+import { ClientContractsView } from '@/components/client/ClientContractsView'
 
 const menuGroups = [
     {
@@ -32,6 +33,7 @@ const menuGroups = [
         title: 'การเงินและเอกสาร',
         items: [
             { id: 'invoices', label: 'ใบแจ้งหนี้ / ประวัติชำระเงิน', icon: CreditCard },
+            { id: 'contracts', label: 'เอกสารสัญญา', icon: FileText },
         ]
     },
     {
@@ -58,6 +60,8 @@ export default function ClientPage() {
                 return <ClientBackupsView />
             case 'invoices':
                 return <ClientInvoicesView />
+            case 'contracts':
+                return <ClientContractsView />
             case 'support':
                 return <ClientSupportView />
             default:
