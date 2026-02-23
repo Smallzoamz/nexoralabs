@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Plus, Trash2, Edit2, Link as LinkIcon, ShieldAlert, KeyRound, Clock, Download } from 'lucide-react'
+import { Plus, Trash2, Edit2, Link as LinkIcon, ShieldAlert, KeyRound, Clock, Download, FileText } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
+import ContractGeneratorModal from './ContractGeneratorModal'
 import { z } from 'zod'
 
 interface ClientProfile {
@@ -31,6 +32,9 @@ export default function ClientManager() {
     const [isBackingUp, setIsBackingUp] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingClient, setEditingClient] = useState<ClientProfile | null>(null)
+    const [templates, setTemplates] = useState<{ id: string, name: string, content: string }[]>([])
+    const [isContractModalOpen, setIsContractModalOpen] = useState(false)
+    const [selectedContractClient, setSelectedContractClient] = useState<ClientProfile | null>(null)
     const { showAlert, showConfirm } = useModal()
 
     // Form State
@@ -49,13 +53,19 @@ export default function ClientManager() {
 
     const fetchClients = async () => {
         try {
-            const { data, error } = await supabase
-                .from('clients')
-                .select('*, backup_logs(status, created_at)')
-                .order('created_at', { ascending: false })
+            const [clientsRes, templatesRes] = await Promise.all([
+                supabase
+                    .from('clients')
+                    .select('*, backup_logs(status, created_at)')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('contract_templates')
+                    .select('id, name, content')
+            ])
 
-            if (error) throw error
-            setClients(data || [])
+            if (clientsRes.error) throw clientsRes.error
+            setClients(clientsRes.data || [])
+            if (templatesRes.data) setTemplates(templatesRes.data)
         } catch (error) {
             console.error('Error fetching clients:', error)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลลูกค้าได้', 'error')
@@ -252,6 +262,16 @@ export default function ClientManager() {
                                             <Download className="w-4 h-4" />
                                         )}
                                     </button>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedContractClient(client)
+                                            setIsContractModalOpen(true)
+                                        }}
+                                        className="p-1.5 text-secondary-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                        title="ออกสัญญา"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                    </button>
                                     <button onClick={() => handleOpenModal(client)} className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg">
                                         <Edit2 className="w-4 h-4" />
                                     </button>
@@ -430,6 +450,34 @@ export default function ClientManager() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Contract Generator Modal */}
+            {selectedContractClient && (
+                <ContractGeneratorModal
+                    isOpen={isContractModalOpen}
+                    onClose={() => {
+                        setIsContractModalOpen(false)
+                        setSelectedContractClient(null)
+                    }}
+                    clientId={selectedContractClient.id}
+                    templates={templates}
+                    prefilledData={{
+                        clientName: selectedContractClient.name,
+                        projectName: `โปรเจกต์ ${selectedContractClient.name}`
+                    }}
+                    onGenerate={async (templateId, title, finalContent) => {
+                        const { error } = await supabase.from('client_contracts').insert({
+                            client_id: selectedContractClient.id,
+                            template_id: templateId,
+                            title,
+                            content: finalContent,
+                            status: 'DRAFT'
+                        })
+                        if (error) throw error
+                        showAlert('ออกสัญญาสำเร็จ!', 'บันทึกสัญญาฉบับร่างเรียบร้อย สามารถเรียกดูและส่งให้ลูกค้าได้ในเมนู "จัดการสัญญา"', 'success')
+                    }}
+                />
             )}
         </div>
     )
