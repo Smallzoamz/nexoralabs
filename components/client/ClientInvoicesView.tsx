@@ -9,6 +9,7 @@ import { useModal } from '@/lib/modal-context'
 interface Invoice {
     id: string;
     created_at: string;
+    client_name: string;
     package_details: string;
     setup_fee: number;
     monthly_fee: number;
@@ -87,6 +88,7 @@ export function ClientInvoicesView() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
+                                <th className="p-4 font-medium text-gray-500">โปรเจกต์</th>
                                 <th className="p-4 font-medium">วันที่ออกเอกสาร</th>
                                 <th className="p-4 font-medium">รายละเอียด</th>
                                 <th className="p-4 font-medium">ยอดคงค้าง (฿)</th>
@@ -97,13 +99,16 @@ export function ClientInvoicesView() {
                         <tbody className="divide-y divide-gray-100 text-sm">
                             {invoices.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="p-8 text-center text-gray-500">
+                                    <td colSpan={6} className="p-8 text-center text-gray-500">
                                         ยังไม่มีประวัติการชำระเงิน
                                     </td>
                                 </tr>
                             ) : (
                                 invoices.map((invoice) => (
                                     <tr key={invoice.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="p-4 text-xs font-bold text-indigo-600">
+                                            {invoice.client_name}
+                                        </td>
                                         <td className="p-4 text-gray-600">
                                             {new Date(invoice.created_at).toLocaleDateString('th-TH')}
                                         </td>

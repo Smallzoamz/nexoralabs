@@ -10,6 +10,13 @@
 
 ## Recent Updates
 
+### 2026-02-25 | File: ClientDashboardView.tsx, ClientInvoicesView.tsx | Status: ✅ Completed
+- **Change:** Multi-Project Support for Customer Portal
+- **Details:** 
+  1. **Dashboard:** Updated `ClientDashboardView` to group invoices by `client_name` and add a project selector UI.
+  2. **Invoices:** Added "โปรเจกต์" column to `ClientInvoicesView` to identify invoices for different projects.
+  3. **Schema:** Created `setup_customer_portal_multi.sql` to relax constraints on `client_users` table.
+
 ### 2026-02-25 | File: create-account/route.ts, ClientManager.tsx | Status: ✅ Completed
 - **Change:** Manual Customer Account Creation
 - **Details:** 
