@@ -10,6 +10,13 @@
 
 ## Recent Updates
 
+### 2026-02-25 | File: create-account/route.ts, ClientManager.tsx | Status: ✅ Completed
+- **Change:** Manual Customer Account Creation
+- **Details:** 
+  1. **Backend API:** Created `/api/admin/create-account` to manually generate Supabase Auth users and Client profiles without invoices.
+  2. **Frontend UI:** Added "สร้างบัญชีผู้ใช้สำหรับ Customer Portal ทันที" toggle in ClientManager.
+  3. **Security:** Implemented automatic 8-character password generation and returned it to admin for onboarding.
+
 ### 2026-02-22 | File: InvoiceManager.tsx, send-invoice/route.ts | Status: ✅ Completed
 - **Change:** Email attachments - Added Service Contract and Installment Schedule PDFs to email
 - **Details:**

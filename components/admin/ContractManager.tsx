@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Edit, Trash2, FileText, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import ContractTemplateEditor from './ContractTemplateEditor'
@@ -36,13 +36,7 @@ export function ContractManager() {
     // Editor State
     const [editorData, setEditorData] = useState<Template | undefined>(undefined)
 
-    useEffect(() => {
-        if (view === 'list') {
-            fetchData()
-        }
-    }, [view, activeTab])
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true)
         try {
             if (activeTab === 'templates') {
@@ -57,7 +51,13 @@ export function ContractManager() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [activeTab])
+
+    useEffect(() => {
+        if (view === 'list') {
+            fetchData()
+        }
+    }, [view, fetchData])
 
     const handleSaveTemplate = async (data: { name: string, description: string, content: string }) => {
         try {

@@ -20,9 +20,10 @@ interface ClientProfile {
 
 const clientSchema = z.object({
     name: z.string().min(1, 'กรุณากรอกชื่อลูกค้า'),
+    email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
     package_type: z.enum(['standard', 'pro']),
-    supabase_url: z.string().url('URL ไม่ถูกต้อง').min(1, 'กรุณากรอก Supabase URL'),
-    supabase_key: z.string().min(10, 'Service Key สั้นเกินไป กรุณาตรวจสอบให้แน่ใจว่าเป็น `service_role key`')
+    supabase_url: z.string().url('URL ไม่ถูกต้อง').min(1, 'กรุณากรอก Supabase URL').optional().or(z.literal('')),
+    supabase_key: z.string().min(10, 'Service Key สั้นเกินไป กรุณาตรวจสอบให้แน่ใจว่าเป็น `service_role key`').optional().or(z.literal(''))
 })
 
 export default function ClientManager() {
@@ -40,10 +41,12 @@ export default function ClientManager() {
     // Form State
     const [formData, setFormData] = useState({
         name: '',
+        email: '',
         package_type: 'standard' as 'standard' | 'pro',
         supabase_url: '',
         supabase_key: '',
-        is_active: true
+        is_active: true,
+        shouldCreateAccount: false
     })
 
     useEffect(() => {
@@ -112,19 +115,23 @@ export default function ClientManager() {
             setEditingClient(client)
             setFormData({
                 name: client.name,
+                email: '', // Not stored in clients table typically, or we skip it for editing
                 package_type: client.package_type,
                 supabase_url: client.supabase_url,
                 supabase_key: client.supabase_key,
-                is_active: client.is_active
+                is_active: client.is_active,
+                shouldCreateAccount: false
             })
         } else {
             setEditingClient(null)
             setFormData({
                 name: '',
+                email: '',
                 package_type: 'standard',
                 supabase_url: '',
                 supabase_key: '',
-                is_active: true
+                is_active: true,
+                shouldCreateAccount: false
             })
         }
         setIsModalOpen(true)
@@ -137,19 +144,61 @@ export default function ClientManager() {
             setIsSaving(true)
             const validated = clientSchema.parse(formData)
 
-            if (editingClient) {
-                const { error } = await supabase
-                    .from('clients')
-                    .update({ ...validated, is_active: formData.is_active })
-                    .eq('id', editingClient.id)
-                if (error) throw error
-                showAlert('สำเร็จ', 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว', 'success')
+            if (!editingClient && formData.shouldCreateAccount) {
+                if (!formData.email) {
+                    showAlert('ข้อมูลไม่ครบถ้วน', 'กรุณาระบุอีเมลเพื่อสร้างบัญชีผู้ใช้', 'error')
+                    setIsSaving(false)
+                    return
+                }
+
+                const res = await fetch('/api/admin/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: formData.name,
+                        email: formData.email,
+                        package_type: formData.package_type,
+                        supabase_url: formData.supabase_url || '-',
+                        supabase_key: formData.supabase_key || '-'
+                    })
+                })
+
+                const result = await res.json()
+                if (!res.ok) throw new Error(result.error || 'Failed to create account')
+
+                const { password } = result.data
+                showAlert(
+                    'สำเร็จ!',
+                    `สร้างโปรเจกต์และบัญชีผู้ใช้เรียบร้อยแล้ว\n\nอีเมล: ${formData.email}\nรหัสผ่าน: ${password}\n\nกรุณาจดบันทึกรหัสผ่านนี้เพื่อแจ้งให้ลูกค้าทราบ`,
+                    'success'
+                )
             } else {
-                const { error } = await supabase
-                    .from('clients')
-                    .insert([{ ...validated, is_active: formData.is_active }])
-                if (error) throw error
-                showAlert('สำเร็จ', 'เพิ่มลูกค้าใหม่เรียบร้อยแล้ว', 'success')
+                if (editingClient) {
+                    const { error } = await supabase
+                        .from('clients')
+                        .update({
+                            name: validated.name,
+                            package_type: validated.package_type,
+                            supabase_url: validated.supabase_url || '-',
+                            supabase_key: validated.supabase_key || '-',
+                            is_active: formData.is_active
+                        })
+                        .eq('id', editingClient.id)
+                    if (error) throw error
+                    showAlert('สำเร็จ', 'อัปเดตข้อมูลลูกค้าเรียบร้อยแล้ว', 'success')
+                } else {
+                    const { error } = await supabase
+                        .from('clients')
+                        .insert([{
+                            name: validated.name,
+                            package_type: validated.package_type,
+                            supabase_url: validated.supabase_url || '-',
+                            supabase_key: validated.supabase_key || '-',
+                            is_active: formData.is_active
+                        }])
+                    if (error) throw error
+                    showAlert('สำเร็จ', 'เพิ่มลูกค้าใหม่เรียบร้อยแล้ว', 'success')
+                }
             }
 
             setIsModalOpen(false)
@@ -159,7 +208,7 @@ export default function ClientManager() {
                 showAlert('ข้อมูลไม่ถูกต้อง', error.errors[0].message, 'error')
             } else {
                 console.error('Save error:', error)
-                showAlert('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error')
+                showAlert('ข้อผิดพลาด', error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้', 'error')
             }
         } finally {
             setIsSaving(false)
@@ -353,6 +402,41 @@ export default function ClientManager() {
                                     />
                                 </div>
 
+                                {!editingClient && (
+                                    <div className="bg-primary-50 p-4 rounded-xl border border-primary-100 space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="shouldCreateAccount"
+                                                checked={formData.shouldCreateAccount}
+                                                onChange={(e) => setFormData({ ...formData, shouldCreateAccount: e.target.checked })}
+                                                className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+                                            />
+                                            <label htmlFor="shouldCreateAccount" className="text-sm font-bold text-primary-900 select-none">
+                                                สร้างบัญชีผู้ใช้สำหรับ Customer Portal ทันที
+                                            </label>
+                                        </div>
+
+                                        {formData.shouldCreateAccount && (
+                                            <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                                                <label className="block text-xs font-medium text-primary-700 mb-1 uppercase tracking-wider">อีเมลสำหรับเข้าสู่ระบบ <span className="text-red-500">*</span></label>
+                                                <input
+                                                    type="email"
+                                                    required={formData.shouldCreateAccount}
+                                                    value={formData.email}
+                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                                                    placeholder="customer@example.com"
+                                                />
+                                                <p className="text-[10px] text-primary-600 mt-1.5 flex items-center gap-1">
+                                                    <KeyRound className="w-3 h-3" />
+                                                    ระบบจะสุ่มรหัสผ่านให้เมื่อบันทึกข้อมูล
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div>
                                     <label className="block text-sm font-medium text-secondary-700 mb-2">ประเภทแพ็กเกจ (บังคับรอบแบ็คอัป)</label>
                                     <div className="grid grid-cols-2 gap-4">
@@ -388,10 +472,9 @@ export default function ClientManager() {
                                 </div>
 
                                 <div className="pt-2">
-                                    <label className="block text-sm font-medium text-secondary-700 mb-1">Supabase Project URL <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-medium text-secondary-700 mb-1">Supabase Project URL</label>
                                     <input
                                         type="url"
-                                        required
                                         value={formData.supabase_url}
                                         onChange={(e) => setFormData({ ...formData, supabase_url: e.target.value })}
                                         className="w-full px-4 py-2 border border-secondary-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm"
@@ -401,12 +484,11 @@ export default function ClientManager() {
 
                                 <div className="pb-2">
                                     <label className="block text-sm font-medium text-secondary-700 mb-1">
-                                        Supabase Service Role Key <span className="text-red-500">*</span>
-                                        <span className="text-xs font-normal text-amber-600 block mt-0.5">⚠️ จำเป็นต้องใช้ Service Role Key (ไม่ใช่ Anon Key) เพื่อข้ามการล๊อก RLS ขณะแบ็คอัป</span>
+                                        Supabase Service Role Key
+                                        <span className="text-xs font-normal text-amber-600 block mt-0.5">⚠️ จำเป็นต้องใช้ Service Role Key เพื่อระบบ Automated Backup</span>
                                     </label>
                                     <input
                                         type="password"
-                                        required
                                         value={formData.supabase_key}
                                         onChange={(e) => setFormData({ ...formData, supabase_key: e.target.value })}
                                         className="w-full px-4 py-2 border border-secondary-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-sm"
