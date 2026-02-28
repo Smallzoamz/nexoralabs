@@ -27,12 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
             .single()
 
         if (config) {
-            // Build raw SEO config from DB
+            // Build raw SEO config from DB - with fallback sanitizer
             const dynamicSEO = {
-                title: config.seo_title || defaultSEO.title,
-                description: config.seo_description || defaultSEO.description,
+                title: (config.seo_title || defaultSEO.title).replace(/Nexora Labs/g, 'VELOZI | Dev'),
+                description: (config.seo_description || defaultSEO.description).replace(/Nexora Labs/g, 'VELOZI | Dev'),
                 keywords: config.seo_keywords
-                    ? config.seo_keywords.split(',').map((k: string) => k.trim())
+                    ? config.seo_keywords.replace(/Nexora Labs/g, 'VELOZI | Dev').split(',').map((k: string) => k.trim())
                     : defaultSEO.keywords,
                 image: config.og_image_url || defaultSEO.image,
                 url: process.env.NEXT_PUBLIC_SITE_URL,

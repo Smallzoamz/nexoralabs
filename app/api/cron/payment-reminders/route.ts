@@ -103,7 +103,7 @@ export async function GET(req: Request) {
             const htmlTemplate = `
             <div style="font-family: 'Sarabun', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px;">
                 <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: #1e293b; margin: 0; font-size: 24px;">Nexora Labs | Billing Team</h1>
+                    <h1 style="color: #1e293b; margin: 0; font-size: 24px;">VELOZI | Dev | Billing Team</h1>
                     <p style="color: #64748b; margin-top: 5px;">แจ้งเตือนชำระค่าบริการ</p>
                 </div>
 
@@ -127,13 +127,13 @@ export async function GET(req: Request) {
                 </div>
 
                 <div style="text-align: center; margin-top: 20px;">
-                    <p style="color: #94a3b8; font-size: 12px;">© ${new Date().getFullYear()} Nexora Labs | Billing Team</p>
+                    <p style="color: #94a3b8; font-size: 12px;">© ${new Date().getFullYear()} VELOZI | Dev | Billing Team</p>
                 </div>
             </div>
             `
 
             await transporter.sendMail({
-                from: `"Nexora Labs | Billing Team" <${process.env.EMAIL_USER}>`,
+                from: `"VELOZI | Dev | Billing Team" <${process.env.EMAIL_USER}>`,
                 to: invoice.client_email,
                 subject: `${subject} - ${invoice.package_details}`,
                 html: htmlTemplate,

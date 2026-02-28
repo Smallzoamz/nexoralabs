@@ -41,7 +41,7 @@ export default async function PaymentPage({ params }: PageProps) {
 export async function generateMetadata({ params }: PageProps) {
     const { invoiceId } = await params
     return {
-        title: `ชำระเงิน | Nexora Labs`,
+        title: `ชำระเงิน | VELOZI | Dev`,
         description: `หน้าชำระเงินสำหรับใบแจ้งหนี้ #${invoiceId.substring(0, 8).toUpperCase()}`,
     }
 }

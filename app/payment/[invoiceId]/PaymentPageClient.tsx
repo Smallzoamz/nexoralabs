@@ -124,7 +124,7 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-3">ชำระเงินเรียบร้อยแล้ว</h1>
                     <p className="text-slate-500">ใบแจ้งหนี้ <strong>{invoiceNo}</strong> ได้รับการชำระเงินสำเร็จแล้วครับ</p>
-                    <p className="text-sm text-slate-400 mt-4">ขอบคุณที่ไว้วางใจ Nexora Labs 🙏</p>
+                    <p className="text-sm text-slate-400 mt-4">ขอบคุณที่ไว้วางใจ VELOZI | Dev 🙏</p>
                 </div>
             </div>
         )
@@ -150,7 +150,7 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Nexora Labs</h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">VELOZI | Dev</h1>
                     <p className="text-indigo-300 mt-1 text-sm">Billing Team | ชำระค่าบริการ</p>
                 </div>
 
@@ -278,7 +278,7 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
                     </p>
                 </div>
 
-                <p className="text-center text-slate-500 text-xs mt-6">© {new Date().getFullYear()} Nexora Labs. All rights reserved.</p>
+                <p className="text-center text-slate-500 text-xs mt-6">© {new Date().getFullYear()} VELOZI | Dev. All rights reserved.</p>
             </div>
         </div>
     )

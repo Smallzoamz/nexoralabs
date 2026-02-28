@@ -212,7 +212,7 @@ export function CookiePolicy() {
                             หากมีคำถามเกี่ยวกับนโยบายคุกกี้ กรุณาติดต่อ:
                         </p>
                         <ul className="text-secondary-600 space-y-3 mb-8 ml-6 list-disc marker:text-primary-500">
-                            <li>อีเมล: {siteConfig?.contact_email || 'privacy@nexoralabs.com'}</li>
+                            <li>อีเมล: {siteConfig?.contact_email || 'privacy@velozi.dev'}</li>
                             <li>โทร: {siteConfig?.contact_phone || '+66 XX XXX XXXX'}</li>
                         </ul>
 

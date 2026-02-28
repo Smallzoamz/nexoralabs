@@ -58,16 +58,17 @@ export async function POST(req: Request) {
         for (const email of uniqueEmails) {
             try {
                 await transporter.sendMail({
-                    from: `"Nexora Labs" <${process.env.EMAIL_USER}>`,
+                    from: `"VELOZI | Dev" <${process.env.EMAIL_USER}>`,
                     to: email,
                     subject: subject,
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                             ${body_html}
                             <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px; margin-bottom: 20px;">
+                            <h1 style="color: #1e293b; margin: 0; font-size: 24px;">VELOZI | Dev</h1>
                             <p style="font-size: 12px; color: #888; text-align: center;">
                                 อีเมลฉบับนี้เป็นการส่งแจ้งเตือนจากระบบอัตโนมัติ<br>
-                                © ${new Date().getFullYear()} Nexora Labs
+                                © ${new Date().getFullYear()} VELOZI | Dev
                             </p>
                         </div>
                     `,

@@ -59,9 +59,9 @@ export function HeroSection() {
     }, [])
 
     const displayData = heroData || {
-        subtitle: 'บริการครบวงจรสำหรับ SME',
-        title: 'ออกแบบและดูแล\nเว็บไซต์มืออาชีพ\nสำหรับธุรกิจคุณ',
-        description: 'เริ่มต้นเว็บไซต์สำหรับธุรกิจของคุณ พร้อมระบบ Admin Panel จัดการเนื้อหาเองได้ง่าย ดูแลโดยทีมงานมืออาชีพ ราคาเริ่มต้นเพียง 10,000 บาท',
+        subtitle: 'บริการออกแบบและพัฒนาเว็บไซต์',
+        title: 'VELOZI | Dev\nออกแบบและพัฒนา\nเว็บไซต์เพื่อ SME',
+        description: 'บริการออกแบบและพัฒนาเว็บไซต์ระดับพรีเมียมเพื่อผู้ประกอบการ SME พร้อมระบบ Admin Panel จัดการเนื้อหาเองง่าย ดูแลโดยทีมงานมืออาชีพ',
         primary_cta_text: 'ปรึกษาฟรี',
         primary_cta_link: '#contact',
         secondary_cta_text: 'ดูแพ็กเกจ',
@@ -118,16 +118,7 @@ export function HeroSection() {
                         transition={{ duration: 0.6 }}
                         className="py-8 lg:py-12"
                     >
-                        {/* Badge */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-8"
-                        >
-                            <Sparkles className="w-4 h-4" />
-                            <span>{displayData.subtitle}</span>
-                        </motion.div>
+
 
                         {/* Heading */}
                         <motion.h1

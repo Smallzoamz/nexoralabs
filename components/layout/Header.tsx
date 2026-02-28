@@ -89,7 +89,7 @@ export function Header() {
                             ) : (
                                 <Image
                                     src="/logos/navbar-logo.png"
-                                    alt={siteConfig?.site_name || "Nexora Labs Logo"}
+                                    alt={siteConfig?.site_name || "VELOZI | Dev Logo"}
                                     width={200}
                                     height={60}
                                     className="h-14 md:h-18 w-auto object-contain"

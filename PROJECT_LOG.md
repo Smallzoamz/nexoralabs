@@ -1,7 +1,7 @@
-# Project Log - Nexora Labs
+# Project Log - VELOZI | Dev
 
 ## Project Overview
-**Project Name:** Nexora Labs  
+**Project Name:** VELOZI | Dev  
 **Type:** Website Design & Maintenance Service  
 **Target:** Small-Medium Business (SME)  
 **Created:** 2026-02-19
@@ -9,6 +9,13 @@
 ---
 
 ## Recent Updates
+
+### 2026-03-01 | File: Hero, Services, WhyChooseUs, Portfolio, Packages, Testimonials, Contact | Status: ✅ Completed
+- **Change:** UI Cleanup - Removed section header badges
+- **Details:** 
+  1. **Components:** Removed the `rounded-full` header badges (e.g., "บริการครบวงจรสำหรับ SME", "รีวิวจากลูกค้า") from all 7 main landing page sections.
+  2. **Aesthetics:** Achieved a cleaner, more professional look by simplifying the section headers.
+  3. **Verification:** Verified that `npm run build` and `npm run lint` pass successfully.
 
 ### 2026-02-25 | File: ClientDashboardView.tsx, ClientInvoicesView.tsx | Status: ✅ Completed
 - **Change:** Multi-Project Support for Customer Portal

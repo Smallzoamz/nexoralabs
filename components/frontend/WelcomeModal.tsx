@@ -11,7 +11,7 @@ export function WelcomeModal() {
     useEffect(() => {
         setMounted(true)
         // Check local storage to see if we've shown this before
-        const hasSeenWelcome = localStorage.getItem('nexora_welcome_seen')
+        const hasSeenWelcome = localStorage.getItem('velozi_welcome_seen')
         if (!hasSeenWelcome) {
             // Slight delay to allow page initial render before popping modal
             const timer = setTimeout(() => {
@@ -23,7 +23,7 @@ export function WelcomeModal() {
 
     const handleAccept = () => {
         setIsOpen(false)
-        localStorage.setItem('nexora_welcome_seen', 'true')
+        localStorage.setItem('velozi_welcome_seen', 'true')
     }
 
     if (!mounted) return null
@@ -62,7 +62,7 @@ export function WelcomeModal() {
 
                             {/* Title */}
                             <h2 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-white mb-4 font-display">
-                                ประกาศสำคัญจากทีมงาน<br /> <span className="text-primary-600 dark:text-primary-400">Nexora Labs</span>
+                                ประกาศสำคัญจากทีมงาน<br /> <span className="text-primary-600 dark:text-primary-400">VELOZI | Dev</span>
                             </h2>
 
                             {/* Content */}

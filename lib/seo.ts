@@ -37,7 +37,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
         noindex = false,
     } = config
 
-    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Nexora Labs'
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'VELOZI | Dev'
     const fullTitle = `${title} | ${siteName}`
     const imageUrl = image.startsWith('http') ? image : `${url}${image}`
 
@@ -108,9 +108,9 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
 }
 
 export const defaultSEO: SEOConfig = {
-    title: 'Nexora Labs - ออกแบบและดูแลเว็บไซต์สำหรับธุรกิจ SME',
+    title: 'VELOZI | Dev - บริการออกแบบและพัฒนาเว็บไซต์เพื่อผู้ประกอบการ SME',
     description:
-        'บริการออกแบบและดูแลเว็บไซต์มืออาชีพสำหรับธุรกิจขนาดเล็ก-กลาง พร้อมระบบ Admin Panel จัดการเองง่าย ราคาเริ่มต้น 10,000 บาท สนับสนุนโดยทีมงานมืออาชีพ',
+        'บริการออกแบบและพัฒนาเว็บไซต์มืออาชีพสำหรับธุรกิจขนาดเล็ก-กลาง พร้อมระบบ Admin Panel จัดการเองง่าย ดูแลโดยทีมงานมืออาชีพ',
     keywords: [
         'ออกแบบเว็บไซต์',
         'ดูแลเว็บไซต์',
@@ -132,7 +132,7 @@ export const defaultSEO: SEOConfig = {
 
 export const privacySEO: SEOConfig = {
     title: 'นโยบายความเป็นส่วนตัว',
-    description: 'นโยบายความเป็นส่วนตัวของ Nexora Labs - เราให้ความสำคัญกับข้อมูลส่วนบุคคลของคุณ',
+    description: 'นโยบายความเป็นส่วนตัวของ VELOZI | Dev - เราให้ความสำคัญกับข้อมูลส่วนบุคคลของคุณ',
     keywords: ['นโยบายความเป็นส่วนตัว', 'Privacy Policy', 'PDPA'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/privacy`,
     noindex: true,
@@ -140,7 +140,7 @@ export const privacySEO: SEOConfig = {
 
 export const termsSEO: SEOConfig = {
     title: 'ข้อกำหนดการใช้งาน',
-    description: 'ข้อกำหนดและเงื่อนไขการใช้บริการของ Nexora Labs',
+    description: 'ข้อกำหนดและเงื่อนไขการใช้บริการของ VELOZI | Dev',
     keywords: ['ข้อกำหนดการใช้งาน', 'Terms of Service', 'เงื่อนไข'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/terms`,
     noindex: true,
@@ -148,7 +148,7 @@ export const termsSEO: SEOConfig = {
 
 export const cookieSEO: SEOConfig = {
     title: 'นโยบายคุกกี้',
-    description: 'นโยบายการใช้คุกกี้ของ Nexora Labs - เรียนรู้ว่าเราใช้คุกกี้อย่างไรและคุณสามารถจัดการได้อย่างไร',
+    description: 'นโยบายการใช้คุกกี้ของ VELOZI | Dev - เรียนรู้ว่าเราใช้คุกกี้อย่างไรและคุณสามารถจัดการได้อย่างไร',
     keywords: ['นโยบายคุกกี้', 'Cookie Policy', 'คุกกี้'],
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/cookies`,
     noindex: true,

@@ -38,7 +38,7 @@ export function AnalyticsDashboard() {
     const [expenseForm, setExpenseForm] = useState({ category: 'ค่าเซิร์ฟเวอร์/โฮสติ้ง', description: '', amount: 0, expense_date: new Date().toISOString().split('T')[0] })
     const [isAddingExpense, setIsAddingExpense] = useState(false)
     const [siteInfo, setSiteInfo] = useState({
-        name: 'Nexora Labs',
+        name: 'VELOZI | Dev',
         address: 'กรุงเทพมหานคร, ประเทศไทย',
         website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, '')
     })
@@ -49,7 +49,7 @@ export function AnalyticsDashboard() {
         payerName: '',
         payerAddress: '',
         payerTaxId: '',
-        receiverName: 'Nexora Labs (เน็กโซร่า แล็บส์)',
+        receiverName: 'VELOZI | Dev (เวโลซี เดเวลอปเปอร์)',
         receiverAddress: 'กรุงเทพมหานคร, ประเทศไทย',
         receiverTaxId: '-',
         description: 'ค่าบริการออกแบบและพัฒนาระบบเว็บไซต์',
@@ -82,7 +82,7 @@ export function AnalyticsDashboard() {
             ])
 
             if (siteConf) {
-                const fetchedName = siteConf.site_name || 'Nexora Labs'
+                const fetchedName = siteConf.site_name || 'VELOZI | Dev'
                 const fetchedAddress = siteConf.contact_address || 'กรุงเทพมหานคร, ประเทศไทย'
                 setSiteInfo(prev => ({
                     ...prev,

@@ -74,7 +74,7 @@ export function TermsOfService() {
                             1. การยอมรับข้อกำหนด
                         </h2>
                         <p className="text-secondary-600 leading-relaxed indent-8 mb-8 text-justify">
-                            การใช้งานเว็บไซต์และบริการของ Nexora Labs ถือว่าคุณได้อ่าน เข้าใจ และยอมรับ
+                            การใช้งานเว็บไซต์และบริการของ VELOZI | Dev ถือว่าคุณได้อ่าน เข้าใจ และยอมรับ
                             ข้อกำหนดและเงื่อนไขการใช้งานทั้งหมด หากคุณไม่เห็นด้วยกับข้อกำหนดใดๆ
                             กรุณางดใช้งานเว็บไซต์และบริการของเรา
                         </p>
@@ -202,7 +202,7 @@ export function TermsOfService() {
                             หากมีคำถามเกี่ยวกับข้อกำหนดนี้ กรุณาติดต่อ:
                         </p>
                         <ul className="text-secondary-600 space-y-3 mb-8 ml-6 list-disc marker:text-primary-500">
-                            <li>อีเมล: {siteConfig?.contact_email || 'legal@nexoralabs.com'}</li>
+                            <li>อีเมล: {siteConfig?.contact_email || 'legal@velozi.dev'}</li>
                             <li>โทร: {siteConfig?.contact_phone || '+66 XX XXX XXXX'}</li>
                         </ul>
                     </div>

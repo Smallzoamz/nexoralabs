@@ -34,7 +34,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
             <header className="bg-white border-b border-secondary-200 sticky top-0 z-40">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-bold text-primary-600">Nexora Labs</h1>
+                        <h1 className="text-xl font-bold text-primary-600">VELOZI | Dev</h1>
                         <span className="text-secondary-400">|</span>
                         <span className="text-secondary-600">Admin Panel</span>
                     </div>

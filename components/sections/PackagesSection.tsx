@@ -127,9 +127,7 @@ export function PackagesSection() {
                     transition={{ duration: 0.5 }}
                     className="text-center max-w-3xl mx-auto mb-16"
                 >
-                    <span className="inline-block px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-4">
-                        แพ็กเกจบริการ
-                    </span>
+
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-secondary-900 mb-6">
                         เลือกแพ็กเกจที่
                         <span className="gradient-text">เหมาะกับคุณ</span>

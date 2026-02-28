@@ -80,9 +80,9 @@ export function InvoiceManager() {
         bank_account_name: string;
     } | null>(null)
     const [siteInfo, setSiteInfo] = useState({
-        name: 'Nexora Labs',
+        name: 'VELOZI | Dev',
         description: 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
-        email: 'contact@nexoralabs.com',
+        email: 'contact@velozi.dev',
         website: (process.env.NEXT_PUBLIC_SITE_URL || 'www.nexoralabs.com').replace(/^https?:\/\//, ''),
         address: '',
         ownerSignature: ''
@@ -136,9 +136,9 @@ export function InvoiceManager() {
             if (siteConfRes?.data) {
                 setSiteInfo(prev => ({
                     ...prev,
-                    name: siteConfRes.data?.site_name || 'Nexora Labs',
+                    name: siteConfRes.data?.site_name || 'VELOZI | Dev',
                     description: siteConfRes.data?.site_description || 'บริการออกแบบและพัฒนาระบบเว็บไซต์ครบวงจร',
-                    email: siteConfRes.data?.contact_email || 'contact@nexoralabs.com',
+                    email: siteConfRes.data?.contact_email || 'contact@velozi.dev',
                     address: siteConfRes.data?.contact_address || '',
                     ownerSignature: siteConfRes.data?.owner_signature || ''
                 }))

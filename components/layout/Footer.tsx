@@ -97,7 +97,7 @@ export function Footer() {
                             ) : (
                                 <Image
                                     src="/logos/footer-logo.png"
-                                    alt={siteConfig?.site_name || "Nexora Labs Icon"}
+                                    alt={siteConfig?.site_name || "VELOZI | Dev Icon"}
                                     width={64}
                                     height={64}
                                     className="w-16 h-16 object-contain"
@@ -118,11 +118,11 @@ export function Footer() {
                                 <span>{siteConfig?.contact_phone || '+66 XX XXX XXXX'}</span>
                             </a>
                             <a
-                                href={`mailto:${siteConfig?.contact_email || 'contact@nexoralabs.com'}`}
+                                href={`mailto:${siteConfig?.contact_email || 'contact@velozi.dev'}`}
                                 className="flex items-center gap-3 text-secondary-300 hover:text-primary-400 transition-colors"
                             >
                                 <Mail className="w-5 h-5" />
-                                <span>{siteConfig?.contact_email || 'contact@nexoralabs.com'}</span>
+                                <span>{siteConfig?.contact_email || 'contact@velozi.dev'}</span>
                             </a>
                             <div className="flex items-start gap-3 text-secondary-300">
                                 <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -233,7 +233,7 @@ export function Footer() {
                 <div className="container-custom py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-secondary-400 text-sm text-center md:text-left">
-                            © {currentYear} {siteConfig?.site_name || 'Nexora Labs'}. สงวนลิทธิ์ทุกประการ.
+                            © {currentYear} {siteConfig?.site_name || 'VELOZI | Dev'}. สงวนลิทธิ์ทุกประการ.
                         </p>
                         <div className="flex items-center gap-6 text-sm text-secondary-400">
                             <span>กรณีระบบล่มทั้งระบบ ตอบกลับภายใน 2 ชม.</span>

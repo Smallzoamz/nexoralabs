@@ -126,9 +126,7 @@ export function ContactSection() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                     >
-                        <span className="inline-block px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-4">
-                            ติดต่อเรา
-                        </span>
+
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-secondary-900 mb-6">
                             พร้อมเริ่มต้น
                             <br />
@@ -157,7 +155,7 @@ export function ContactSection() {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-secondary-900 mb-1">อีเมล</h3>
-                                    <a href={`mailto:${siteConfig?.contact_email || 'contact@nexoralabs.com'}`} className="text-secondary-600 hover:text-primary-600 transition-colors">
+                                    <a href={`mailto:${siteConfig?.contact_email || 'contact@velozi.dev'}`} className="text-secondary-600 hover:text-primary-600 transition-colors">
                                         {siteConfig?.contact_email || 'contact@nexoralabs.com'}
                                     </a>
                                 </div>

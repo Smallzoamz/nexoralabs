@@ -33,7 +33,7 @@ function ClientContent({ children }: { children: React.ReactNode }) {
             <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-bold text-indigo-600">Nexora Labs</h1>
+                        <h1 className="text-xl font-bold text-indigo-600">VELOZI | Dev</h1>
                         <span className="text-gray-400">|</span>
                         <span className="text-gray-600">Customer Portal</span>
                     </div>
@@ -42,14 +42,14 @@ function ClientContent({ children }: { children: React.ReactNode }) {
                             <p className="text-sm font-medium text-gray-900 leading-tight">
                                 {user?.user_metadata?.name || 'Customer'}
                             </p>
-                            <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                            <p className="text-sm text-slate-400 mt-6">ขอบคุณที่ไว้วางใจ VELOZI | Dev 🙏</p>
                         </div>
 
                         <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
                             <button
                                 onClick={logout}
                                 className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                title="ออกจากระบบ"
+                                title={`ชำระเงิน | VELOZI | Dev`}
                             >
                                 <LogOut className="w-5 h-5" />
                             </button>

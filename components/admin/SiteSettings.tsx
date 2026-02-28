@@ -6,15 +6,15 @@ import { Save, Globe, Mail, Phone, Clock, MapPin, Loader2, AlertCircle } from 'l
 import { supabase } from '@/lib/supabase'
 
 const initialSettings = {
-    siteName: 'Nexora Labs',
+    siteName: 'VELOZI | Dev',
     siteDescription: 'บริการออกแบบและดูแลเว็บไซต์สำหรับธุรกิจ SME',
     contactEmail: 'contact@nexoralabs.com',
     contactPhone: '+66 XX XXX XXXX',
     contactAddress: 'กรุงเทพมหานคร, ประเทศไทย',
     workingHours: '09:00 - 18:00',
-    socialFacebook: 'https://facebook.com/nexoralabs',
-    socialLine: '@nexoralabs',
-    socialInstagram: '@nexoralabs',
+    socialFacebook: 'https://facebook.com/velozidev',
+    socialLine: '@velozidev',
+    socialInstagram: '@velozidev',
     logoUrl: '',
     ownerSignature: '',
 }

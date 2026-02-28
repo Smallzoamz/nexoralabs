@@ -75,7 +75,7 @@ export function PrivacyPolicy() {
                             1. บทนำ
                         </h2>
                         <p className="text-secondary-600 leading-relaxed indent-8 mb-8 text-justify">
-                            Nexora Labs (&quot;เรา&quot;, &quot;ของเรา&quot;) เคารพความเป็นส่วนตัวของคุณและมุ่งมั่นที่จะปกป้องข้อมูลส่วนบุคคลของคุณ
+                            VELOZI | Dev (&quot;เรา&quot;, &quot;ของเรา&quot;) เคารพความเป็นส่วนตัวของคุณและมุ่งมั่นที่จะปกป้องข้อมูลส่วนบุคคลของคุณ
                             นโยบายความเป็นส่วนตัวนี้อธิบายว่าเราเก็บรวบรวม ใช้ และเปิดเผยข้อมูลของคุณอย่างไร
                             เมื่อคุณใช้เว็บไซต์ของเราหรือใช้บริการของเรา
                         </p>
@@ -182,7 +182,7 @@ export function PrivacyPolicy() {
                             กรุณาติดต่อเราที่:
                         </p>
                         <ul className="text-secondary-600 space-y-3 mb-8 ml-6 list-disc marker:text-primary-500">
-                            <li>อีเมล: {siteConfig?.contact_email || 'privacy@nexoralabs.com'}</li>
+                            <li>อีเมล: {siteConfig?.contact_email || 'privacy@velozi.dev'}</li>
                             <li>โทร: {siteConfig?.contact_phone || '+66 XX XXX XXXX'}</li>
                             <li>ที่อยู่: {siteConfig?.contact_address || 'กรุงเทพมหานคร, ประเทศไทย'}</li>
                         </ul>

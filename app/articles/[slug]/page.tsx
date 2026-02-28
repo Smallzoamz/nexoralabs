@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     if (!article) return {}
 
     return {
-        title: `${article.title} | Nexora Labs`,
-        description: article.excerpt || 'บทความน่าสนใจจาก Nexora Labs',
+        title: `${article.title} | VELOZI | Dev`,
+        description: article.excerpt || 'บทความน่าสนใจจาก VELOZI | Dev',
         openGraph: {
             title: article.title,
             description: article.excerpt || '',

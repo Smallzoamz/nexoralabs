@@ -127,7 +127,7 @@ export default function UniversalLoginPage() {
                     <Link href="/" className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-xl shadow-primary-500/10 mb-6 group transition-all hover:scale-105">
                         <ShieldCheck className="w-8 h-8 text-primary-600 group-hover:text-primary-500 transition-colors" />
                     </Link>
-                    <h1 className="text-3xl font-display font-bold text-secondary-900 mb-2">Nexora Labs</h1>
+                    <h1 className="text-3xl font-display font-bold text-secondary-900 mb-2">VELOZI | Dev</h1>
                     <p className="text-secondary-500">ลงชื่อเข้าใช้งานระบบ</p>
                 </div>
 
@@ -275,7 +275,7 @@ export default function UniversalLoginPage() {
 
                 {/* Footer */}
                 <p className="text-center text-secondary-400 text-sm mt-8">
-                    © {new Date().getFullYear()} Nexora Labs. All rights reserved.
+                    © {new Date().getFullYear()} VELOZI | Dev. All rights reserved.
                 </p>
             </div>
 
