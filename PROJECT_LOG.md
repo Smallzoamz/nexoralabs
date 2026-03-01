@@ -23,6 +23,14 @@
   5. **Fallback:** Templates without demo pages show static image preview in the modal.
   6. **Verification:** `npm run build` passed with zero errors.
 
+### 2026-03-02 | File: app/layout.tsx, app/robots.ts, app/sitemap.ts | Status: ✅ Completed
+- **Change:** AI Search Readiness (AEO - Answer Engine Optimization)
+- **Details:** 
+  1. Added JSON-LD Schema (Organization & WebSite) to `layout.tsx` for precise AI entity recognition.
+  2. Created dynamic `robots.ts` explicitly allowing GPTBot, ClaudeBot, and other AI crawlers.
+  3. Created dynamic `sitemap.ts` to map core pages with appropriate priority and change frequency.
+  4. Verified no build errors.
+
 ### 2026-03-02 | File: components/layout/Header.tsx | Status: ✅ Completed
 - **Change:** Restructured Header Navigation
 - **Details:** 

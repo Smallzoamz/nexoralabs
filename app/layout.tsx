@@ -88,6 +88,45 @@ export default function RootLayout({
             <body className="min-h-screen flex flex-col font-sans antialiased">
                 <ModalProvider>
                     <LanguageProvider>
+                        {/* JSON-LD for AI Search (AEO) */}
+                        <script
+                            type="application/ld+json"
+                            dangerouslySetInnerHTML={{
+                                __html: JSON.stringify({
+                                    "@context": "https://schema.org",
+                                    "@graph": [
+                                        {
+                                            "@type": "Organization",
+                                            "@id": "https://www.nexoralabs.com/#organization",
+                                            "name": "VELOZI | Dev",
+                                            "url": "https://www.nexoralabs.com",
+                                            "logo": "https://www.nexoralabs.com/logos/navbar-logo.png",
+                                            "description": "บริการออกแบบ พัฒนา และดูแลเว็บไซต์ระดับพรีเมียมเพื่อผู้ประกอบการ SME",
+                                            "sameAs": [
+                                                "https://www.facebook.com/velozi.tech",
+                                                "https://line.me/ti/p/~@velozi"
+                                            ],
+                                            "contactPoint": {
+                                                "@type": "ContactPoint",
+                                                "telephone": "+66-000-000-000",
+                                                "contactType": "customer support",
+                                                "areaServed": "TH",
+                                                "availableLanguage": ["Thai", "English"]
+                                            }
+                                        },
+                                        {
+                                            "@type": "WebSite",
+                                            "@id": "https://www.nexoralabs.com/#website",
+                                            "url": "https://www.nexoralabs.com",
+                                            "name": "VELOZI | Dev - บริการออกแบบและพัฒนาเว็บไซต์เพื่อ SME",
+                                            "publisher": {
+                                                "@id": "https://www.nexoralabs.com/#organization"
+                                            }
+                                        }
+                                    ]
+                                })
+                            }}
+                        />
                         {children}
                         <FloatingContact />
                     </LanguageProvider>
