@@ -1,0 +1,15 @@
+﻿
+F:\SellingSite\app\admin\page.tsx
+  91:11  error  'filteredMenuGroups' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+F:\SellingSite\components\admin\UserManager.tsx
+    4:44  error    'KeyRound' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+   27:8   warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   98:25  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+  115:25  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+
+F:\SellingSite\tailwind.config.ts
+  106:9  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+โ– 6 problems (5 errors, 1 warning)
+

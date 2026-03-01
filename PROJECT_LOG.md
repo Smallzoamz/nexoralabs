@@ -10,6 +10,15 @@
 
 ## Recent Updates
 
+### 2026-03-02 | File: app/admin/page.tsx, app/actions/admin-users.ts, components/admin/UserManager.tsx | Status: ✅ Completed
+- **Change:** Role-Based Access Control (RBAC) & User Management
+- **Details:** 
+  1. **Roles:** Differentiated `superadmin` and `moderator` roles in `AuthContext`.
+  2. **Server Actions:** Created `admin-users.ts` to manage users via the `SUPABASE_SERVICE_ROLE_KEY` (create, edit, delete, assign roles).
+  3. **UI Filtering:** Restricted `menuGroups` in `app/admin/page.tsx` and specific financial charts in `IntegratedDashboard.tsx` from `moderator` access.
+  4. **Manager:** Built `<UserManager />` component for superadmins to manage staff accounts securely.
+  5. **Verification:** Verified with `npm run build`.
+
 ### 2026-03-01 | File: app/showcase/*, public/showcase/* | Status: ✅ Completed
 - **Change:** Template Showcase Gallery & Interactive Demo Sites
 - **Details:**

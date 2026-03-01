@@ -4,12 +4,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from './supabase'
 import type { User } from '@supabase/supabase-js'
 
-export type UserRole = 'admin' | 'client'
+export type UserRole = 'superadmin' | 'moderator' | 'admin' | 'client'
 
 interface AuthContextType {
     user: User | null
     userRole: UserRole | null
     isAdmin: boolean
+    isSuperAdmin: boolean
+    isModerator: boolean
     isClient: boolean
     isLoading: boolean
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
@@ -25,12 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const resolveRole = (currentUser: User | null) => {
+        const resolveRole = (currentUser: User | null): UserRole | null => {
             if (!currentUser) return null
-            // Assume 'client' if explicitly set, otherwise 'admin' for backward compatibility
-            if (currentUser.user_metadata?.role === 'client') {
-                return 'client'
-            }
+
+            const role = currentUser.user_metadata?.role
+            if (role === 'client') return 'client'
+            if (role === 'superadmin') return 'superadmin'
+            if (role === 'moderator') return 'moderator'
+
+            // Assume 'admin' for backward compatibility if not client
             return 'admin'
         }
 
@@ -85,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             value={{
                 user,
                 userRole,
-                isAdmin: userRole === 'admin',
+                isAdmin: ['superadmin', 'admin', 'moderator'].includes(userRole as string),
+                isSuperAdmin: ['superadmin', 'admin'].includes(userRole as string),
+                isModerator: userRole === 'moderator',
                 isClient: userRole === 'client',
                 isLoading,
                 login,

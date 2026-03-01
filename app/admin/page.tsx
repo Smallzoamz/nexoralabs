@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
     LayoutDashboard,
@@ -36,39 +36,45 @@ import { ActivityLogManager } from '@/components/admin/ActivityLogManager'
 import { EmailTemplateManager } from '@/components/admin/EmailTemplateManager'
 import { SupportTicketManager } from '@/components/admin/SupportTicketManager'
 import { ContractManager } from '@/components/admin/ContractManager'
+import UserManager from '@/components/admin/UserManager'
 import { CreditCard, Landmark, LineChart, MessageCircleQuestion } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 const menuGroups = [
     {
         title: 'ภาพรวมระบบ',
+        roles: ['superadmin', 'admin', 'moderator'],
         items: [
-            { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard },
-            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity },
-            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail },
-            { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
-            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart },
+            { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity, roles: ['superadmin', 'admin'] },
+            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail, roles: ['superadmin', 'admin'] },
+            { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings, roles: ['superadmin', 'admin'] },
+            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart, roles: ['superadmin', 'admin'] },
+            { id: 'users', label: 'จัดการบุคลากร (Staff)', icon: Users, roles: ['superadmin', 'admin'] }
         ]
     },
     {
         title: 'จัดการระบบ',
+        roles: ['superadmin', 'admin', 'moderator'],
         items: [
-            { id: 'content', label: 'จัดการเนื้อหา', icon: FileText },
-            { id: 'articles', label: 'บทความ (Blog)', icon: FileText },
-            { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout },
-            { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion },
-            { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package },
-            { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck },
+            { id: 'content', label: 'จัดการเนื้อหา', icon: FileText, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'articles', label: 'บทความ (Blog)', icon: FileText, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package, roles: ['superadmin', 'admin'] },
+            { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck, roles: ['superadmin', 'admin', 'moderator'] },
         ]
     },
     {
         title: 'ลูกค้าและรายได้',
+        roles: ['superadmin', 'admin', 'moderator'],
         items: [
-            { id: 'contacts', label: 'รายการติดต่อ', icon: MessageSquare },
-            { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users },
-            { id: 'contracts', label: 'จัดการสัญญา', icon: FileText },
-            { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard },
-            { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark },
-            { id: 'support', label: 'Support Tickets', icon: MessageSquare },
+            { id: 'contacts', label: 'รายการติดต่อ', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'contracts', label: 'จัดการสัญญา', icon: FileText, roles: ['superadmin', 'admin'] },
+            { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard, roles: ['superadmin', 'admin'] },
+            { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark, roles: ['superadmin', 'admin'] },
+            { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator'] },
         ]
     }
 ]
@@ -79,6 +85,16 @@ const allMenuItems = menuGroups.flatMap(group => group.items)
 export default function AdminPage() {
     const [activeMenu, setActiveMenu] = useState('dashboard')
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const { userRole } = useAuth()
+
+    // Filter menus based on userRole
+    const filteredMenuGroups = useMemo(() => {
+        const roleStr = userRole as string || 'admin'
+        return menuGroups.map(group => ({
+            ...group,
+            items: group.items.filter(item => item.roles.includes(roleStr))
+        })).filter(group => group.items.length > 0)
+    }, [userRole])
 
     const renderContent = () => {
         switch (activeMenu) {
@@ -90,6 +106,8 @@ export default function AdminPage() {
                 return <SEOSettings />
             case 'templates':
                 return <EmailTemplateManager />
+            case 'users':
+                return <UserManager />
             case 'activity-log':
                 return <ActivityLogManager />
             case 'content':
@@ -153,7 +171,7 @@ export default function AdminPage() {
 
                 {/* Menu */}
                 <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
-                    {menuGroups.map((group, groupIndex) => (
+                    {filteredMenuGroups.map((group, groupIndex) => (
                         <div key={groupIndex} className="space-y-1">
                             {isSidebarOpen && (
                                 <div className="px-4 text-xs font-bold text-secondary-500 uppercase tracking-wider mb-2">
