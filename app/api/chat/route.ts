@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         }
 
         // --- Core Website Context (Injected from frontend content) ---
-        let baseWebsiteContext = `
+        const baseWebsiteContext = `
 ข้อมูลพื้นฐานของบริษัท VELOZI | Dev:
 - บริการ: ออกแบบและพัฒนาเว็บไซต์ระดับพรีเมียมเพื่อผู้ประกอบการ SME พร้อมระบบ Admin Panel จัดการเนื้อหาเองง่าย ดูแลโดยทีมงานมืออาชีพ
 - จุดเด่นบริการหลัก 6 อย่าง:
