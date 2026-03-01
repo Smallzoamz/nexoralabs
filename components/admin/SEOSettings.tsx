@@ -112,11 +112,27 @@ export function SEOSettings() {
                 .from('assets')
                 .getPublicUrl(filePath)
 
-            // OPTIONAL: Delete the old one to save space (if domain matches supabase and path implies it's ours)
+            // Auto-save to Database immediately to prevent desync
+            if (config.id) {
+                const { error: syncError } = await supabase
+                    .from('site_config')
+                    .update({ og_image_url: publicUrl })
+                    .eq('id', config.id)
+
+                if (syncError) {
+                    console.error('Error syncing OG image to DB:', syncError)
+                    // We don't throw here to still allow the UI to show the preview
+                }
+            }
+
+            // Cleanup old images from storage
             if (config.og_image_url && config.og_image_url.includes('supabase.co')) {
                 try {
-                    const oldFileName = config.og_image_url.split('/seo/')[1];
-                    if (oldFileName) {
+                    // Extract exact filename from URL
+                    const urlParts = config.og_image_url.split('/seo/');
+                    const oldFileName = urlParts.length > 1 ? urlParts[1].split('?')[0] : null;
+
+                    if (oldFileName && oldFileName !== fileName) {
                         await supabase.storage.from('assets').remove([`seo/${oldFileName}`]);
                     }
                 } catch (cleanupErr) {
@@ -125,7 +141,7 @@ export function SEOSettings() {
             }
 
             setConfig(prev => ({ ...prev, og_image_url: publicUrl }))
-            showAlert('อัปโหลดสำเร็จ', 'เปลี่ยนรูปภาพแชร์ (OG Image) เรียบร้อยแล้ว โปรดกดบันทึกเพื่อยืนยัน', 'success')
+            showAlert('อัปโหลดสำเร็จ', 'เปลี่ยนรูปภาพแชร์ (OG Image) และบันทึกข้อมูลเรียบร้อยแล้ว', 'success')
         } catch (err) {
             console.error('Upload error:', err)
             showAlert('อัปโหลดล้มเหลว', 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ', 'error')

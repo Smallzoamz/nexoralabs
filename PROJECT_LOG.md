@@ -10,6 +10,33 @@
 
 ## Recent Updates
 
+### 2026-03-01 | File: SEOSettings.tsx | Status: ✅ Completed
+- **Change:** Fixed OG Image Upload & DB Synchronization
+- **Details:** 
+  1. **Repair:** Fixed a broken DB link where `og_image_url` pointed to a non-existent file by re-syncing with a valid storage asset.
+  2. **Auto-Sync:** Refactored `handleImageUpload` to automatically update `site_config` in the database immediately after a successful storage upload, preventing future desyncs.
+  3. **Cleanup:** Improved storage cleanup logic to accurately remove old files and manually purged 6 orphaned/redundant images from the `assets/seo` folder.
+  4. **Verification:** Validated storage and DB state using diagnostic scripts; all temporary files have been removed.
+
+### 2026-03-01 | File: IntegratedDashboard.tsx | Status: ✅ Completed
+- **Change:** Redesigned Admin Dashboard & Financial Tools Integration
+- **Details:** 
+  1. **Unified Interface:** Merged Analytics and Dashboard into a single `IntegratedDashboard` with real-time charts (Revenue, Traffic).
+  2. **Accounting System:** Ported and improved the accounting modal for income/expense tracking and formal A4 PDF report generation.
+  3. **Withholding Tax (50 Bis):** Integrated a standard Thai Withholding Tax Certificate generator with automatic Thai text conversion (`bahttext`).
+  4. **Invoice Management:** Added a "Recent Paid Invoices" section with quick-action buttons for downloading Tax Invoices and Receipts directly.
+  5. **Clean Code:** Resolved all ESLint errors, implemented strict TypeScript interfaces for invoices and configuration, and automated site-info fetching for documents.
+  6. **Verification:** Passed `npm run lint` and `npm run build` with zero errors.
+
+### 2026-03-01 | File: Project Wide | Status: ✅ Completed
+- **Change:** Deep Rebranding to VELOZI | Dev
+- **Details:** 
+  1. **Branding:** Changed all instances of "Nexora Labs" to "VELOZI | Dev" (SEO, Header, Footer, Hero, Admin, Emails).
+  2. **Theming:** Updated `tailwind.config.ts` with brand-aligned colors (Deep Blue/Teal & Cyan) and updated global gradients.
+  3. **Safety Fallback:** Implemented a string sanitizer in `layout.tsx` to catch any remaining "Nexora Labs" strings from the database.
+  4. **Email Automation:** Rebranded all system emails and broadcast routes.
+  5. **Verification:** Verified with `npm run build` and pushed to Git.
+
 ### 2026-03-01 | File: Hero, Services, WhyChooseUs, Portfolio, Packages, Testimonials, Contact | Status: ✅ Completed
 - **Change:** UI Cleanup - Removed section header badges
 - **Details:** 

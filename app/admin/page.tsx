@@ -14,14 +14,12 @@ import {
     LogOut,
     ChevronRight,
     ShieldCheck,
-    BarChart3,
     Layout,
     Activity,
     Mail
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { AdminDashboard } from '@/components/admin/AdminDashboard'
-import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard'
+import IntegratedDashboard from '@/components/admin/IntegratedDashboard'
 import { SiteSettings } from '@/components/admin/SiteSettings'
 import { ContentManager } from '@/components/admin/ContentManager'
 import { PackageManager } from '@/components/admin/PackageManager'
@@ -45,7 +43,6 @@ const menuGroups = [
         title: 'ภาพรวมระบบ',
         items: [
             { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard },
-            { id: 'analytics', label: 'ดูรายงาน', icon: BarChart3 },
             { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity },
             { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail },
             { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings },
@@ -86,9 +83,7 @@ export default function AdminPage() {
     const renderContent = () => {
         switch (activeMenu) {
             case 'dashboard':
-                return <AdminDashboard onNavigate={setActiveMenu} />
-            case 'analytics':
-                return <AnalyticsDashboard />
+                return <IntegratedDashboard onNavigate={setActiveMenu} />
             case 'site':
                 return <SiteSettings />
             case 'seo':
@@ -122,7 +117,7 @@ export default function AdminPage() {
             case 'support':
                 return <SupportTicketManager />
             default:
-                return <AdminDashboard onNavigate={setActiveMenu} />
+                return <IntegratedDashboard onNavigate={setActiveMenu} />
         }
     }
 
