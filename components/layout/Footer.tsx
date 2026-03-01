@@ -36,7 +36,7 @@ const footerLinks = {
         { name: 'ออกแบบเว็บไซต์', href: '/#services' },
         { name: 'ดูแลเว็บไซต์', href: '/#services' },
         { name: 'ระบบ Admin Panel', href: '/#services' },
-        { name: 'SEO Optimization', href: '/#services' },
+        { name: 'ตัวอย่างเว็บไซต์', href: '/showcase' },
         { name: 'เข้าสู่ระบบ (Login)', href: '/login' },
     ],
     packages: [

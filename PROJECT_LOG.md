@@ -10,6 +10,29 @@
 
 ## Recent Updates
 
+### 2026-03-01 | File: app/showcase/*, public/showcase/* | Status: ✅ Completed
+- **Change:** Template Showcase Gallery & Interactive Demo Sites
+- **Details:**
+  1. **Mockup Images:** Generated 12 AI mockup images across 4 categories (Business ×3, Creative ×3, E-commerce ×3, Startup ×3).
+  2. **Gallery Page:** Built `/showcase` with category filter tabs, animated card grid, and hover overlays.
+  3. **Interactive Demos:** Created 3 fully interactive demo landing pages at `/showcase/demo/[id]`:
+     - **Corporate Classic** — Blue/white professional business site with hero, services, stats, testimonials, contact form.
+     - **Dark Tech** — Cyberpunk-style AI platform with pricing cards, neon accents, glassmorphism.
+     - **Luxury Fashion** — Beige/gold e-commerce with product grid, brand story, consultation form.
+  4. **Preview Modal:** Full-screen iframe preview modal with **Desktop / Tablet / Mobile** device toggle buttons.
+  5. **Fallback:** Templates without demo pages show static image preview in the modal.
+  6. **Verification:** `npm run build` passed with zero errors.
+
+### 2026-03-02 | File: components/layout/Header.tsx | Status: ✅ Completed
+- **Change:** Restructured Header Navigation
+- **Details:** 
+  1. Consolidated "Packages" and "Track Order" under a new "Services" hover dropdown.
+  2. Changed the existing "Policy" dropdown from click-based to hover-based.
+  3. Updated the mobile menu to group "Services" and its sub-items logically.
+
+
+
+
 ### 2026-03-01 | File: All Landing Page Sections + globals.css | Status: ✅ Completed
 - **Change:** Corporate Professional Full Layout Redesign
 - **Details:**

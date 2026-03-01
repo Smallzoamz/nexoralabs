@@ -5,6 +5,7 @@ export const t = {
         packages: { th: 'แพ็กเกจ', en: 'Packages' },
         portfolio: { th: 'ผลงาน', en: 'Portfolio' },
         articles: { th: 'บทความ', en: 'Articles' },
+        showcase: { th: 'ตัวอย่างเว็บ', en: 'Showcase' },
         trackOrder: { th: 'ติดตามงาน', en: 'Track Order' },
         policy: { th: 'นโยบาย', en: 'Policies' },
         privacy: { th: 'นโยบายความเป็นส่วนตัว', en: 'Privacy Policy' },
