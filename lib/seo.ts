@@ -102,7 +102,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
                 },
             },
         verification: {
-            google: 'your-google-verification-code',
+            google: 'jfG-HrBVGLKzdB510OOqa-A32AOTG5ieaGAcEpWe8ow',
         },
     }
 }
