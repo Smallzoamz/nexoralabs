@@ -17,6 +17,8 @@ import {
     Loader2,
     AlertCircle
 } from 'lucide-react'
+import { useLanguage } from '@/lib/language-context'
+import { t, tr } from '@/lib/translations'
 
 const contactSchema = z.object({
     name: z.string().min(2, 'กรุณากรอกชื่อ'),
@@ -49,6 +51,9 @@ export function ContactSection() {
     const [isSubmitted, setIsSubmitted] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null)
+    const { lang } = useLanguage()
+    const f = t.contact.form
+    const c = t.contact
 
     useEffect(() => {
         async function fetchSiteConfig() {
@@ -127,22 +132,20 @@ export function ContactSection() {
                         transition={{ duration: 0.5 }}
                     >
 
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-secondary-900 mb-6">
-                            พร้อมเริ่มต้น
-                            <br />
-                            <span className="gradient-text">โปรเจคของคุณ?</span>
+                        <h2 className="text-3xl md:text-4xl font-display font-bold text-secondary-900 mb-4">
+                            {tr(c.title, lang)}
                         </h2>
-                        <p className="text-lg text-secondary-600 leading-loose mt-4 mb-8">
-                            ปรึกษาเราฟรี! ทีมงานพร้อมให้คำปรึกษาและช่วยวางแผนเว็บไซต์ที่เหมาะกับธุรกิจของคุณ
+                        <p className="text-secondary-500 leading-relaxed mb-8">
+                            {tr(c.subtitle, lang)}
                         </p>
 
                         <div className="space-y-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <Phone className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-secondary-900 mb-1">โทรหาเรา</h3>
+                                    <h3 className="font-semibold text-secondary-900 mb-1">{tr(c.phone, lang)}</h3>
                                     <a href={`tel:${siteConfig?.contact_phone?.replace(/\s/g, '') || '+66XXXXXXXX'}`} className="text-secondary-600 hover:text-primary-600 transition-colors">
                                         {siteConfig?.contact_phone || '+66 XX XXX XXXX'}
                                     </a>
@@ -150,11 +153,11 @@ export function ContactSection() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <Mail className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-secondary-900 mb-1">อีเมล</h3>
+                                    <h3 className="font-semibold text-secondary-900 mb-1">{tr(c.email, lang)}</h3>
                                     <a href={`mailto:${siteConfig?.contact_email || 'contact@velozi.dev'}`} className="text-secondary-600 hover:text-primary-600 transition-colors">
                                         {siteConfig?.contact_email || 'contact@nexoralabs.com'}
                                     </a>
@@ -162,36 +165,36 @@ export function ContactSection() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <MessageCircle className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-secondary-900 mb-1">Line Official</h3>
+                                    <h3 className="font-semibold text-secondary-900 mb-1">{tr(c.line, lang)}</h3>
                                     <a href={siteConfig?.social_line || '#'} target="_blank" rel="noreferrer" className="text-secondary-600 hover:text-primary-600 transition-colors">
-                                        {siteConfig?.social_line ? (siteConfig.social_line.includes('line.me') ? 'คลิกเพื่อแอดไลน์' : siteConfig.social_line) : '@nexoralabs'}
+                                        {siteConfig?.social_line ? (siteConfig.social_line.includes('line.me') ? tr(c.lineAction, lang) : siteConfig.social_line) : '@nexoralabs'}
                                     </a>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <MapPin className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-secondary-900 mb-1">ที่อยู่</h3>
-                                    <p className="text-secondary-600">{siteConfig?.contact_address || 'กรุงเทพมหานคร, ประเทศไทย'}</p>
+                                    <h3 className="font-semibold text-secondary-900 mb-1">{tr(c.address, lang)}</h3>
+                                    <p className="text-secondary-600">{siteConfig?.contact_address || tr(c.addressFallback, lang)}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <Clock className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-secondary-900 mb-1">เวลาทำการ</h3>
-                                    <p className="text-secondary-600">{siteConfig?.working_hours || 'จันทร์ - ศุกร์: 09:00 - 18:00 น.'}</p>
+                                    <h3 className="font-semibold text-secondary-900 mb-1">{tr(c.hours, lang)}</h3>
+                                    <p className="text-secondary-600">{siteConfig?.working_hours || tr(c.hoursFallback, lang)}</p>
                                     <p className="text-sm text-secondary-500 mt-1">
-                                        กรณีระบบล่มทั้งระบบ: ตอบกลับภายใน 2 ชม.
+                                        {tr(c.emergencyNote, lang)}
                                     </p>
                                 </div>
                             </div>
@@ -216,10 +219,10 @@ export function ContactSection() {
                                         <CheckCircle2 className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-                                        ส่งข้อความสำเร็จ!
+                                        {tr(f.success, lang)}
                                     </h3>
                                     <p className="text-secondary-600">
-                                        เราจะติดต่อกลับภายในเวลาทำการครับ
+                                        {tr(f.successNote, lang)}
                                     </p>
                                 </motion.div>
                             ) : (
@@ -227,13 +230,13 @@ export function ContactSection() {
                                     <div className="grid sm:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                                ชื่อ-นามสกุล *
+                                                {tr(f.name, lang)}
                                             </label>
                                             <input
                                                 {...register('name')}
                                                 type="text"
                                                 className="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
-                                                placeholder="ชื่อของคุณ"
+                                                placeholder={tr(f.namePlaceholder, lang)}
                                             />
                                             {errors.name && (
                                                 <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
@@ -242,7 +245,7 @@ export function ContactSection() {
 
                                         <div>
                                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                                เบอร์โทรศัพท์ *
+                                                {tr(f.phone, lang)}
                                             </label>
                                             <input
                                                 {...register('phone')}
@@ -258,7 +261,7 @@ export function ContactSection() {
 
                                     <div>
                                         <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                            อีเมล *
+                                            {tr(f.email, lang)}
                                         </label>
                                         <input
                                             {...register('email')}
@@ -274,19 +277,19 @@ export function ContactSection() {
                                     <div className="grid sm:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                                ชื่อบริษัท
+                                                {tr(f.company, lang)}
                                             </label>
                                             <input
                                                 {...register('company')}
                                                 type="text"
                                                 className="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
-                                                placeholder="ชื่อบริษัท (ถ้ามี)"
+                                                placeholder={tr(f.companyPlaceholder, lang)}
                                             />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                                สนใจแพ็กเกจ
+                                                {tr(f.package, lang)}
                                             </label>
                                             <select
                                                 {...register('package')}
@@ -303,13 +306,13 @@ export function ContactSection() {
 
                                     <div>
                                         <label className="block text-sm font-medium text-secondary-700 mb-2">
-                                            ข้อความ *
+                                            {tr(f.message, lang)}
                                         </label>
                                         <textarea
                                             {...register('message')}
                                             rows={4}
                                             className="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all resize-none"
-                                            placeholder="เล่าให้เราฟังเกี่ยวกับโปรเจคของคุณ..."
+                                            placeholder={tr(f.messagePlaceholder, lang)}
                                         />
                                         {errors.message && (
                                             <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>
@@ -331,12 +334,12 @@ export function ContactSection() {
                                         {isSubmitting ? (
                                             <>
                                                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                กำลังส่ง...
+                                                {tr(f.submitting, lang)}
                                             </>
                                         ) : (
                                             <>
                                                 <Send className="w-5 h-5 mr-2" />
-                                                ส่งข้อความ
+                                                {tr(f.submit, lang)}
                                             </>
                                         )}
                                     </button>

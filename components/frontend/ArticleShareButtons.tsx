@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Share2, Facebook, Twitter, Link2, Check, MessageCircle } from 'lucide-react'
 
 interface ArticleShareButtonsProps {
@@ -15,6 +15,11 @@ export function ArticleShareButtons({ title, url, excerpt, coverImage: _coverIma
     // Facebook/Twitter use Open Graph meta tags from the page itself
     void _coverImage // Suppress unused variable warning
     const [copied, setCopied] = useState(false)
+    const [canNativeShare, setCanNativeShare] = useState(false)
+
+    useEffect(() => {
+        setCanNativeShare(typeof navigator !== 'undefined' && 'share' in navigator)
+    }, [])
 
     const encodedTitle = encodeURIComponent(title)
     const encodedUrl = encodeURIComponent(url)
@@ -99,7 +104,7 @@ export function ArticleShareButtons({ title, url, excerpt, coverImage: _coverIma
             </button>
 
             {/* Native Share (Mobile) */}
-            {'share' in navigator && (
+            {canNativeShare && (
                 <button
                     onClick={handleNativeShare}
                     className="w-10 h-10 rounded-full bg-primary-600 text-white hover:bg-primary-700 flex items-center justify-center transition-colors shadow-sm"

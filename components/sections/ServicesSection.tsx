@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
-import { ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/language-context'
+import { t, tr } from '@/lib/translations'
 
 type IconName = keyof typeof LucideIcons
 
@@ -18,86 +19,9 @@ interface ServiceData {
     order: number
 }
 
-const defaultServices: ServiceData[] = [
-    {
-        id: 1,
-        icon: 'Palette',
-        title: 'ออกแบบเว็บไซต์',
-        description: 'ออกแบบเว็บไซต์ทันสมัย สวยงาม ตอบโจทย์ธุรกิจ รองรับทุกอุปกรณ์',
-        features: ['Responsive Design', 'Modern UI/UX', 'Brand Identity'],
-        is_active: true,
-        order: 1
-    },
-    {
-        id: 2,
-        icon: 'Code',
-        title: 'พัฒนาระบบ',
-        description: 'พัฒนาเว็บไซต์ด้วยเทคโนโลยีล่าสุด Next.js, React รวดเร็วและปลอดภัย',
-        features: ['Next.js', 'TypeScript', 'SEO Ready'],
-        is_active: true,
-        order: 2
-    },
-    {
-        id: 3,
-        icon: 'Server',
-        title: 'Hosting & Database',
-        description: 'ดูแล Hosting และ Database ด้วย Supabase พร้อม Backup อัตโนมัติ',
-        features: ['Supabase', 'Auto Backup', 'SSL Certificate'],
-        is_active: true,
-        order: 3
-    },
-    {
-        id: 4,
-        icon: 'Shield',
-        title: 'ความปลอดภัย',
-        description: 'รักษาความปลอดภัยข้อมูล ป้องกันการโจมตี อัปเดตระบบอย่างสม่ำเสมอ',
-        features: ['SSL/HTTPS', 'Security Update', 'Data Protection'],
-        is_active: true,
-        order: 4
-    },
-    {
-        id: 5,
-        icon: 'BarChart',
-        title: 'SEO Optimization',
-        description: 'เพิ่มโอกาสปรากฏบน Google ด้วย SEO ระดับมืออาชีพ',
-        features: ['On-Page SEO', 'Technical SEO', 'Analytics'],
-        is_active: true,
-        order: 5
-    },
-    {
-        id: 6,
-        icon: 'Headphones',
-        title: 'ซัพพอร์ตตลอดการใช้งาน',
-        description: 'ทีมงานพร้อมให้ความช่วยเหลือ ตอบกลับภายในเวลาทำการ',
-        features: ['Quick Response', 'Technical Support', 'Consultation'],
-        is_active: true,
-        order: 6
-    },
-]
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-        },
-    },
-}
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.5,
-        },
-    },
-}
-
 export function ServicesSection() {
     const [services, setServices] = useState<ServiceData[]>([])
+    const { lang } = useLanguage()
 
     useEffect(() => {
         async function fetchServices() {
@@ -117,99 +41,54 @@ export function ServicesSection() {
         fetchServices()
     }, [])
 
-    const displayServices = services.length > 0 ? services : defaultServices
+    const defaults = t.services.defaults
 
     return (
-        <section id="services" className="section-padding bg-white">
+        <section id="services" className="py-20 md:py-28 bg-white">
             <div className="container-custom">
-                {/* Section Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center max-w-3xl mx-auto mb-16"
-                >
-
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-secondary-900 mb-6">
-                        บริการครบวงจร
-                        <br />
-                        <span className="gradient-text">สำหรับเว็บไซต์ธุรกิจคุณ</span>
+                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    className="text-center max-w-2xl mx-auto mb-14">
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-secondary-900 mb-4">
+                        {tr(t.services.title, lang)}
                     </h2>
-                    <p className="text-lg text-secondary-600 leading-loose mt-4">
-                        เราให้บริการออกแบบ พัฒนา และดูแลเว็บไซต์ครบวงจร
-                        ตั้งแต่เริ่มต้นจนถึงการดูแลระยะยาว
+                    <p className="text-secondary-500 leading-relaxed">
+                        {tr(t.services.subtitle, lang)}
                     </p>
                 </motion.div>
 
-                {/* Services Grid */}
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-                >
-                    {displayServices.map((service) => {
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {(services.length > 0 ? services : defaults.map((d, i) => ({
+                        id: i + 1,
+                        icon: d.icon,
+                        title: tr(d.title, lang),
+                        description: tr(d.description, lang),
+                        features: [],
+                        is_active: true,
+                        order: i + 1
+                    }))).map((service, index) => {
+                        // For DB data in EN mode, try to find matching default translation
+                        let title = service.title
+                        let description = service.description
+                        if (services.length > 0 && lang === 'en' && defaults[index]) {
+                            title = tr(defaults[index].title, lang)
+                            description = tr(defaults[index].description, lang)
+                        }
+
                         const IconComponent = (LucideIcons[service.icon as IconName] || LucideIcons.HelpCircle) as React.ElementType
 
                         return (
-                            <motion.div
-                                key={service.id}
-                                variants={itemVariants}
-                                className="group card card-hover p-6 lg:p-8"
-                            >
-                                {/* Icon */}
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <IconComponent className="w-7 h-7 text-white" />
+                            <motion.div key={service.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }} transition={{ delay: index * 0.08 }}
+                                className="group bg-white border border-secondary-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all duration-300">
+                                <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-5 group-hover:bg-primary-200 transition-colors">
+                                    <IconComponent className="w-7 h-7 text-primary-600" />
                                 </div>
-
-                                {/* Content */}
-                                <h3 className="text-xl font-display font-semibold text-secondary-900 mb-3">
-                                    {service.title}
-                                </h3>
-                                <p className="text-secondary-600 mb-6 leading-loose">
-                                    {service.description}
-                                </p>
-
-                                {/* Features */}
-                                <ul className="space-y-2">
-                                    {(service.features ?? []).map((feature, idx) => (
-                                        <li key={idx} className="flex items-center gap-2 text-sm text-secondary-500">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                {/* Hover Arrow */}
-                                <div className="mt-6 pt-6 border-t border-secondary-100">
-                                    <span className="inline-flex items-center text-primary-600 font-medium text-sm group-hover:text-primary-700 transition-colors">
-                                        เรียนรู้เพิ่มเติม
-                                        <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                                    </span>
-                                </div>
+                                <h3 className="text-lg font-display font-semibold text-secondary-900 mb-2">{title}</h3>
+                                <p className="text-sm text-secondary-500 leading-relaxed">{description}</p>
                             </motion.div>
                         )
                     })}
-                </motion.div>
-
-                {/* Bottom CTA */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.4 }}
-                    className="text-center mt-12"
-                >
-                    <p className="text-secondary-600 mb-4">
-                        ต้องการบริการเฉพาะด้าน? คุยกับเราได้เลย
-                    </p>
-                    <a href="#contact" className="btn-primary">
-                        ปรึกษาฟรี
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                    </a>
-                </motion.div>
+                </div>
             </div>
         </section>
     )

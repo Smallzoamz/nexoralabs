@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ExternalLink, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/language-context'
+import { t, tr } from '@/lib/translations'
 
 interface PortfolioItem {
     id: string;
@@ -19,11 +19,11 @@ interface PortfolioItem {
 export function PortfolioSection() {
     const [portfolios, setPortfolios] = useState<PortfolioItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const { lang } = useLanguage()
 
     useEffect(() => {
         async function fetchPortfolios() {
             try {
-                // Fetch top 6 active portfolios ordered by admin's sequence
                 const { data, error } = await supabase
                     .from('portfolios')
                     .select('*')
@@ -44,91 +44,71 @@ export function PortfolioSection() {
     }, [])
 
     if (isLoading || portfolios.length === 0) {
-        return null // Don't render section if there's no data
+        return null
     }
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden" id="portfolio">
-            <div className="container relative z-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="max-w-2xl"
-                    >
+        <section className="py-20 md:py-28 gradient-bg" id="portfolio">
+            <div className="container-custom">
+                {/* Section Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center max-w-2xl mx-auto mb-14"
+                >
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-secondary-900 mb-4">
+                        {tr(t.portfolio.title, lang)}
+                    </h2>
+                    <p className="text-secondary-500 leading-relaxed">
+                        {tr(t.portfolio.subtitle, lang)}
+                    </p>
+                </motion.div>
 
-                        <h2 className="text-4xl md:text-5xl font-display font-bold text-secondary-900 mb-6 leading-tight">
-                            ความสำเร็จของลูกค้า <br className="hidden sm:block" />
-                            <span className="text-secondary-500">คือความภูมิใจของเรา</span>
-                        </h2>
-                        <p className="text-lg text-secondary-600 leading-relaxed">
-                            ส่วนหนึ่งของผลงานที่เราได้มีโอกาสร่วมพัฒนาและออกแบบ เพื่อยกระดับธุรกิจให้ก้าวทันโลกดิจิทัล
-                        </p>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                    >
-                        <Link href="/portfolio" className="btn-outline inline-flex items-center group">
-                            ดูผลงานทั้งหมด
-                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </motion.div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Portfolio Grid — Thumbnail + Label */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {portfolios.map((item, index) => (
                         <motion.div
                             key={item.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group rounded-2xl overflow-hidden bg-secondary-50 border border-secondary-100/50 block shadow-sm hover:shadow-xl transition-all duration-300"
+                            className="group"
                         >
-                            {/* Image Container */}
-                            <div className="aspect-[4/3] w-full relative overflow-hidden border-b border-secondary-100">
-                                <div className="absolute inset-0 bg-secondary-900/10 group-hover:bg-transparent transition-colors z-10" />
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={item.image_url}
-                                    alt={item.title}
-                                    className="w-full h-full object-cover object-top group-hover:scale-105 group-hover:-translate-y-2 transition-transform duration-700 ease-out"
-                                />
-
-                                {/* Website Link Overlay */}
-                                {item.website_url && (
-                                    <div className="absolute inset-0 bg-secondary-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 z-20 backdrop-blur-sm">
-                                        <a
-                                            href={item.website_url.startsWith('http') ? item.website_url : `https://${item.website_url}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="px-6 py-3 bg-white text-secondary-900 rounded-full font-medium inline-flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105"
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                            เข้าชมเว็บไซต์จริง
-                                        </a>
-                                    </div>
+                            {/* Image Card */}
+                            <div className="relative overflow-hidden rounded-xl border border-secondary-200 shadow-sm group-hover:shadow-lg transition-all duration-300">
+                                {item.website_url ? (
+                                    <a
+                                        href={item.website_url.startsWith('http') ? item.website_url : `https://${item.website_url}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="block"
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={item.image_url}
+                                            alt={item.title}
+                                            className="w-full h-auto aspect-[4/3] object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                    </a>
+                                ) : (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                        src={item.image_url}
+                                        alt={item.title}
+                                        className="w-full h-auto aspect-[4/3] object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                                    />
                                 )}
                             </div>
 
-                            {/* Content */}
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-primary-600 bg-primary-50 px-3 py-1 rounded-full">
-                                        {item.category || 'Website'}
-                                    </span>
-                                </div>
-                                <h3 className="text-xl font-bold text-secondary-900 mb-2 group-hover:text-primary-600 transition-colors">
+                            {/* Label below image */}
+                            <div className="mt-4 text-center">
+                                <h3 className="font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors">
                                     {item.title}
                                 </h3>
-                                {item.description && (
-                                    <p className="text-secondary-600 text-sm line-clamp-2 leading-relaxed">
-                                        {item.description}
-                                    </p>
+                                {item.category && (
+                                    <p className="text-sm text-secondary-400 mt-1">{item.category}</p>
                                 )}
                             </div>
                         </motion.div>

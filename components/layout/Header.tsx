@@ -8,6 +8,8 @@ import { Menu, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useLanguage } from '@/lib/language-context'
+import { t, tr } from '@/lib/translations'
 import { ProjectTrackerModal } from '@/components/frontend/ProjectTrackerModal'
 
 interface SiteConfig {
@@ -16,17 +18,17 @@ interface SiteConfig {
 }
 
 const navigation = [
-    { name: 'หน้าแรก', href: '/' },
-    { name: 'บริการ', href: '/#services' },
-    { name: 'แพ็กเกจ', href: '/#packages' },
-    { name: 'ผลงาน', href: '/portfolio' },
-    { name: 'บทความ', href: '/articles' },
+    { key: 'home' as const, href: '/' },
+    { key: 'services' as const, href: '/#services' },
+    { key: 'packages' as const, href: '/#packages' },
+    { key: 'portfolio' as const, href: '/portfolio' },
+    { key: 'articles' as const, href: '/articles' },
 ]
 
 const policyLinks = [
-    { name: 'นโยบายความเป็นส่วนตัว', href: '/privacy' },
-    { name: 'ข้อกำหนดการใช้งาน', href: '/terms' },
-    { name: 'นโยบายคุกกี้', href: '/cookies' },
+    { key: 'privacy' as const, href: '/privacy' },
+    { key: 'terms' as const, href: '/terms' },
+    { key: 'cookies' as const, href: '/cookies' },
 ]
 
 export function Header() {
@@ -35,6 +37,7 @@ export function Header() {
     const [isPolicyOpen, setIsPolicyOpen] = useState(false)
     const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null)
     const { openProjectTracker, isProjectTrackerOpen, closeProjectTracker } = useModal()
+    const { lang, toggleLang } = useLanguage()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -64,10 +67,8 @@ export function Header() {
     return (
         <header
             className={cn(
-                'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-                isScrolled
-                    ? 'bg-white/95 backdrop-blur-lg shadow-lg shadow-secondary-900/5'
-                    : 'bg-transparent'
+                'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white',
+                isScrolled && 'shadow-lg shadow-secondary-900/5'
             )}
         >
             <nav className="container-custom">
@@ -103,11 +104,11 @@ export function Header() {
                     <div className="hidden md:flex items-center gap-1">
                         {navigation.map((item) => (
                             <Link
-                                key={item.name}
+                                key={item.key}
                                 href={item.href}
-                                className="px-4 py-2 text-secondary-600 hover:text-primary-600 font-medium transition-colors relative group"
+                                className="px-4 py-2 font-medium text-secondary-600 hover:text-primary-600 transition-colors relative group"
                             >
-                                {item.name}
+                                {tr(t.nav[item.key], lang)}
                                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-500 transition-all group-hover:w-3/4" />
                             </Link>
                         ))}
@@ -115,9 +116,9 @@ export function Header() {
                         {/* Track Order Button */}
                         <button
                             onClick={openProjectTracker}
-                            className="px-4 py-2 text-secondary-600 hover:text-primary-600 font-medium transition-colors relative group"
+                            className="px-4 py-2 font-medium text-secondary-600 hover:text-primary-600 transition-colors relative group"
                         >
-                            ติดตามงาน
+                            {tr(t.nav.trackOrder, lang)}
                             <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-500 transition-all group-hover:w-3/4" />
                         </button>
 
@@ -125,9 +126,9 @@ export function Header() {
                         <div className="relative">
                             <button
                                 onClick={() => setIsPolicyOpen(!isPolicyOpen)}
-                                className="px-4 py-2 text-secondary-600 hover:text-primary-600 font-medium transition-colors flex items-center gap-1"
+                                className="px-4 py-2 font-medium text-secondary-600 hover:text-primary-600 transition-colors flex items-center gap-1"
                             >
-                                นโยบาย
+                                {tr(t.nav.policy, lang)}
                                 <ChevronDown className={cn(
                                     'w-4 h-4 transition-transform',
                                     isPolicyOpen && 'rotate-180'
@@ -144,12 +145,12 @@ export function Header() {
                                     >
                                         {policyLinks.map((link) => (
                                             <Link
-                                                key={link.name}
+                                                key={link.key}
                                                 href={link.href}
                                                 className="block px-4 py-3 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 transition-colors"
                                                 onClick={() => setIsPolicyOpen(false)}
                                             >
-                                                {link.name}
+                                                {tr(t.nav[link.key], lang)}
                                             </Link>
                                         ))}
                                     </motion.div>
@@ -158,13 +159,36 @@ export function Header() {
                         </div>
                     </div>
 
-                    {/* CTA Button */}
-                    <div className="hidden md:flex items-center gap-4">
+                    {/* CTA Buttons + Language Toggle */}
+                    <div className="hidden md:flex items-center gap-3">
+                        {/* Language Toggle */}
+                        <button
+                            onClick={toggleLang}
+                            className="flex items-center bg-secondary-100 rounded-full p-0.5 text-xs font-semibold"
+                        >
+                            <span
+                                className={cn(
+                                    'px-2.5 py-1.5 rounded-full transition-all',
+                                    lang === 'th' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary-500'
+                                )}
+                            >
+                                TH
+                            </span>
+                            <span
+                                className={cn(
+                                    'px-2.5 py-1.5 rounded-full transition-all',
+                                    lang === 'en' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary-500'
+                                )}
+                            >
+                                EN
+                            </span>
+                        </button>
+
                         <Link href="/login" className="btn-outline text-sm py-2">
-                            เข้าสู่ระบบ
+                            {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
                         </Link>
                         <Link href="#contact" className="btn-primary text-sm py-2">
-                            ปรึกษาฟรี
+                            {lang === 'th' ? 'ปรึกษาฟรี' : 'Contact Us'}
                         </Link>
                     </div>
 
@@ -189,12 +213,12 @@ export function Header() {
                             <div className="py-4 space-y-2 border-t border-secondary-100">
                                 {navigation.map((item) => (
                                     <Link
-                                        key={item.name}
+                                        key={item.key}
                                         href={item.href}
                                         className="block px-4 py-3 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
-                                        {item.name}
+                                        {tr(t.nav[item.key], lang)}
                                     </Link>
                                 ))}
                                 {/* Track Order Button (Mobile) */}
@@ -205,29 +229,29 @@ export function Header() {
                                     }}
                                     className="block w-full text-left px-4 py-3 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors"
                                 >
-                                    ติดตามงาน
+                                    {tr(t.nav.trackOrder, lang)}
                                 </button>
                                 <div className="pt-2 border-t border-secondary-100">
                                     <p className="px-4 py-2 text-xs text-secondary-400 uppercase tracking-wider">
-                                        นโยบาย
+                                        {tr(t.nav.policy, lang)}
                                     </p>
                                     {policyLinks.map((link) => (
                                         <Link
-                                            key={link.name}
+                                            key={link.key}
                                             href={link.href}
                                             className="block px-4 py-3 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors"
                                             onClick={() => setIsMobileMenuOpen(false)}
                                         >
-                                            {link.name}
+                                            {tr(t.nav[link.key], lang)}
                                         </Link>
                                     ))}
                                 </div>
                                 <div className="pt-4 px-4 space-y-2">
                                     <Link href="/login" className="btn-outline w-full justify-center">
-                                        เข้าสู่ระบบ
+                                        {tr(t.nav.login, lang)}
                                     </Link>
                                     <Link href="#contact" className="btn-primary w-full justify-center">
-                                        ปรึกษาฟรี
+                                        {tr(t.nav.cta, lang)}
                                     </Link>
                                 </div>
                             </div>

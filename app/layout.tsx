@@ -1,19 +1,21 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { defaultSEO, defaultViewport, generateSEOMetadata } from '@/lib/seo'
 import { supabase } from '@/lib/supabase'
 import { FloatingContact } from '@/components/ui/FloatingContact'
 import { ModalProvider } from '@/lib/modal-context'
+import { LanguageProvider } from '@/lib/language-context'
+import { DM_Sans, Prompt } from 'next/font/google'
 
-const inter = Inter({
+const dmSans = DM_Sans({
     subsets: ['latin'],
     variable: '--font-inter',
     display: 'swap',
 })
 
-const plusJakarta = Plus_Jakarta_Sans({
-    subsets: ['latin'],
+const prompt = Prompt({
+    subsets: ['latin', 'thai'],
+    weight: ['300', '400', '500', '600', '700'],
     variable: '--font-display',
     display: 'swap',
 })
@@ -82,11 +84,13 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="th" className={`${inter.variable} ${plusJakarta.variable}`}>
+        <html lang="th" className={`${dmSans.variable} ${prompt.variable}`}>
             <body className="min-h-screen flex flex-col font-sans antialiased">
                 <ModalProvider>
-                    {children}
-                    <FloatingContact />
+                    <LanguageProvider>
+                        {children}
+                        <FloatingContact />
+                    </LanguageProvider>
                 </ModalProvider>
             </body>
         </html>

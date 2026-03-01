@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, Eye, Link as LinkIcon, Calendar, Type, Heading2, Heading3, Bold, Italic, WrapText } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, Eye, Link as LinkIcon, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
 import { z } from 'zod'
+import { RichTextEditor } from '@/components/admin/RichTextEditor'
 
 const articleSchema = z.object({
     title: z.string().min(1, 'กรุณากรอกหัวข้อบทความ').max(200, 'หัวข้อยาวเกินไป'),
@@ -41,7 +42,6 @@ export function ArticleManager() {
     const [isUploading, setIsUploading] = useState(false)
 
     // Form state
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
     const [isEditing, setIsEditing] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({
@@ -192,7 +192,8 @@ export function ArticleManager() {
                 return
             }
 
-            const formattedContent = formData.content.replace(/\n\s*\n/g, '<br /><br />').replace(/(?<!>)\n(?!<)/g, '<br />')
+            // Tiptap outputs clean HTML directly — no conversion needed
+            const formattedContent = formData.content
 
             const payload = {
                 title: formData.title,
@@ -280,48 +281,6 @@ export function ArticleManager() {
         })
     }
 
-    const handleFormat = (tagOpen: string, tagClose: string = '') => {
-        if (!textareaRef.current) return
-
-        const textarea = textareaRef.current
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const text = formData.content
-
-        const selectedText = text.substring(start, end)
-        const beforeText = text.substring(0, start)
-        const afterText = text.substring(end)
-
-        // Special case for single tags like <br>
-        if (tagClose === '') {
-            const newText = beforeText + tagOpen + afterText
-            setFormData(prev => ({ ...prev, content: newText }))
-
-            // Set cursor position after React re-renders
-            setTimeout(() => {
-                textarea.focus()
-                textarea.setSelectionRange(start + tagOpen.length, start + tagOpen.length)
-            }, 0)
-            return
-        }
-
-        const newText = beforeText + tagOpen + selectedText + tagClose + afterText
-        setFormData(prev => ({ ...prev, content: newText }))
-
-        // Set cursor position
-        setTimeout(() => {
-            textarea.focus()
-            if (selectedText.length > 0) {
-                // Select the text again including tags or put cursor after
-                const newPos = end + tagOpen.length + tagClose.length
-                textarea.setSelectionRange(newPos, newPos)
-            } else {
-                // Put cursor between the opening and closing tags
-                const newPos = start + tagOpen.length
-                textarea.setSelectionRange(newPos, newPos)
-            }
-        }, 0)
-    }
 
     // Avoid using portfolioSchema from copy-paste. Re-wrap into local zod parsing
     const portfolioSchema = articleSchema
@@ -384,43 +343,11 @@ export function ArticleManager() {
                             </div>
 
                             <div>
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-                                    <label className="block text-sm font-medium text-secondary-700">เนื้อหาบทความ (Content) <span className="text-red-500">*</span></label>
-
-                                    {/* Formatting Toolbar */}
-                                    <div className="flex items-center gap-1 bg-secondary-50 border border-secondary-200 rounded-lg p-1 overflow-x-auto">
-                                        <button type="button" onClick={() => handleFormat('<p>', '</p>')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0" title="ย่อหน้า P (Paragraph)">
-                                            <Type className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-px h-4 bg-secondary-300 mx-1 shrink-0"></div>
-                                        <button type="button" onClick={() => handleFormat('<h2>', '</h2>')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0" title="หัวข้อ H2">
-                                            <Heading2 className="w-4 h-4" />
-                                        </button>
-                                        <button type="button" onClick={() => handleFormat('<h3>', '</h3>')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0" title="หัวข้อ H3">
-                                            <Heading3 className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-px h-4 bg-secondary-300 mx-1 shrink-0"></div>
-                                        <button type="button" onClick={() => handleFormat('<strong>', '</strong>')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0" title="ตัวหนา (Bold)">
-                                            <Bold className="w-4 h-4" />
-                                        </button>
-                                        <button type="button" onClick={() => handleFormat('<em>', '</em>')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0" title="ตัวเอียง (Italic)">
-                                            <Italic className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-px h-4 bg-secondary-300 mx-1 shrink-0"></div>
-                                        <button type="button" onClick={() => handleFormat('<br />')} className="p-1.5 text-secondary-500 hover:bg-white hover:text-primary-600 hover:shadow-sm rounded-md transition-all shrink-0 flex items-center gap-1 text-xs font-medium" title="ขึ้นบรรทัดใหม่ (Break)">
-                                            <WrapText className="w-4 h-4" />
-                                            <span className="hidden xs:inline pr-1">เว้นบรรทัด</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <textarea
-                                    ref={textareaRef}
-                                    value={formData.content}
-                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                    className="w-full px-4 py-3 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none min-h-[400px] resize-y font-mono text-sm leading-relaxed"
-                                    placeholder="เริ่มเขียนเนื้อหาของคุณที่นี่ (หรือคลุมดำข้อความแล้วใช้แถบเครื่องมือด้านบนจัดรูปแบบ)..."
+                                <label className="block text-sm font-medium text-secondary-700 mb-2">เนื้อหาบทความ (Content) <span className="text-red-500">*</span></label>
+                                <RichTextEditor
+                                    content={formData.content}
+                                    onChange={(html) => setFormData(prev => ({ ...prev, content: html }))}
                                 />
-                                <p className="text-xs text-secondary-500 mt-2">ลากคลุมข้อความที่ต้องการ แล้วกดปุ่มเครื่องมือด้านบนเพื่อใส่โค้ด HTML ให้อัตโนมัติ ป้องกันการตกหล่น</p>
                             </div>
                         </div>
 

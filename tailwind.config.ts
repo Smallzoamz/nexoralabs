@@ -54,8 +54,8 @@ const config: Config = {
                 },
             },
             fontFamily: {
-                sans: ['Inter', 'Noto Sans Thai', 'sans-serif'],
-                display: ['Plus Jakarta Sans', 'Noto Sans Thai', 'sans-serif'],
+                sans: ['var(--font-inter)', 'Prompt', 'sans-serif'],
+                display: ['var(--font-display)', 'Prompt', 'sans-serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-in-out',

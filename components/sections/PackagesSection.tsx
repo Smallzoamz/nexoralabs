@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { Check, X, Star, Zap, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/language-context'
+import { t, tr } from '@/lib/translations'
 
 interface PackageFeature {
     text: string
@@ -116,6 +118,8 @@ export function PackagesSection() {
 
     const displayPackages = packages.length > 0 ? packages : defaultPackages
 
+    const { lang } = useLanguage()
+
     return (
         <section id="packages" className="section-padding gradient-bg">
             <div className="container-custom">
@@ -128,13 +132,11 @@ export function PackagesSection() {
                     className="text-center max-w-3xl mx-auto mb-16"
                 >
 
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-secondary-900 mb-6">
-                        เลือกแพ็กเกจที่
-                        <span className="gradient-text">เหมาะกับคุณ</span>
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-secondary-900 mb-4">
+                        {tr(t.packages.title, lang)}
                     </h2>
-                    <p className="text-lg text-secondary-600 leading-loose mt-4">
-                        แพ็กเกจที่ครบครัน พร้อมราคาที่เข้าถึงได้
-                        เริ่มต้นธุรกิจออนไลน์ของคุณวันนี้
+                    <p className="text-secondary-500 leading-relaxed">
+                        {tr(t.packages.subtitle, lang)}
                     </p>
                 </motion.div>
 
@@ -148,10 +150,10 @@ export function PackagesSection() {
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
                             className={cn(
-                                'relative rounded-2xl p-8 transition-all duration-300',
+                                'relative rounded-xl p-8 transition-all duration-300',
                                 pkg.highlight
-                                    ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-xl shadow-primary-500/25 scale-105'
-                                    : 'bg-white border border-secondary-200 shadow-lg hover:shadow-xl'
+                                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 scale-[1.02]'
+                                    : 'bg-white border border-secondary-200 shadow-sm hover:shadow-md'
                             )}
                         >
                             {/* Popular Badge */}
@@ -159,7 +161,7 @@ export function PackagesSection() {
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                                     <div className="flex items-center gap-1 px-4 py-1.5 bg-amber-400 text-amber-900 rounded-full text-sm font-medium">
                                         <Star className="w-4 h-4 fill-current" />
-                                        แนะนำ
+                                        {tr(t.packages.popular, lang)}
                                     </div>
                                 </div>
                             )}
@@ -207,7 +209,7 @@ export function PackagesSection() {
                                         'text-sm',
                                         pkg.highlight ? 'text-white/70' : 'text-secondary-500'
                                     )}>
-                                        ค่าดูแลรายเดือน
+                                        {lang === 'th' ? 'ค่าดูแลรายเดือน' : 'Monthly Fee'}
                                     </span>
                                     <div className={cn(
                                         'text-2xl font-display font-bold',
@@ -259,14 +261,14 @@ export function PackagesSection() {
                             <a
                                 href="#contact"
                                 className={cn(
-                                    'w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-medium transition-all',
+                                    'w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-full font-semibold transition-all',
                                     pkg.highlight
                                         ? 'bg-white text-primary-600 hover:bg-primary-50'
-                                        : 'btn-primary'
+                                        : 'bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-600/20'
                                 )}
                             >
                                 <Zap className="w-5 h-5" />
-                                เลือกแพ็กเกจนี้
+                                {tr(t.packages.getStarted, lang)}
                             </a>
                         </motion.div>
                     ))}
