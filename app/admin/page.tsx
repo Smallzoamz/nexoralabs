@@ -37,7 +37,10 @@ import { EmailTemplateManager } from '@/components/admin/EmailTemplateManager'
 import { SupportTicketManager } from '@/components/admin/SupportTicketManager'
 import { ContractManager } from '@/components/admin/ContractManager'
 import UserManager from '@/components/admin/UserManager'
-import { CreditCard, Landmark, LineChart, MessageCircleQuestion } from 'lucide-react'
+import { ChatbotSettings } from '@/components/admin/ChatbotSettings'
+import { ChatbotFAQManager } from '@/components/admin/ChatbotFAQManager'
+import { ChatHistoryViewer } from '@/components/admin/ChatHistoryViewer'
+import { CreditCard, Landmark, LineChart, MessageCircleQuestion, Bot, History, BookOpen } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 const menuGroups = [
@@ -51,6 +54,15 @@ const menuGroups = [
             { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings, roles: ['superadmin', 'admin'] },
             { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart, roles: ['superadmin', 'admin'] },
             { id: 'users', label: 'จัดการบุคลากร (Staff)', icon: Users, roles: ['superadmin', 'admin'] }
+        ]
+    },
+    {
+        title: 'ระบบแชทบอท (AI)',
+        roles: ['superadmin', 'admin', 'moderator'],
+        items: [
+            { id: 'chatbot-settings', label: 'ตั้งค่าแชทบอท', icon: Bot, roles: ['superadmin', 'admin'] },
+            { id: 'chatbot-faqs', label: 'สอนบอทตอบคำถาม', icon: BookOpen, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'chatbot-history', label: 'ประวัติการสนทนา', icon: History, roles: ['superadmin', 'admin', 'moderator'] },
         ]
     },
     {
@@ -98,6 +110,12 @@ export default function AdminPage() {
 
     const renderContent = () => {
         switch (activeMenu) {
+            case 'chatbot-settings':
+                return <ChatbotSettings />
+            case 'chatbot-faqs':
+                return <ChatbotFAQManager />
+            case 'chatbot-history':
+                return <ChatHistoryViewer />
             case 'dashboard':
                 return <IntegratedDashboard onNavigate={setActiveMenu} />
             case 'site':

@@ -2,6 +2,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CookieConsent } from '@/components/CookieConsent'
 import { WelcomeModal } from '@/components/frontend/WelcomeModal'
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget'
 
 export default function MainLayout({
     children,
@@ -15,6 +16,7 @@ export default function MainLayout({
             <Footer />
             <CookieConsent />
             <WelcomeModal />
+            <ChatbotWidget />
         </>
     )
 }

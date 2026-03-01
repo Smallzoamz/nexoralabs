@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, Edit2, ShieldAlert, User as UserIcon, ShieldHalf } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, AdminUser } from '@/app/actions/admin-users'
@@ -22,11 +22,7 @@ export default function UserManager() {
         role: 'moderator' as UserRole
     })
 
-    useEffect(() => {
-        fetchUsers()
-    }, [])
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setIsLoading(true)
             const result = await getAdminUsers()
@@ -38,7 +34,11 @@ export default function UserManager() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [showAlert])
+
+    useEffect(() => {
+        fetchUsers()
+    }, [fetchUsers])
 
     const handleOpenModal = (user?: AdminUser) => {
         if (user) {
