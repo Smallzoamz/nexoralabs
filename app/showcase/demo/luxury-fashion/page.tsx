@@ -1,254 +1,253 @@
-'use client'
-
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import {
-    ShoppingBag, Heart, Star, Truck, RotateCcw, Shield,
-    Phone, Mail, MapPin, ChevronRight, Crown
-} from 'lucide-react'
-
-const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: (i: number) => ({
-        opacity: 1, y: 0,
-        transition: { delay: i * 0.1, duration: 0.5 }
-    })
-}
-
-const products = [
-    { name: 'Silk Evening Dress', price: '$2,890', category: 'Dresses', color: 'bg-rose-100' },
-    { name: 'Cashmere Blazer', price: '$1,650', category: 'Outerwear', color: 'bg-amber-100' },
-    { name: 'Leather Handbag', price: '$3,200', category: 'Accessories', color: 'bg-orange-100' },
-    { name: 'Pearl Necklace', price: '$4,500', category: 'Jewelry', color: 'bg-pink-100' },
-    { name: 'Suede Ankle Boots', price: '$980', category: 'Shoes', color: 'bg-yellow-100' },
-    { name: 'Linen Summer Set', price: '$1,200', category: 'Sets', color: 'bg-emerald-100' },
-]
+import { Heart, Search, ShoppingBag, User } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LuxuryFashionDemo() {
-    const [mobileMenu, setMobileMenu] = useState(false)
-
     return (
-        <div className="bg-[#FDFBF7] text-[#2D2926]" style={{ fontFamily: "'DM Sans', 'Prompt', sans-serif" }}>
-            {/* ── Navbar ── */}
-            <nav className="bg-[#FDFBF7]/90 backdrop-blur-xl border-b border-[#E8E0D4] sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                    <div className="flex items-center gap-2">
-                        <Crown className="w-6 h-6 text-[#B8860B]" />
-                        <span className="font-bold text-xl tracking-wider" style={{ fontFamily: "'Playfair Display', serif" }}>MAISON</span>
-                    </div>
-                    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#6B6560] tracking-wide uppercase">
-                        <a href="#hero" className="hover:text-[#B8860B] transition-colors">Home</a>
-                        <a href="#collection" className="hover:text-[#B8860B] transition-colors">Collection</a>
-                        <a href="#story" className="hover:text-[#B8860B] transition-colors">Our Story</a>
-                        <a href="#contact" className="hover:text-[#B8860B] transition-colors">Contact</a>
-                    </div>
-                    <div className="hidden md:flex items-center gap-4">
-                        <button className="p-2 text-[#6B6560] hover:text-[#B8860B] transition-colors"><Heart className="w-5 h-5" /></button>
-                        <button className="p-2 text-[#6B6560] hover:text-[#B8860B] transition-colors relative">
-                            <ShoppingBag className="w-5 h-5" />
-                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#B8860B] text-white text-[10px] flex items-center justify-center rounded-full font-bold">2</span>
-                        </button>
-                    </div>
-                    <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 text-[#6B6560]">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <div className="min-h-screen bg-[#F5F2EB] font-serif text-[#3A352F] flex flex-col pt-16">
+            {/* Header / Top Bar */}
+            <div className="fixed top-0 left-0 right-0 h-8 bg-[#EBE5D9] z-50 flex items-center justify-center text-[10px] tracking-widest uppercase font-sans text-[#5A554F]">
+                Free Shipping On All Orders Over $200
+            </div>
+
+            <header className="fixed top-8 left-0 right-0 h-20 bg-[#F5F2EB] z-40 flex items-center px-8 md:px-12 justify-between border-b border-[#EBE5D9]">
+                {/* Logo */}
+                <div className="text-2xl md:text-3xl font-normal tracking-wide text-[#947B57]">
+                    MAISON AURA
+                </div>
+
+                {/* Nav */}
+                <nav className="hidden lg:flex items-center gap-8 text-[11px] font-sans font-semibold tracking-widest text-[#3A352F] uppercase">
+                    <Link href="#" className="hover:text-[#947B57] transition-colors">NEW ARRIVALS</Link>
+                    <Link href="#" className="hover:text-[#947B57] transition-colors">CLOTHING</Link>
+                    <Link href="#" className="hover:text-[#947B57] transition-colors">ACCESSORIES</Link>
+                    <Link href="#" className="hover:text-[#947B57] transition-colors">BRANDS</Link>
+                    <Link href="#" className="hover:text-[#947B57] transition-colors">JOURNAL</Link>
+                    <Link href="#" className="text-[#A65B4C] hover:text-[#947B57] transition-colors">SALE</Link>
+                </nav>
+
+                {/* Icons */}
+                <div className="flex items-center gap-5 text-[#3A352F]">
+                    <button className="hover:text-[#947B57] transition-colors"><Search className="w-5 h-5 stroke-[1.5]" /></button>
+                    <button className="hover:text-[#947B57] transition-colors"><User className="w-5 h-5 stroke-[1.5]" /></button>
+                    <button className="hover:text-[#947B57] transition-colors"><Heart className="w-5 h-5 stroke-[1.5]" /></button>
+                    <button className="hover:text-[#947B57] transition-colors relative">
+                        <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
+                        <span className="absolute -top-1.5 -right-2 bg-[#947B57] text-white text-[9px] font-sans font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                            2
+                        </span>
                     </button>
                 </div>
-                {mobileMenu && (
-                    <div className="md:hidden bg-[#FDFBF7] border-t border-[#E8E0D4] px-4 py-4 space-y-3">
-                        {['Home', 'Collection', 'Our Story', 'Contact'].map(l => (
-                            <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} className="block text-[#2D2926] font-medium" onClick={() => setMobileMenu(false)}>{l}</a>
-                        ))}
-                    </div>
-                )}
-            </nav>
+            </header>
 
-            {/* ── Hero ── */}
-            <section id="hero" className="relative py-20 sm:py-28 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F5EDE3] via-[#FDFBF7] to-[#F0E6D8]" />
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#B8860B]/10 text-[#B8860B] rounded-full text-xs font-semibold tracking-wider uppercase mb-6">
-                                <Crown className="w-3 h-3" /> New Collection 2026
-                            </div>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
-                                Timeless <span className="text-[#B8860B]">Elegance</span>,<br />Modern Soul
-                            </h1>
-                            <p className="text-lg text-[#8A817C] leading-relaxed mb-8 max-w-lg">
-                                Discover our curated selection of luxury fashion pieces, each handcrafted from the finest materials by master artisans.
-                            </p>
-                            <div className="flex flex-wrap gap-3">
-                                <a href="#collection" className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#2D2926] text-white font-semibold rounded-xl hover:bg-[#1a1715] transition-colors">
-                                    Shop Collection <ChevronRight className="w-4 h-4" />
-                                </a>
-                                <a href="#story" className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-[#D4C5B0] text-[#6B6560] font-semibold rounded-xl hover:border-[#B8860B] hover:text-[#B8860B] transition-colors">
-                                    Our Story
-                                </a>
-                            </div>
-                        </motion.div>
-                        <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2} className="hidden lg:grid grid-cols-2 gap-4">
-                            <div className="space-y-4">
-                                <div className="bg-[#F0E6D8] rounded-2xl aspect-[3/4] flex items-center justify-center text-[#C4B59D]">
-                                    <ShoppingBag className="w-16 h-16" />
-                                </div>
-                                <div className="bg-[#E8DDD0] rounded-2xl aspect-square flex items-center justify-center text-[#C4B59D]">
-                                    <Crown className="w-12 h-12" />
-                                </div>
-                            </div>
-                            <div className="space-y-4 pt-8">
-                                <div className="bg-[#E8DDD0] rounded-2xl aspect-square flex items-center justify-center text-[#C4B59D]">
-                                    <Heart className="w-12 h-12" />
-                                </div>
-                                <div className="bg-[#F0E6D8] rounded-2xl aspect-[3/4] flex items-center justify-center text-[#C4B59D]">
-                                    <Star className="w-16 h-16" />
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
+            {/* Hero Section */}
+            <section className="relative h-[650px] mt-12 flex flex-col justify-center">
+                {/* Background Image */}
+                <div className="absolute inset-0 z-0">
+                    <Image
+                        src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1920&auto=format&fit=crop"
+                        alt="Elegance Fall Winter Collection"
+                        fill
+                        className="object-cover object-center"
+                        priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent"></div>
                 </div>
-            </section>
 
-            {/* ── Perks ── */}
-            <section className="py-10 border-y border-[#E8E0D4]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[
-                        { icon: Truck, label: 'Free Worldwide Shipping' },
-                        { icon: RotateCcw, label: '30-Day Free Returns' },
-                        { icon: Shield, label: 'Authenticity Guaranteed' },
-                        { icon: Crown, label: 'VIP Member Perks' },
-                    ].map((p, i) => (
-                        <div key={i} className="flex items-center gap-3 text-sm text-[#6B6560]">
-                            <p.icon className="w-5 h-5 text-[#B8860B] shrink-0" />
-                            <span className="font-medium">{p.label}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* ── Collection ── */}
-            <section id="collection" className="py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-14">
-                        <div className="text-sm font-semibold text-[#B8860B] mb-2 uppercase tracking-widest">Featured</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>The Collection</h2>
-                    </div>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products.map((p, i) => (
-                            <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
-                                className="group cursor-pointer">
-                                <div className={`${p.color} rounded-2xl aspect-[3/4] flex items-center justify-center mb-4 relative overflow-hidden group-hover:shadow-lg transition-shadow`}>
-                                    <ShoppingBag className="w-16 h-16 text-[#C4B59D]/50" />
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100">
-                                        <button className="px-6 py-2.5 bg-[#2D2926] text-white text-xs font-semibold rounded-lg uppercase tracking-wider hover:bg-[#1a1715] transition-colors">
-                                            Quick View
-                                        </button>
-                                    </div>
-                                    <button className="absolute top-4 right-4 w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-[#6B6560] hover:text-[#B8860B] transition-colors opacity-0 group-hover:opacity-100">
-                                        <Heart className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="text-xs text-[#B8860B] font-semibold uppercase tracking-wider mb-1">{p.category}</div>
-                                <h3 className="font-semibold text-[#2D2926] group-hover:text-[#B8860B] transition-colors">{p.name}</h3>
-                                <div className="text-[#6B6560] font-medium mt-0.5">{p.price}</div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Story ── */}
-            <section id="story" className="py-20 bg-[#2D2926] text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <div className="text-sm font-semibold text-[#B8860B] mb-2 uppercase tracking-widest">Our Heritage</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>Crafted with Passion Since 1987</h2>
-                        <p className="text-gray-400 leading-relaxed mb-6">
-                            From our atelier in Milan to fashion capitals worldwide, Maison has been synonymous with uncompromising quality and timeless design. Each piece tells a story of dedication, artistry, and the pursuit of perfection.
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-8 md:px-12">
+                    <div className="max-w-xl">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl text-white font-normal leading-tight mb-4 tracking-wide drop-shadow-md">
+                            THE ART<br />OF ELEGANCE
+                        </h1>
+                        <p className="text-lg text-white/90 mb-10 tracking-wider font-light drop-shadow-md">
+                            | Fall/Winter &apos;24 Collection
                         </p>
-                        <div className="grid grid-cols-3 gap-6 mt-8">
-                            {[
-                                { value: '37+', label: 'Years' },
-                                { value: '150+', label: 'Artisans' },
-                                { value: '40+', label: 'Countries' },
-                            ].map((s, i) => (
-                                <div key={i}>
-                                    <div className="text-2xl font-bold text-[#B8860B]">{s.value}</div>
-                                    <div className="text-sm text-gray-500">{s.label}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="bg-[#3D3530] rounded-2xl aspect-[4/3] flex items-center justify-center">
-                        <Crown className="w-24 h-24 text-[#B8860B]/20" />
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Testimonials ── */}
-            <section className="py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-14">
-                        <div className="text-sm font-semibold text-[#B8860B] mb-2 uppercase tracking-widest">Reviews</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>What Our Clients Say</h2>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {[
-                            { quote: 'The quality is absolutely extraordinary. Every detail speaks of true craftsmanship.', name: 'Isabella Rossi', role: 'Fashion Editor' },
-                            { quote: 'Maison pieces are investment pieces. They only get more beautiful with time.', name: 'Charlotte Dubois', role: 'Stylist' },
-                            { quote: 'The VIP experience is unmatched. From personal styling to white-glove delivery.', name: 'Sophia Park', role: 'Entrepreneur' },
-                        ].map((t, i) => (
-                            <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
-                                className="bg-[#F5EDE3] p-7 rounded-2xl">
-                                <div className="flex gap-1 mb-4">{[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-[#B8860B] text-[#B8860B]" />)}</div>
-                                <p className="text-[#6B6560] text-sm leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
-                                <div className="font-semibold text-[#2D2926] text-sm">{t.name}</div>
-                                <div className="text-xs text-[#8A817C]">{t.role}</div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Contact ── */}
-            <section id="contact" className="py-20 bg-[#F5EDE3]">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="text-sm font-semibold text-[#B8860B] mb-2 uppercase tracking-widest">Get In Touch</div>
-                    <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>Personal Styling Consultation</h2>
-                    <p className="text-[#8A817C] mb-10">Book a private appointment with our styling experts for a bespoke experience.</p>
-                    <div className="bg-white p-8 rounded-2xl shadow-sm text-left">
-                        <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="block text-sm font-medium text-[#6B6560] mb-1">Full Name</label>
-                                <input type="text" className="w-full px-4 py-2.5 border border-[#E8E0D4] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] outline-none bg-[#FDFBF7]" placeholder="Your name" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-[#6B6560] mb-1">Email</label>
-                                <input type="email" className="w-full px-4 py-2.5 border border-[#E8E0D4] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] outline-none bg-[#FDFBF7]" placeholder="your@email.com" />
-                            </div>
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-[#6B6560] mb-1">Message</label>
-                            <textarea rows={4} className="w-full px-4 py-2.5 border border-[#E8E0D4] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B]/20 focus:border-[#B8860B] outline-none resize-none bg-[#FDFBF7]" placeholder="Tell us what you're looking for..." />
-                        </div>
-                        <button className="w-full py-3 bg-[#2D2926] text-white font-semibold rounded-xl hover:bg-[#1a1715] transition-colors">
-                            Book Consultation
+                        <button className="bg-[#F5F2EB]/90 hover:bg-white text-[#3A352F] px-10 py-3 text-xs font-sans font-bold tracking-widest uppercase transition-colors shadow-lg">
+                            SHOP NOW
                         </button>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-[#8A817C]">
-                        <span className="flex items-center gap-2"><Phone className="w-4 h-4 text-[#B8860B]" /> +39 02 1234 5678</span>
-                        <span className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#B8860B]" /> atelier@maison.com</span>
-                        <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#B8860B]" /> Via Montenapoleone, Milan</span>
+                </div>
+            </section>
+
+            {/* Arrivals Section */}
+            <section className="py-24 bg-[#F5F2EB]">
+                <div className="max-w-6xl mx-auto px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl text-[#3A352F] tracking-wider">LATEST ARRIVALS</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                        {/* Product 1 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-white">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1598554747436-c9293d6a588f?q=80&w=800&auto=format&fit=crop"
+                                    alt="Amara Silk Blouse"
+                                    fill
+                                    className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                                <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 text-[10px] font-sans font-bold tracking-widest uppercase">
+                                    New
+                                </div>
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 bg-gradient-to-b from-[#F9F7F3] to-[#F1EAD7] group-hover:from-[#EBDBC0] group-hover:to-[#DCBA87] transition-colors duration-500">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Amara Silk Blouse</h3>
+                                <div className="flex items-center justify-between mb-6">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$380</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] uppercase font-sans tracking-tight text-[#5A554F]">Size</span>
+                                        <select className="text-xs bg-white border border-[#D1BFA5] px-2 py-0.5 rounded-sm outline-none">
+                                            <option>10</option>
+                                            <option>12</option>
+                                            <option>14</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#D1BFA5]/50 text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
+                        {/* Product 2 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-white">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?q=80&w=800&auto=format&fit=crop"
+                                    alt="Luxe Cashmere Coat"
+                                    fill
+                                    className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 pb-4">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Luxe Cashmere Coat</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$1,250</span>
+                                    <button className="text-[10px] text-[#947B57] uppercase font-sans tracking-widest border-b border-[#947B57] hover:text-[#3A352F] hover:border-[#3A352F] transition-colors">
+                                        QUICK VIEW
+                                    </button>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#EBE5D9] text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
+                        {/* Product 3 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-[#EAE8E3]">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=800&auto=format&fit=crop"
+                                    alt="Onyx Leather Bag"
+                                    fill
+                                    className="object-contain p-8 group-hover:scale-110 transition-transform duration-700 ease-out mix-blend-multiply"
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 pb-4">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Onyx Leather Bag</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$950</span>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#EBE5D9] text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
+                        {/* Product 4 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-white">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1551163943-3f6a855d1153?q=80&w=800&auto=format&fit=crop"
+                                    alt="Stella Pleated Skirt"
+                                    fill
+                                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 pb-4">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Stella Pleated Skirt</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$310</span>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#EBE5D9] text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
+                        {/* Product 5 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-[#FAF9F6]">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1629224316810-9d8805b95e76?q=80&w=800&auto=format&fit=crop"
+                                    alt="Bianca Gold Earrings"
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 pb-4">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Bianca Gold Earrings</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$195</span>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#EBE5D9] text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
+                        {/* Product 6 */}
+                        <div className="group flex flex-col bg-[#F9F7F3] border border-[#EBE5D9] transition-all hover:shadow-xl hover:border-[#D1BFA5] overflow-hidden">
+                            <div className="relative h-80 w-full overflow-hidden bg-white">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1595777457583-95e059f581ce?q=80&w=800&auto=format&fit=crop"
+                                    alt="Seraphina Dress"
+                                    fill
+                                    className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-1 pb-4">
+                                <h3 className="text-xl mb-1 text-[#3A352F]">Seraphina Dress</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-sans font-medium text-sm text-[#5A554F]">$540</span>
+                                </div>
+                            </div>
+                            <button className="w-full py-4 bg-transparent border-t border-[#EBE5D9] text-xs font-sans font-bold tracking-widest text-[#5A554F] group-hover:bg-[#3A352F] group-hover:text-white transition-colors uppercase">
+                                ADD TO BAG
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </section>
 
-            {/* ── Footer ── */}
-            <footer className="bg-[#2D2926] text-gray-500 py-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-white font-bold tracking-wider" style={{ fontFamily: "'Playfair Display', serif" }}>
-                        <Crown className="w-5 h-5 text-[#B8860B]" /> MAISON
+            {/* Footer */}
+            <footer className="bg-[#EBE5D9] text-[#5A554F] py-16 px-8 mt-auto font-sans">
+                <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+                    <div className="flex flex-col gap-3">
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Home</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">About Us</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Our Stores</Link>
                     </div>
-                    <p className="text-xs">© 2026 Maison. All rights reserved. | Template Demo by Nexora Labs</p>
+                    <div className="flex flex-col gap-3">
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Links</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Quality</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Sustainability</Link>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Brands</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Contact</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">FAQs</Link>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Journal</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Press</Link>
+                        <Link href="#" className="hover:text-[#3A352F] transition-colors">Careers</Link>
+                    </div>
+                </div>
+                <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-[#D1BFA5] text-center text-xs tracking-wider">
+                    © 2024 MAISON AURA. ALL RIGHTS RESERVED.
                 </div>
             </footer>
         </div>
