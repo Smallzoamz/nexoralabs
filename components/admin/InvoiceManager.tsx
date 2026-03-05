@@ -573,11 +573,18 @@ export function InvoiceManager() {
                     })
                 })
                 const accountResult = await accountRes.json()
-                if (accountRes.ok && !accountResult.alreadyExists) {
-                    clientPassword = accountResult.data?.password || null
+                console.log('[InvoiceManager] Create account response:', accountResult)
+
+                if (!accountRes.ok) {
+                    console.error('[InvoiceManager] Create account failed:', accountResult.error)
+                } else if (!accountResult.alreadyExists && accountResult.data?.password) {
+                    clientPassword = accountResult.data.password
+                    console.log('[InvoiceManager] Account created with password')
+                } else if (accountResult.alreadyExists) {
+                    console.log('[InvoiceManager] Account already exists, no new password')
                 }
             } catch (accountErr) {
-                console.warn('Auto-create client account failed (non-blocking):', accountErr)
+                console.error('[InvoiceManager] Auto-create client account error:', accountErr)
             }
 
             // 5. Generate Receipt PDF as base64 to attach to email

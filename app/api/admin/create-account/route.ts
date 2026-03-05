@@ -25,14 +25,20 @@ export async function POST(req: Request) {
         }
 
         // 1. Check if user already exists
+        console.log('[create-account] Checking if user exists:', email)
         const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers()
-        if (usersError) throw usersError
+        if (usersError) {
+            console.error('[create-account] Error listing users:', usersError)
+            throw usersError
+        }
 
         const userExists = usersData.users.find(u => u.email === email)
+        console.log('[create-account] User exists:', !!userExists, userExists?.id)
 
         if (userExists) {
             // User already exists — still create website record if website_name provided
             if (website_name) {
+                console.log('[create-account] User exists, creating website record...')
                 // Find client_id from client_users
                 const { data: linkData } = await supabase
                     .from('client_users')
@@ -59,8 +65,10 @@ export async function POST(req: Request) {
 
         // 2. Generate random 8 character password
         const generatedPassword = Math.random().toString(36).slice(-8)
+        console.log('[create-account] Generated password for:', email)
 
         // 3. Create Auth User
+        console.log('[create-account] Creating auth user...')
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email,
             password: generatedPassword,
@@ -71,10 +79,15 @@ export async function POST(req: Request) {
             }
         })
 
-        if (authError) throw authError
+        if (authError) {
+            console.error('[create-account] Auth user creation failed:', authError)
+            throw authError
+        }
         const newUser = authData.user
+        console.log('[create-account] Auth user created:', newUser?.id)
 
         // 4. Create Client Profile
+        console.log('[create-account] Creating client profile...')
         const { data: clientData, error: clientError } = await supabase
             .from('clients')
             .insert([{
@@ -88,10 +101,12 @@ export async function POST(req: Request) {
             .single()
 
         if (clientError) {
+            console.error('[create-account] Client creation failed:', clientError)
             // Cleanup Auth User if client creation fails
             await supabase.auth.admin.deleteUser(newUser.id)
             throw clientError
         }
+        console.log('[create-account] Client created:', clientData.id)
 
         // 5. Link Auth User to Client
         const { error: linkError } = await supabase
@@ -110,6 +125,7 @@ export async function POST(req: Request) {
 
         // 6. Create Website Record (if website_name provided)
         if (website_name) {
+            console.log('[create-account] Creating website record...')
             await supabase.from('client_websites').insert([{
                 client_id: clientData.id,
                 client_email: email,
@@ -117,8 +133,10 @@ export async function POST(req: Request) {
                 package: package_type || 'standard',
                 status: 'pending'
             }])
+            console.log('[create-account] Website record created')
         }
 
+        console.log('[create-account] Account creation complete, returning password')
         return NextResponse.json({
             success: true,
             alreadyExists: false,
