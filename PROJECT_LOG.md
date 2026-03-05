@@ -10,6 +10,10 @@
 
 ## Recent Updates
 
+### 2026-03-06 | File: lib/banks.ts, public/images/banks/ | Status: ✅ Completed
+- **Change:** Replace SVG logos with real PNG bank logos
+- **Details:** Downloaded official Thai bank logos (KBANK, SCB, BBL, KTB, BAY, TTB, GSB) from GitHub repo `casperstack/thai-banks-logo` to `public/images/banks/`. Updated `banks.ts` to use image paths. Updated `renderBankLogo` in `PaymentSettings.tsx` and `PaymentPageClient.tsx` to use `<img>` tags. Build verified.
+
 ### 2026-03-06 | File: app/payment/[invoiceId]/PaymentPageClient.tsx | Status: ✅ Completed
 - **Change:** Redesign Payment Page to Light Theme
 - **Details:** Converted the entire payment page from dark theme (`from-slate-900 via-indigo-950`) to the main website's light theme (`gradient-bg`, `card`, `btn-primary`). Updated all color classes (`text-white` → `text-secondary-900`, `text-indigo-300` → `text-primary-600`). Fixed brand name "Nexora Labs" → "VELOZI | Dev". Simplified `renderBankLogo` to SVG-only. Build verification passed.

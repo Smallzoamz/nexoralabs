@@ -38,14 +38,12 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
     const [uploadState, setUploadState] = useState<UploadState>('idle')
     const [errorMsg, setErrorMsg] = useState('')
 
-    // Helper to render bank logo from SVG
+    // Helper to render bank logo
     const renderBankLogo = (logo: string, size: string = 'w-6 h-6') => {
         if (!logo) return null;
         return (
-            <div
-                className={`${size} rounded-lg flex items-center justify-center shrink-0 overflow-hidden`}
-                dangerouslySetInnerHTML={{ __html: logo }}
-            />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt="Bank Logo" className={`${size} rounded-lg object-contain shrink-0`} />
         );
     };
 
