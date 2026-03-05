@@ -1,6 +1,7 @@
-import { Box, BrainCircuit, LineChart } from 'lucide-react'
+import { Box, BrainCircuit, LineChart, Check, Star, Twitter, Github, Linkedin, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import MobileNav from '../MobileNav'
 
 export default function DarkTechDemo() {
     return (
@@ -10,7 +11,7 @@ export default function DarkTechDemo() {
             <div className="absolute top-1/2 left-[-10%] w-[600px] h-[600px] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen" />
 
             {/* Header */}
-            <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl h-16 bg-[#0B1526]/40 backdrop-blur-xl border border-white/5 rounded-2xl z-50 flex items-center px-6 justify-between shadow-[0_0_30px_rgba(0,255,255,0.05)]">
+            <header className="fixed top-0 inset-x-0 h-16 bg-slate-950 border-b border-slate-800 z-50 flex items-center px-6 md:px-12 justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-2 group">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] transition-all">
@@ -28,9 +29,21 @@ export default function DarkTechDemo() {
                 </nav>
 
                 {/* CTA */}
-                <button className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] border border-white/10">
+                <button className="hidden md:inline-block bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] border border-white/10">
                     Get Started
                 </button>
+                <MobileNav
+                    items={[
+                        { label: 'Solutions', href: '#' },
+                        { label: 'Platform', href: '#' },
+                        { label: 'Company', href: '#' },
+                        { label: 'Careers', href: '#' },
+                    ]}
+                    buttonClass="text-white bg-white/10 hover:bg-white/20"
+                    panelBg="bg-[#0B1526]"
+                    linkClass="text-slate-300 hover:text-cyan-400"
+                    closeClass="text-white"
+                />
             </header>
 
             {/* Hero Section */}
@@ -150,13 +163,208 @@ export default function DarkTechDemo() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="border-t border-white/5 bg-[#050B14] text-slate-400 py-8 px-6 mt-auto relative z-10">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium tracking-wider">
-                    <p>© 2024 SYNAPSE AI</p>
+            {/* Pricing Section */}
+            <section className="py-24 relative z-10 bg-[#0B1526]/30 border-y border-white/5">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
+
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-white tracking-widest uppercase mb-4">
+                            SCALE YOUR INTELLIGENCE
+                        </h2>
+                        <p className="text-slate-400 max-w-2xl mx-auto">Flexible compute plans for teams of all sizes. Pay only for the neural processing you use.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                        {/* Starter */}
+                        <div className="bg-[#050B14]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col hover:border-cyan-500/30 transition-colors duration-300">
+                            <h3 className="text-xl font-bold text-white mb-2">Developer</h3>
+                            <p className="text-sm text-slate-400 mb-6">For individuals and small experiments.</p>
+                            <div className="text-4xl font-extrabold text-white mb-6">$49<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                {[
+                                    '100K Neural Inferences/mo',
+                                    '2 Active Models',
+                                    'Community Support',
+                                    'Standard Latency (400ms)'
+                                ].map((feature, i) => (
+                                    <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                                        <Check className="w-5 h-5 text-cyan-500 shrink-0" />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white font-semibold transition-colors">
+                                Start Free Trial
+                            </button>
+                        </div>
+
+                        {/* Pro (Highlighted) */}
+                        <div className="relative bg-gradient-to-b from-[#0F1C33] to-[#050B14] backdrop-blur-xl border border-cyan-500/50 rounded-3xl p-8 flex flex-col shadow-[0_0_40px_rgba(34,211,238,0.15)] md:-transform-y-4">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs font-bold px-4 py-1.5 rounded-full tracking-wider uppercase">
+                                Most Popular
+                            </div>
+                            <h3 className="text-xl font-bold text-cyan-400 mb-2">Enterprise Pro</h3>
+                            <p className="text-sm text-slate-400 mb-6">For production workloads and scaling teams.</p>
+                            <div className="text-5xl font-extrabold text-white mb-6">$299<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                {[
+                                    '5M Neural Inferences/mo',
+                                    'Unlimited Active Models',
+                                    '24/7 Priority Support',
+                                    'Ultra-low Latency (50ms)',
+                                    'Custom Model Fine-tuning'
+                                ].map((feature, i) => (
+                                    <li key={i} className="flex items-start gap-3 text-sm text-white">
+                                        <Check className="w-5 h-5 text-cyan-400 shrink-0" />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold transition-colors shadow-[0_0_20px_rgba(34,211,238,0.3)] border border-cyan-400/50">
+                                Scale Now
+                            </button>
+                        </div>
+
+                        {/* Scale */}
+                        <div className="bg-[#050B14]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col hover:border-purple-500/30 transition-colors duration-300">
+                            <h3 className="text-xl font-bold text-white mb-2">Custom Scale</h3>
+                            <p className="text-sm text-slate-400 mb-6">For massive deployments and unique needs.</p>
+                            <div className="text-4xl font-extrabold text-white mb-6">Custom</div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                {[
+                                    'Unlimited Inferences',
+                                    'Dedicated GPU Clusters',
+                                    'VPC Peering & SSO',
+                                    'Dedicated Solutions Architect'
+                                ].map((feature, i) => (
+                                    <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                                        <Check className="w-5 h-5 text-purple-500 shrink-0" />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white font-semibold transition-colors flex items-center justify-center gap-2">
+                                Contact Sales <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials */}
+            <section className="py-24 relative z-10">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-6">
+                                TRUSTED BY<br />PIONEERS
+                            </h2>
+                            <p className="text-slate-400 text-lg mb-8">
+                                See how leading tech companies are using Synapse AI to redefine what&apos;s possible in their industries.
+                            </p>
+                            <div className="flex gap-4">
+                                <div className="flex -space-x-4">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <div key={i} className="w-12 h-12 rounded-full border-2 border-[#050B14] overflow-hidden relative">
+                                            <Image
+                                                src={`https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop&crop=faces&auto=compress`}
+                                                alt="User"
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex flex-col justify-center">
+                                    <div className="flex text-cyan-400 text-xs">
+                                        <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                                    </div>
+                                    <span className="text-sm text-slate-300 font-medium">4.9/5 from 2,000+ engineers</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-gradient-to-r from-white/5 to-transparent border border-white/10 border-l-cyan-500 border-l-4 rounded-xl p-8 backdrop-blur-sm">
+                                <p className="text-lg text-slate-200 mb-6 font-light italic">
+                                    &quot;Integrating Synapse&apos;s predictive engine reduced our data processing pipeline latency by 80%. It&apos;s practically magic.&quot;
+                                </p>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/10 rounded-full"></div>
+                                    <div>
+                                        <div className="text-white font-bold">Sarah Jenkins</div>
+                                        <div className="text-cyan-400 text-sm">CTO, DataFlow Inc.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gradient-to-r from-white/5 to-transparent border border-white/10 border-l-purple-500 border-l-4 rounded-xl p-8 backdrop-blur-sm ml-0 md:ml-12">
+                                <p className="text-lg text-slate-200 mb-6 font-light italic">
+                                    &quot;The automated model deployment saved our ML team hundreds of hours. We push to prod 10x faster now.&quot;
+                                </p>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/10 rounded-full"></div>
+                                    <div>
+                                        <div className="text-white font-bold">Marcus Thorne</div>
+                                        <div className="text-purple-400 text-sm">Lead ML Engineer, Nexus</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Futuristic Footer */}
+            <footer className="border-t border-white/10 bg-[#0B1526]/80 backdrop-blur-xl text-slate-400 pt-16 pb-8 px-6 mt-auto relative z-10 overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
+
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                    <div className="col-span-1 md:col-span-2">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+                                <BrainCircuit className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="font-bold text-lg tracking-wider text-white">SYNAPSE AI</span>
+                        </div>
+                        <p className="text-sm leading-relaxed mb-6 max-w-sm">
+                            Building the infrastructure for the next generation of artificial intelligence. Secure, scalable, and blazingly fast.
+                        </p>
+                        <div className="flex gap-4">
+                            <Link href="#" className="text-slate-500 hover:text-cyan-400 transition-colors"><Twitter className="w-5 h-5" /></Link>
+                            <Link href="#" className="text-slate-500 hover:text-cyan-400 transition-colors"><Github className="w-5 h-5" /></Link>
+                            <Link href="#" className="text-slate-500 hover:text-cyan-400 transition-colors"><Linkedin className="w-5 h-5" /></Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Product</h4>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Neural Engine</Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Predictive Analytics</Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Auto-Deploy</Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Pricing</Link></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Company</h4>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">About Us</Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Careers<span className="ml-2 bg-purple-500/20 text-purple-300 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30">Hiring</span></Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Blog</Link></li>
+                            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Contact</Link></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium tracking-wider">
+                    <p>© 2024 SYNAPSE AI CORPORATION. ALL RIGHTS RESERVED.</p>
                     <div className="flex items-center gap-6">
-                        <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+                        <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
                         <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+                        <Link href="#" className="hover:text-white transition-colors">Security</Link>
                     </div>
                 </div>
             </footer>

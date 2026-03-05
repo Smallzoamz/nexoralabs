@@ -49,6 +49,7 @@ const templates: Template[] = [
         image: '/showcase/biz-consulting-dark.png',
         tags: ['Dark', 'Bold', 'Glassmorphism'],
         color: 'from-purple-600 to-indigo-800',
+        demoUrl: '/showcase/demo/consulting-dark',
     },
     {
         id: 'biz-minimal-green',
@@ -59,6 +60,7 @@ const templates: Template[] = [
         image: '/showcase/biz-minimal-green.png',
         tags: ['Minimal', 'Eco-Friendly', 'Soft'],
         color: 'from-emerald-500 to-green-700',
+        demoUrl: '/showcase/demo/minimal-green',
     },
     // Creative
     {
@@ -70,6 +72,7 @@ const templates: Template[] = [
         image: '/showcase/creative-portfolio.png',
         tags: ['Vibrant', 'Artistic', 'Gradient'],
         color: 'from-pink-500 to-orange-500',
+        demoUrl: '/showcase/demo/creative-portfolio',
     },
     {
         id: 'creative-agency',
@@ -80,6 +83,7 @@ const templates: Template[] = [
         image: '/showcase/creative-agency.png',
         tags: ['Bento', 'Pastel', '3D Icons'],
         color: 'from-violet-500 to-fuchsia-500',
+        demoUrl: '/showcase/demo/creative-agency',
     },
     {
         id: 'creative-studio-mono',
@@ -90,6 +94,7 @@ const templates: Template[] = [
         image: '/showcase/creative-studio-mono.png',
         tags: ['Monochrome', 'Editorial', 'Serif'],
         color: 'from-gray-700 to-gray-900',
+        demoUrl: '/showcase/demo/creative-studio-mono',
     },
     // E-commerce
     {
@@ -112,6 +117,7 @@ const templates: Template[] = [
         image: '/showcase/ecom-tech-gadgets.png',
         tags: ['Dark', 'Neon', 'Futuristic'],
         color: 'from-cyan-500 to-blue-700',
+        demoUrl: '/showcase/demo/ecom-tech-gadgets',
     },
     {
         id: 'ecom-food-organic',
@@ -122,6 +128,7 @@ const templates: Template[] = [
         image: '/showcase/ecom-food-organic.png',
         tags: ['Fresh', 'Warm', 'Organic'],
         color: 'from-orange-500 to-green-600',
+        demoUrl: '/showcase/demo/ecom-food-organic',
     },
     // Startup
     {
@@ -133,6 +140,7 @@ const templates: Template[] = [
         image: '/showcase/startup-saas.png',
         tags: ['SaaS', 'Gradient', 'Modern'],
         color: 'from-indigo-600 to-violet-700',
+        demoUrl: '/showcase/demo/startup-saas',
     },
     {
         id: 'startup-fintech',
@@ -143,6 +151,7 @@ const templates: Template[] = [
         image: '/showcase/startup-fintech.png',
         tags: ['Finance', 'Trust', 'Dark'],
         color: 'from-emerald-600 to-teal-800',
+        demoUrl: '/showcase/demo/startup-fintech',
     },
     {
         id: 'startup-ai-tech',
@@ -351,8 +360,8 @@ export default function ShowcasePage() {
                                             onClick={() => setDeviceMode(d.mode)}
                                             title={d.label}
                                             className={`p-2 rounded-lg transition-all ${deviceMode === d.mode
-                                                    ? 'bg-primary-600 text-white shadow-sm'
-                                                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'text-gray-400 hover:text-white hover:bg-gray-700'
                                                 }`}
                                         >
                                             <d.icon className="w-4 h-4" />

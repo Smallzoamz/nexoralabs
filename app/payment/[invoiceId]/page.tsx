@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import PaymentPageClient from './PaymentPageClient'
 
 // We need server-side data fetch for invoice details
@@ -9,11 +9,6 @@ interface PageProps {
 
 export default async function PaymentPage({ params }: PageProps) {
     const { invoiceId } = await params
-
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
 
     // Fetch invoice details by ID
     const { data: invoice, error } = await supabase

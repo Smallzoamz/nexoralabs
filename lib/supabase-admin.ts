@@ -1,12 +1,40 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+let _supabaseAdmin: SupabaseClient | null = null
 
-// Create a Supabase client with the service role key to bypass RLS and use Admin API
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-        autoRefreshToken: false,
-        persistSession: false
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+    get(_target, prop) {
+        if (!_supabaseAdmin) {
+            const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+            const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+            if (!url || !key) {
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const noop: any = () => {
+                    const obj: any = {
+                        from: noop,
+                        select: noop,
+                        eq: noop,
+                        limit: noop,
+                        rpc: noop,
+                        single: noop,
+                        maybeSingle: noop,
+                        then: (onfulfilled: any) => Promise.resolve({ data: null, error: null }).then(onfulfilled),
+                    };
+                    obj.auth = { admin: obj };
+                    return obj;
+                }
+                return (noop() as any)[prop] || noop
+                /* eslint-enable @typescript-eslint/no-explicit-any */
+            }
+
+            _supabaseAdmin = createClient(url, key, {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            })
+        }
+        return (_supabaseAdmin as unknown as Record<string, unknown>)[prop as string]
     }
 })

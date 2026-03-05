@@ -89,6 +89,24 @@
   5. **Clean Code:** Resolved all ESLint errors, implemented strict TypeScript interfaces for invoices and configuration, and automated site-info fetching for documents.
   6. **Verification:** Passed `npm run lint` and `npm run build` with zero errors.
 
+### 2026-03-05 | Showcase Demos (Mobile UI Fix) | Status: ✅ Completed
+- **Change:** Mobile Menu Transparency & Visibility Enhancements
+- **Details:** 
+  1. **MobileNav UI:** Updated `app/showcase/demo/MobileNav.tsx` to use full-screen panel on mobile and increased backdrop opacity (`bg-black/90`) for better contrast.
+  2. **Solid Headers:** Solidified headers in all 12 demo pages (replaced transparent/glass backgrounds with solid ones) to ensure readability during scroll.
+  3. **Bug Fix:** Resolved a broken HTML tag in `minimal-green/page.tsx` that caused build/lint errors.
+  4. **Verification:** Confirmed readability across multiple breakpoints and demos.
+
+### 2026-03-05 | Project-Wide (Next.js Build Fix) | Status: ✅ Completed
+- **Change:** Resilient Supabase Initialization & Build-Safe Proxies
+- **Details:** 
+  1. **Root Cause:** Build failed with `supabaseUrl is required` because Infisical env vars were missing during `next build`'s data collection phase.
+  2. **Lazy Proxies:** Converted `lib/supabase.ts` and `lib/supabase-admin.ts` to lazy-loading `Proxy` singletons.
+  3. **Resiliency:** Enhanced proxies to return an "awaitable" no-op object if env vars are missing during build, preventing crashes and allowing fallback static data.
+  4. **Refactor:** Moved `createClient` from module scope to handler functions in 9 API routes: `payment-submit`, `send-receipt`, `send-invoice`, `contact`, `chat/session`, `chat/route`, `chat/history`, `broadcast`, `admin/create-account`.
+  5. **Direct Calls:** Refactored `app/payment/[invoiceId]/page.tsx` to use the shared lazy client.
+  6. **Verification:** `npm run build` completed successfully (Exit Code 0).
+
 ### 2026-03-01 | File: Project Wide | Status: ✅ Completed
 - **Change:** Deep Rebranding to VELOZI | Dev
 - **Details:** 

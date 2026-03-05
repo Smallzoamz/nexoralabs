@@ -1,6 +1,7 @@
-import { Heart, Search, ShoppingBag, User } from 'lucide-react'
+import { Heart, Search, ShoppingBag, User, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import MobileNav from '../MobileNav'
 
 export default function LuxuryFashionDemo() {
     return (
@@ -10,7 +11,7 @@ export default function LuxuryFashionDemo() {
                 Free Shipping On All Orders Over $200
             </div>
 
-            <header className="fixed top-8 left-0 right-0 h-20 bg-[#F5F2EB] z-40 flex items-center px-8 md:px-12 justify-between border-b border-[#EBE5D9]">
+            <header className="fixed top-0 inset-x-0 h-20 bg-white border-b border-neutral-100 z-50 px-6 md:px-12 flex items-center justify-between">
                 {/* Logo */}
                 <div className="text-2xl md:text-3xl font-normal tracking-wide text-[#947B57]">
                     MAISON AURA
@@ -30,13 +31,28 @@ export default function LuxuryFashionDemo() {
                 <div className="flex items-center gap-5 text-[#3A352F]">
                     <button className="hover:text-[#947B57] transition-colors"><Search className="w-5 h-5 stroke-[1.5]" /></button>
                     <button className="hover:text-[#947B57] transition-colors"><User className="w-5 h-5 stroke-[1.5]" /></button>
-                    <button className="hover:text-[#947B57] transition-colors"><Heart className="w-5 h-5 stroke-[1.5]" /></button>
+                    <button className="hidden md:inline-block hover:text-[#947B57] transition-colors"><Heart className="w-5 h-5 stroke-[1.5]" /></button>
                     <button className="hover:text-[#947B57] transition-colors relative">
                         <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
                         <span className="absolute -top-1.5 -right-2 bg-[#947B57] text-white text-[9px] font-sans font-bold w-4 h-4 rounded-full flex items-center justify-center">
                             2
                         </span>
                     </button>
+                    <MobileNav
+                        items={[
+                            { label: 'NEW ARRIVALS', href: '#' },
+                            { label: 'CLOTHING', href: '#' },
+                            { label: 'ACCESSORIES', href: '#' },
+                            { label: 'BRANDS', href: '#' },
+                            { label: 'JOURNAL', href: '#' },
+                            { label: 'SALE', href: '#' },
+                        ]}
+                        buttonClass="text-[#3A352F] bg-[#EBE5D9] hover:bg-[#DDD5C5]"
+                        panelBg="bg-[#F5F2EB]"
+                        linkClass="text-[#3A352F] hover:text-[#947B57]"
+                        closeClass="text-[#3A352F]"
+                        hiddenAt="lg"
+                    />
                 </div>
             </header>
 
@@ -219,6 +235,99 @@ export default function LuxuryFashionDemo() {
                         </div>
 
                     </div>
+                </div>
+            </section>
+
+            {/* Collections / Categories Banner */}
+            <section className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 object-cover">
+                        <div className="group relative h-[500px] overflow-hidden bg-[#F5F2EB]">
+                            <Image
+                                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop"
+                                alt="Womens Collection"
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out mix-blend-multiply opacity-90"
+                            />
+                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-500"></div>
+                            <div className="absolute inset-x-0 bottom-0 p-12 flex flex-col items-center text-center">
+                                <h3 className="text-3xl text-white mb-4 drop-shadow-md">Woman&apos;s Collection</h3>
+                                <button className="text-xs text-white font-sans font-bold tracking-widest uppercase border-b border-white pb-1 hover:text-[#D1BFA5] hover:border-[#D1BFA5] transition-colors drop-shadow-md">
+                                    DISCOVER MORE
+                                </button>
+                            </div>
+                        </div>
+                        <div className="group relative h-[500px] overflow-hidden bg-[#EBE5D9]">
+                            <Image
+                                src="https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=1887&auto=format&fit=crop"
+                                alt="Mens Collection"
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out mix-blend-multiply opacity-90 object-top"
+                            />
+                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-500"></div>
+                            <div className="absolute inset-x-0 bottom-0 p-12 flex flex-col items-center text-center">
+                                <h3 className="text-3xl text-white mb-4 drop-shadow-md">Men&apos;s Collection</h3>
+                                <button className="text-xs text-white font-sans font-bold tracking-widest uppercase border-b border-white pb-1 hover:text-[#D1BFA5] hover:border-[#D1BFA5] transition-colors drop-shadow-md">
+                                    DISCOVER MORE
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Brand Story Section */}
+            <section className="py-32 bg-[#F9F7F3] relative overflow-hidden">
+                <div className="max-w-6xl mx-auto px-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                        <div className="order-2 md:order-1 relative">
+                            <div className="absolute -top-8 -left-8 w-48 h-48 bg-[#EBE5D9] rounded-full mix-blend-multiply opacity-50 blur-xl"></div>
+                            <div className="relative h-[600px] w-full">
+                                <Image
+                                    src="https://images.unsplash.com/photo-1558769132-cb1fac0840c2?q=80&w=1974&auto=format&fit=crop"
+                                    alt="Atelier Craftsman"
+                                    fill
+                                    className="object-cover rounded-t-full shadow-2xl"
+                                />
+                            </div>
+                        </div>
+                        <div className="order-1 md:order-2 flex flex-col justify-center">
+                            <h4 className="text-[#947B57] font-sans font-bold text-xs tracking-[0.2em] uppercase mb-4">Our Heritage</h4>
+                            <h2 className="text-4xl md:text-5xl text-[#3A352F] leading-tight mb-8">
+                                CRAFTING EXCELLENCE<br />SINCE 1924.
+                            </h2>
+                            <p className="text-[#5A554F] leading-relaxed mb-6 font-light text-lg">
+                                Maison Aura was born from a singular vision: to create garments that transcend fleeting trends and become timeless companions in the journey of life.
+                            </p>
+                            <p className="text-[#5A554F] leading-relaxed mb-10 font-light text-lg">
+                                Each piece in our collection is meticulously crafted by master artisans using only the finest ethically sourced materials from around the globe. We believe true luxury lies in the details—the invisible stitches, the perfect drape, the whisper of silk against skin.
+                            </p>
+                            <Link href="#" className="flex items-center gap-3 text-[#3A352F] hover:text-[#947B57] transition-colors w-max group">
+                                <span className="font-sans font-bold text-xs tracking-widest uppercase">READ OUR STORY</span>
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Newsletter Section */}
+            <section className="py-24 bg-[#3A352F] text-[#F5F2EB] text-center px-8">
+                <div className="max-w-3xl mx-auto flex flex-col items-center">
+                    <h2 className="text-3xl md:text-4xl mb-4 font-normal">JOIN THE ATELIER</h2>
+                    <p className="mb-10 font-sans font-light text-[#D1BFA5] max-w-lg leading-relaxed">
+                        Subscribe to receive exclusive access to early collections, private events, and the latest editorial stories from Maison Aura.
+                    </p>
+                    <form className="w-full flex flex-col sm:flex-row gap-4 justify-center">
+                        <input
+                            type="email"
+                            placeholder="Email Address"
+                            className="bg-transparent border-b border-[#D1BFA5] px-4 py-3 min-w-[300px] text-[#F5F2EB] placeholder:text-[#D1BFA5]/60 focus:outline-none focus:border-white font-sans text-sm transition-colors"
+                        />
+                        <button type="submit" className="bg-[#EBE5D9] hover:bg-white text-[#3A352F] px-8 py-3 text-xs font-sans font-bold tracking-widest uppercase transition-colors shrink-0">
+                            SUBSCRIBE
+                        </button>
+                    </form>
                 </div>
             </section>
 
