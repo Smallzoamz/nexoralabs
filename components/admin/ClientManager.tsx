@@ -205,27 +205,30 @@ export default function ClientManager() {
             showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลลูกค้าได้', 'warning')
             return
         }
-        if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบข้อมูลของ ${client.name} ใช่หรือไม่?\nระบบจะลบบัญชีผู้ใช้และข้อมูลทั้งหมดของลูกค้ารายนี้`))) return
+        if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบข้อมูลของ ${client.name} ใช่หรือไม่?\nระบบจะลบข้อมูลทั้งหมดของลูกค้ารายนี้`))) return
 
         try {
-            // 1. Find and delete the auth user first
+            // 1. Try to find and delete the auth user (if exists)
             const { data: linkData } = await supabase
                 .from('client_users')
                 .select('user_id')
                 .eq('client_id', client.id)
-                .single()
+                .maybeSingle()
 
             if (linkData?.user_id) {
-                // Delete auth user from Supabase
-                const supabaseAdmin = createClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.SUPABASE_SERVICE_ROLE_KEY!
-                )
-                await supabaseAdmin.auth.admin.deleteUser(linkData.user_id)
-                console.log('[ClientManager] Deleted auth user:', linkData.user_id)
+                try {
+                    const supabaseAdmin = createClient(
+                        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                        process.env.SUPABASE_SERVICE_ROLE_KEY!
+                    )
+                    await supabaseAdmin.auth.admin.deleteUser(linkData.user_id)
+                    console.log('[ClientManager] Deleted auth user:', linkData.user_id)
+                } catch (authError) {
+                    console.warn('[ClientManager] Could not delete auth user:', authError)
+                }
             }
 
-            // 2. Delete related records
+            // 2. Delete related records (ignore errors if not exist)
             await supabase.from('client_websites').delete().eq('client_id', client.id)
             await supabase.from('client_users').delete().eq('client_id', client.id)
 
@@ -238,10 +241,10 @@ export default function ClientManager() {
             if (error) throw error
 
             setClients(clients.filter(c => c.id !== client.id))
-            showAlert('สำเร็จ', 'ลบข้อมูลลูกค้าและบัญชีผู้ใช้เรียบร้อยแล้ว', 'success')
+            showAlert('สำเร็จ', 'ลบข้อมูลลูกค้าเรียบร้อยแล้ว', 'success')
         } catch (error) {
             console.error('Delete error:', error)
-            showAlert('ข้อผิดพลาด', 'ไม่สามารถลบข้อมูลลูกค้าได้', 'error')
+            showAlert('ข้อผิดพลาด', error instanceof Error ? error.message : 'ไม่สามารถลบข้อมูลลูกค้าได้', 'error')
         }
     }
 
