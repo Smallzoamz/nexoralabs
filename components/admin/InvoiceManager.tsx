@@ -570,7 +570,7 @@ export function InvoiceManager() {
                         email: inv.client_email,
                         package_type: inv.package_details,
                         website_name: inv.client_name,
-                        force: true // Force reset: delete old account if exists
+                        force: false // Only create new account if email doesn't exist
                     })
                 })
                 const accountResult = await accountRes.json()

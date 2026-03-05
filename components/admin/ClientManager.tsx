@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { Plus, Trash2, Edit2, Link as LinkIcon, ShieldAlert, KeyRound, Clock, Download, FileText } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 import { useAuth } from '@/lib/auth-context'
@@ -231,9 +232,31 @@ export default function ClientManager() {
             showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลลูกค้าได้', 'warning')
             return
         }
-        if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบข้อมูลของ ${client.name} ใช่หรือไม่?\nประวัติการแบ็คอัปจะถูกลบไปด้วย แต่ไฟล์สำรองจะไม่ถูกลบ`))) return
+        if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบข้อมูลของ ${client.name} ใช่หรือไม่?\nระบบจะลบบัญชีผู้ใช้และข้อมูลทั้งหมดของลูกค้ารายนี้`))) return
 
         try {
+            // 1. Find and delete the auth user first
+            const { data: linkData } = await supabase
+                .from('client_users')
+                .select('user_id')
+                .eq('client_id', client.id)
+                .single()
+
+            if (linkData?.user_id) {
+                // Delete auth user from Supabase
+                const supabaseAdmin = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY!
+                )
+                await supabaseAdmin.auth.admin.deleteUser(linkData.user_id)
+                console.log('[ClientManager] Deleted auth user:', linkData.user_id)
+            }
+
+            // 2. Delete related records
+            await supabase.from('client_websites').delete().eq('client_id', client.id)
+            await supabase.from('client_users').delete().eq('client_id', client.id)
+
+            // 3. Delete the client
             const { error } = await supabase
                 .from('clients')
                 .delete()
@@ -242,7 +265,7 @@ export default function ClientManager() {
             if (error) throw error
 
             setClients(clients.filter(c => c.id !== client.id))
-            showAlert('สำเร็จ', 'ลบข้อมูลลูกค้าเรียบร้อยแล้ว', 'success')
+            showAlert('สำเร็จ', 'ลบข้อมูลลูกค้าและบัญชีผู้ใช้เรียบร้อยแล้ว', 'success')
         } catch (error) {
             console.error('Delete error:', error)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถลบข้อมูลลูกค้าได้', 'error')
