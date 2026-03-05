@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Eye, User, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { ArticleShareButtons } from '@/components/frontend/ArticleShareButtons'
 
+export const revalidate = 0; // Disable caching to fetch fresh data every time
 
 // 1. Generate Static Params for SEO (Tells Next.js which URLs to pre-render)
 export async function generateStaticParams() {

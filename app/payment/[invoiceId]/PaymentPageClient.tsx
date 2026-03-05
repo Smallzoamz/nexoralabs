@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Upload, CheckCircle2, AlertCircle, FileImage, Loader2, CreditCard, Building2, Smartphone } from 'lucide-react'
 import Image from 'next/image'
+import { getBankInfo } from '@/lib/banks'
 
 interface Invoice {
     id: string
@@ -36,6 +37,17 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [uploadState, setUploadState] = useState<UploadState>('idle')
     const [errorMsg, setErrorMsg] = useState('')
+
+    // Helper to render bank logo from SVG
+    const renderBankLogo = (logo: string, size: string = 'w-6 h-6') => {
+        if (!logo) return null;
+        return (
+            <div
+                className={`${size} rounded-lg flex items-center justify-center shrink-0 overflow-hidden`}
+                dangerouslySetInnerHTML={{ __html: logo }}
+            />
+        );
+    };
 
     const totalAmount = Number(invoice.setup_fee) + Number(invoice.monthly_fee)
     const formattedTotal = totalAmount.toLocaleString('th-TH')
@@ -117,14 +129,14 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
 
     if (isAlreadyPaid) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-6">
-                <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center">
+            <div className="min-h-screen gradient-bg flex items-center justify-center p-6">
+                <div className="card p-10 max-w-md w-full text-center">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-3">ชำระเงินเรียบร้อยแล้ว</h1>
-                    <p className="text-slate-500">ใบแจ้งหนี้ <strong>{invoiceNo}</strong> ได้รับการชำระเงินสำเร็จแล้วครับ</p>
-                    <p className="text-sm text-slate-400 mt-4">ขอบคุณที่ไว้วางใจ VELOZI | Dev 🙏</p>
+                    <h1 className="text-2xl font-bold text-secondary-900 mb-3">ชำระเงินเรียบร้อยแล้ว</h1>
+                    <p className="text-secondary-600">ใบแจ้งหนี้ <strong className="text-secondary-900">{invoiceNo}</strong> ได้รับการชำระเงินสำเร็จแล้วครับ</p>
+                    <p className="text-sm text-secondary-400 mt-4">ขอบคุณที่ไว้วางใจ VELOZI | Dev 🙏</p>
                 </div>
             </div>
         )
@@ -132,130 +144,147 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
 
     if (uploadState === 'success') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-6">
-                <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center">
+            <div className="min-h-screen gradient-bg flex items-center justify-center p-6">
+                <div className="card p-10 max-w-md w-full text-center">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-3">ส่งสลิปเรียบร้อยแล้ว! ✅</h1>
-                    <p className="text-slate-600 leading-relaxed">ขอบคุณครับ ทีมงานจะตรวจสอบสลิปการโอนของคุณและทำการยืนยัน<br />คุณจะได้รับอีเมลยืนยันใบเสร็จรับเงินเมื่อตรวจสอบเสร็จสิ้นครับ</p>
-                    <p className="text-sm text-slate-400 mt-6">ขอบคุณที่ไว้วางใจ Nexora Labs 🙏</p>
+                    <h1 className="text-2xl font-bold text-secondary-900 mb-3">ส่งสลิปเรียบร้อยแล้ว! ✅</h1>
+                    <p className="text-secondary-600 leading-relaxed">ขอบคุณครับ ทีมงานจะตรวจสอบสลิปการโอนของคุณและทำการยืนยัน<br />คุณจะได้รับอีเมลยืนยันใบเสร็จรับเงินเมื่อตรวจสอบเสร็จสิ้นครับ</p>
+                    <p className="text-sm text-secondary-400 mt-6">ขอบคุณที่ไว้วางใจ VELOZI | Dev 🙏</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 py-10 px-4">
+        <div className="min-h-screen gradient-bg py-10 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white tracking-tight">VELOZI | Dev</h1>
-                    <p className="text-indigo-300 mt-1 text-sm">Billing Team | ชำระค่าบริการ</p>
+                    <h1 className="text-3xl font-display font-bold text-secondary-900 tracking-tight">VELOZI <span className="text-secondary-400 font-light">|</span> Dev</h1>
+                    <p className="text-primary-600 mt-2 text-sm font-medium">Billing Team | ชำระค่าบริการ</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Invoice Details Card */}
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-white border border-white/10">
-                        <div className="flex items-center gap-2 mb-5">
-                            <CreditCard className="w-5 h-5 text-indigo-300" />
-                            <h2 className="font-semibold text-white">รายละเอียดใบแจ้งหนี้</h2>
+                    <div className="card p-6">
+                        <div className="flex items-center gap-2 mb-5 pb-4 border-b border-secondary-100">
+                            <CreditCard className="w-5 h-5 text-primary-600" />
+                            <h2 className="font-semibold text-secondary-900">รายละเอียดใบแจ้งหนี้</h2>
                         </div>
                         <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-slate-400">เลขที่ใบแจ้งหนี้</span>
-                                <span className="font-mono text-indigo-300">{invoiceNo}</span>
+                            <div className="flex justify-between items-center">
+                                <span className="text-secondary-500">เลขที่ใบแจ้งหนี้</span>
+                                <span className="font-mono text-secondary-900 bg-secondary-50 px-2 py-1 rounded-md border border-secondary-200">{invoiceNo}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-400">ชื่อลูกค้า</span>
-                                <span className="font-medium">{invoice.client_name}</span>
+                                <span className="text-secondary-500">ชื่อลูกค้า</span>
+                                <span className="font-medium text-secondary-900">{invoice.client_name}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-400">บริการ</span>
-                                <span className="text-right max-w-[55%]">{invoice.package_details}</span>
+                                <span className="text-secondary-500">บริการ</span>
+                                <span className="text-right text-secondary-900 max-w-[55%]">{invoice.package_details}</span>
                             </div>
-                            <div className="border-t border-white/10 pt-3 mt-3 space-y-2">
+                            <div className="border-t border-secondary-100 pt-3 mt-3 space-y-2">
                                 {Number(invoice.setup_fee) > 0 && (
                                     <div className="flex justify-between">
-                                        <span className="text-slate-400">ค่าบริการแรกเข้า</span>
-                                        <span>฿{Number(invoice.setup_fee).toLocaleString('th-TH')}</span>
+                                        <span className="text-secondary-500">ค่าบริการแรกเข้า</span>
+                                        <span className="text-secondary-900">฿{Number(invoice.setup_fee).toLocaleString('th-TH')}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
-                                    <span className="text-slate-400">ค่าดูแลรายเดือน</span>
-                                    <span>฿{Number(invoice.monthly_fee).toLocaleString('th-TH')}</span>
+                                    <span className="text-secondary-500">ค่าดูแลรายเดือน</span>
+                                    <span className="text-secondary-900">฿{Number(invoice.monthly_fee).toLocaleString('th-TH')}</span>
                                 </div>
-                                <div className="flex justify-between font-bold text-base pt-2 border-t border-white/10">
-                                    <span>ยอดชำระสุทธิ</span>
-                                    <span className="text-indigo-300 text-xl">฿{formattedTotal}</span>
+                                <div className="flex justify-between font-bold text-base pt-3 mt-1 border-t border-secondary-100">
+                                    <span className="text-secondary-900">ยอดชำระสุทธิ</span>
+                                    <span className="text-primary-600 text-xl">฿{formattedTotal}</span>
                                 </div>
                             </div>
-                            <div className="flex justify-between text-xs mt-2">
-                                <span className="text-slate-400">กำหนดชำระ</span>
-                                <span className="text-amber-300 font-medium">📅 {formattedDueDate}</span>
+                            <div className="flex justify-between items-center text-xs mt-4 pt-3 border-t border-dashed border-secondary-200">
+                                <span className="text-secondary-500">กำหนดชำระ</span>
+                                <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100 font-medium flex items-center gap-1">
+                                    📅 {formattedDueDate}
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     {/* Payment Methods Card */}
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-white border border-white/10">
-                        <h2 className="font-semibold text-white mb-5">ช่องทางการชำระเงิน</h2>
+                    <div className="card p-6">
+                        <div className="flex items-center gap-2 mb-5 pb-4 border-b border-secondary-100">
+                            <h2 className="font-semibold text-secondary-900">ช่องทางการชำระเงิน</h2>
+                        </div>
                         <div className="space-y-4">
                             {paymentConfig?.promptpay_number && (
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <div className="bg-slate-50 rounded-xl p-4 border border-secondary-200 relative overflow-hidden group hover:border-primary-300 transition-colors">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Smartphone className="w-4 h-4 text-indigo-300" />
-                                        <span className="text-sm font-semibold text-indigo-200">PromptPay</span>
+                                        <Smartphone className="w-5 h-5 text-primary-600" />
+                                        <span className="text-sm font-semibold text-secondary-900">PromptPay</span>
                                     </div>
-                                    <p className="text-xs text-slate-400">หมายเลข PromptPay</p>
-                                    <p className="font-mono text-lg font-bold mt-1">{paymentConfig.promptpay_number}</p>
-                                    <p className="text-sm text-slate-300 mt-1">ชื่อบัญชี: {paymentConfig.promptpay_name}</p>
+                                    <p className="text-xs text-secondary-500">หมายเลข PromptPay</p>
+                                    <p className="font-mono text-lg font-bold text-secondary-900 mt-1">{paymentConfig.promptpay_number}</p>
+                                    <p className="text-sm text-secondary-600 mt-1">ชื่อบัญชี: <span className="font-medium text-secondary-900">{paymentConfig.promptpay_name}</span></p>
                                 </div>
                             )}
-                            {paymentConfig?.bank_account_no && (
-                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Building2 className="w-4 h-4 text-indigo-300" />
-                                        <span className="text-sm font-semibold text-indigo-200">โอนผ่านธนาคาร</span>
+                            {paymentConfig?.bank_account_no && (() => {
+                                const bankInfo = getBankInfo(paymentConfig.bank_name || '');
+                                return (
+                                    <div className="bg-slate-50 rounded-xl p-4 border border-secondary-200 relative overflow-hidden group hover:border-primary-300 transition-colors">
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                {bankInfo && bankInfo.code !== 'OTHER' && bankInfo.code !== 'CUSTOM' ? (
+                                                    renderBankLogo(bankInfo.logo, 'w-8 h-8')
+                                                ) : (
+                                                    <Building2 className="w-6 h-6 text-primary-600" />
+                                                )}
+                                                <span className="text-sm font-semibold text-secondary-900">โอนผ่านธนาคาร</span>
+                                            </div>
+                                            <p className="text-xs text-secondary-500">ธนาคาร: <span className="text-secondary-900 font-medium">{paymentConfig.bank_name}</span></p>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                <p className="font-mono text-xl font-bold text-secondary-900 tracking-wider">{paymentConfig.bank_account_no}</p>
+                                            </div>
+                                            <p className="text-sm text-secondary-600 mt-2">ชื่อบัญชี: <span className="text-secondary-900 font-medium">{paymentConfig.bank_account_name}</span></p>
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-slate-400">ธนาคาร: {paymentConfig.bank_name}</p>
-                                    <p className="font-mono text-lg font-bold mt-1">{paymentConfig.bank_account_no}</p>
-                                    <p className="text-sm text-slate-300 mt-1">ชื่อบัญชี: {paymentConfig.bank_account_name}</p>
-                                </div>
-                            )}
+                                )
+                            })()}
                             {!paymentConfig?.promptpay_number && !paymentConfig?.bank_account_no && (
-                                <p className="text-sm text-slate-400 text-center py-4">กรุณาติดต่อทีมงานเพื่อรับข้อมูลการชำระเงินครับ</p>
+                                <p className="text-sm text-secondary-500 text-center py-4 bg-secondary-50 rounded-lg border border-dashed border-secondary-200">
+                                    กรุณาติดต่อทีมงานเพื่อรับข้อมูลการชำระเงินครับ
+                                </p>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* Slip Upload Section */}
-                <div className="mt-6 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                    <div className="flex items-center gap-2 mb-5">
-                        <Upload className="w-5 h-5 text-indigo-300" />
-                        <h2 className="font-semibold text-white">แนบสลิปการโอนเงิน</h2>
+                <div className="mt-6 card p-6">
+                    <div className="flex items-center gap-2 mb-5 pb-4 border-b border-secondary-100">
+                        <Upload className="w-5 h-5 text-primary-600" />
+                        <h2 className="font-semibold text-secondary-900">แนบสลิปการโอนเงิน</h2>
                     </div>
 
                     {/* File Upload Area */}
-                    <label className="relative block border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-400 transition-colors group">
+                    <label className="relative block border-2 border-dashed border-secondary-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-all group bg-secondary-50/50">
                         <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} className="hidden" />
                         {previewUrl ? (
                             <div className="relative inline-block">
-                                <Image src={previewUrl} alt="slip preview" width={280} height={280} className="max-h-64 w-auto mx-auto rounded-lg object-contain shadow-lg" />
-                                <p className="text-xs text-slate-300 mt-3">คลิกเพื่อเปลี่ยนรูป</p>
+                                <Image src={previewUrl} alt="slip preview" width={280} height={280} className="max-h-64 w-auto mx-auto rounded-lg object-contain shadow-md border border-secondary-200" />
+                                <p className="text-xs text-secondary-500 mt-3 font-medium">คลิกเพื่อเปลี่ยนรูป</p>
                             </div>
                         ) : (
                             <div>
-                                <FileImage className="w-14 h-14 text-white/20 mx-auto mb-3 group-hover:text-indigo-300 transition-colors" />
-                                <p className="text-white/60 text-sm">คลิกหรือลากวางไฟล์สลิปที่นี่</p>
-                                <p className="text-white/30 text-xs mt-1">รองรับ .jpg, .png, .webp ขนาดสูงสุด 5MB</p>
+                                <FileImage className="w-14 h-14 text-secondary-300 mx-auto mb-3 group-hover:text-primary-500 transition-colors" />
+                                <p className="text-secondary-700 font-medium text-sm">คลิกหรือลากวางไฟล์สลิปที่นี่</p>
+                                <p className="text-secondary-400 text-xs mt-1">รองรับ .jpg, .png, .webp ขนาดสูงสุด 5MB</p>
                             </div>
                         )}
                     </label>
 
                     {errorMsg && (
-                        <div className="flex items-center gap-2 mt-3 text-red-300 text-sm">
+                        <div className="flex items-center gap-2 mt-4 text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 text-sm">
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
                             <span>{errorMsg}</span>
                         </div>
@@ -264,7 +293,7 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
                     <button
                         onClick={handleSubmit}
                         disabled={!selectedFile || uploadState === 'uploading'}
-                        className="mt-5 w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-base"
+                        className="mt-6 w-full btn-primary py-4 text-base"
                     >
                         {uploadState === 'uploading' ? (
                             <><Loader2 className="w-5 h-5 animate-spin" /> กำลังส่งสลิป...</>
@@ -273,12 +302,12 @@ export default function PaymentPageClient({ invoice, paymentConfig }: Props) {
                         )}
                     </button>
 
-                    <p className="text-xs text-slate-400 text-center mt-3">
-                        ทีมงานจะตรวจสอบสลิปและส่งใบเสร็จรับเงินผ่านอีเมล {invoice.client_email} ภายใน 1 วันทำการครับ
+                    <p className="text-xs text-secondary-500 text-center mt-4">
+                        ทีมงานจะตรวจสอบสลิปและส่งใบเสร็จรับเงินผ่านอีเมล <span className="font-medium text-secondary-700">{invoice.client_email}</span> ภายใน 1 วันทำการครับ
                     </p>
                 </div>
 
-                <p className="text-center text-slate-500 text-xs mt-6">© {new Date().getFullYear()} VELOZI | Dev. All rights reserved.</p>
+                <p className="text-center text-secondary-400 text-xs mt-8">© {new Date().getFullYear()} VELOZI | Dev. All rights reserved.</p>
             </div>
         </div>
     )

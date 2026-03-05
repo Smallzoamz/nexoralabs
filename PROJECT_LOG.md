@@ -9,7 +9,61 @@
 ---
 
 ## Recent Updates
+
+### 2026-03-06 | File: app/payment/[invoiceId]/PaymentPageClient.tsx | Status: ✅ Completed
+- **Change:** Redesign Payment Page to Light Theme
+- **Details:** Converted the entire payment page from dark theme (`from-slate-900 via-indigo-950`) to the main website's light theme (`gradient-bg`, `card`, `btn-primary`). Updated all color classes (`text-white` → `text-secondary-900`, `text-indigo-300` → `text-primary-600`). Fixed brand name "Nexora Labs" → "VELOZI | Dev". Simplified `renderBankLogo` to SVG-only. Build verification passed.
+
+### 2026-03-06 | File: components/admin/PaymentSettings.tsx | Status: ✅ Completed
+- **Change:** Fix Bank Dropdown Overflow
+- **Details:** Removed the `overflow-hidden` class from the main card container to allow the new bank selection dropdown menu to be fully visible without being clipped.
+
+### 2026-03-06 | File: lib/banks.ts, components/admin/PaymentSettings.tsx, app/payment/[invoiceId]/PaymentPageClient.tsx | Status: ✅ Completed
+- **Change:** Add Bank Selection Dropdown with Logos
+- **Details:** Created a new library file `lib/banks.ts` to store major Thai bank data (names, brand colors, SVG logos). Updated the admin `PaymentSettings` component to replace the text input with a custom dropdown displaying bank logos. Updated the client-facing `PaymentPageClient` to display the selected bank's logo and brand color on the invoice payment page, enhancing trust and a premium feel. Verified build success.
+
+### 2026-03-06 | File: components/admin/SEOSettings.tsx | Status: ✅ Completed
+- **Change:** Add SEO Analytics Tracking Sidebar
+- **Details:** Implemented a new right sidebar in the SEO Settings page to provide real-time feedback. Includes an SEO Health Score (calculated from title length, description length, keywords, and OG image), a Google Search Preview, and a Traffic Prediction Trend to guide users on improving their SEO metadata. Fixed a `prefer-const` ESLint warning.
+
+### 2026-03-06 | File: components/admin/IntegratedDashboard.tsx | Status: ✅ Completed
+- **Change:** Add Mock Data & Banner for Demo Role
+- **Details:** Checked `useAuth().isReadOnly` and provided rich mock data for stats, charts, leads, invoices, and accounting information when logged in as a demo user. Added a prominent banner at the top of the dashboard explaining that the data is simulated for demonstration purposes. Ensures demo users see an active system without exposing real data.
+
+### 2026-03-06 | File: app/articles/[slug]/page.tsx | Status: ✅ Completed
+- **Change:** Disabled Next.js Static Caching on Article Read Page
+- **Details:** Added `export const revalidate = 0;` to ensure that ANY updates or edits made to an article reflect immediately on the frontend without waiting for the cache to clear.
  
+### 2026-03-06 | File: components/admin/ArticleManager.tsx | Status: ✅ Completed
+- **Change:** Lock Author Field in Article Editor
+- **Details:** 
+  1. Updated the `ArticleManager` to fetch the logged-in user's name via `useAuth()`.
+  2. Modified the `author` input field to be strictly read-only and disabled, displaying the user's name (e.g., `Thanawat Ch.`).
+  3. Ensured `handleSave` ignores any manipulated input and strictly saves the article with the authenticated user's name into the database.
+  4. Verified no build errors with `npm run build`.
+
+### 2026-03-06 | File: app/showcase/page.tsx, app/portfolio/page.tsx | Status: ✅ Completed
+- **Change:** Apply Global Layout (Header, Footer, Breadcrumbs) to Showcase & Portfolio Pages
+- **Details:**
+  1. **Global Layout:** Integrated the main `Header` and `Footer` components directly into the page layout, replacing custom hardcoded headers.
+  2. **Page Wrappers:** Adjusted page structure to `min-h-screen flex flex-col` and `flex-grow` main containers for proper footer sticking.
+  3. **Breadcrumbs (Showcase):** Implemented animated dynamic Breadcrumb Navigation (`Home > ตัวอย่างเว็บไซต์ > Category: "Name"`) matching the Articles page pattern.
+  4. **Breadcrumbs (Portfolio):** Implemented static Breadcrumbs (`Home > ผลงานของเรา`).
+  5. **Bug Fixes:** Removed unused generic `ArrowLeft` and `lucide-react` imports that caused Next.js build ESLint linting errors.
+  6. **Verification:** `npm run build` successfully passed with Exit Code 0.
+
+### 2026-03-06 | File: app/articles/page.tsx | Status: ✅ Completed
+- **Change:** Redesign Articles Page (Popular & Latest Sections)
+- **Details:** 
+  1. **Popular Articles:** Separated the top 3 articles by `view_count` into a highlighted "ยอดฮิตติดเทรนด์" section when filter is "ทั้งหมด".
+  2. **Latest Articles:** Displayed remaining articles sorted descending by `created_at` in the "บทความล่าสุด" section. 
+  3. **Categories:** Implemented smooth filtering with Framer Motion `AnimatePresence`. When a specific category is selected, the popular section is hidden to show exact category matches.
+  4. **Edge Cases:** Added safeguards. If there are fewer than 4 total articles, all articles fallback to "Latest" to avoid awkward empty sections.
+  5. **UI Polish:** Added modern tokens (rounded-2xl, shadow-sm hover:shadow-xl, Lucide icons, `ring-2` for featured cards).
+  6. **Global Layout:** Integrated the main `Header` and `Footer` components directly into the page layout, transitioning the viewing experience to match the primary corporate site perfectly.
+  7. **Breadcrumbs:** Replaced the simple "กลับหน้าหลัก" Back button with a dynamic Breadcrumb Navigation (`Home > บทความทั้งหมด > Category: "Name"`) that clearly shows the user their current reading context.
+  8. **Verification:** `npm run build` passed with zero errors (Exit Code 0).
+
 ### 2026-03-05 | Admin UI & Security Enhancements | Status: ✅ Completed
 - **Change:** Finalized Demo Role and Enhanced Modal System
 - **Details:** 

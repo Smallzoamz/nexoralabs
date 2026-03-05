@@ -36,7 +36,8 @@ interface ArticleItem {
 }
 
 export function ArticleManager() {
-    const { isReadOnly } = useAuth()
+    const { isReadOnly, user } = useAuth()
+    const systemAuthorName = user?.user_metadata?.name || 'Administrator'
     const { showAlert, showConfirm } = useModal()
     const [articles, setArticles] = useState<ArticleItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -184,7 +185,7 @@ export function ArticleManager() {
                 excerpt: formData.excerpt,
                 content: formData.content,
                 category: formData.category,
-                author: formData.author,
+                author: systemAuthorName,
                 is_published: formData.is_published
             })
 
@@ -211,7 +212,7 @@ export function ArticleManager() {
                 excerpt: formData.excerpt || null,
                 content: formattedContent,
                 category: formData.category || null,
-                author: formData.author || 'Admin',
+                author: systemAuthorName,
                 cover_image: formData.cover_image || null,
                 is_published: formData.is_published,
                 updated_at: new Date().toISOString()
@@ -452,9 +453,9 @@ export function ArticleManager() {
                                     <label className="block text-sm font-medium text-secondary-700 mb-1">ผู้เขียน</label>
                                     <input
                                         type="text"
-                                        value={formData.author}
-                                        onChange={e => setFormData({ ...formData, author: e.target.value })}
-                                        className="w-full px-3 py-2 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-sm"
+                                        value={systemAuthorName}
+                                        disabled
+                                        className="w-full px-3 py-2 border border-secondary-200 rounded-lg bg-secondary-50 text-secondary-500 cursor-not-allowed outline-none text-sm"
                                         placeholder="เช่น Admin, Editor..."
                                     />
                                 </div>

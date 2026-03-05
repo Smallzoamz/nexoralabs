@@ -22,7 +22,8 @@ import {
     Trash2,
     X,
     Receipt,
-    FileDown
+    FileDown,
+    Info
 } from 'lucide-react'
 import { bahttext } from 'bahttext'
 import { useModal } from '@/lib/modal-context'
@@ -175,6 +176,58 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
 
     const fetchData = async (silent = false) => {
         if (!silent) setIsLoading(true)
+
+        // MOCK DATA FOR DEMO ROLE
+        if (isReadOnly) {
+            setStats([
+                { label: 'Revenue', value: '฿125,400', trend: '+15.2%', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { label: 'Active Clients', value: '24', trend: 'Monthly growth', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+                { label: 'Traffic', value: '15,230', trend: '+12.5%', icon: Eye, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { label: 'Leads', value: '142', trend: 'New entries', icon: MessageSquare, color: 'text-amber-600', bg: 'bg-amber-50' }
+            ])
+
+            setChartData([
+                { name: 'Oct', value: 45000 },
+                { name: 'Nov', value: 52000 },
+                { name: 'Dec', value: 48000 },
+                { name: 'Jan', value: 85000 },
+                { name: 'Feb', value: 92000 },
+                { name: 'Mar', value: 125400 },
+            ])
+
+            setGrowthData([
+                { name: 'Conversions', value: 142 },
+                { name: 'Remaining Visitors', value: 15088 },
+            ])
+
+            const nowStr = new Date().toISOString()
+            const yesterdayStr = new Date(Date.now() - 86400000).toISOString()
+            const twoDaysAgoStr = new Date(Date.now() - 172800000).toISOString()
+
+            setRecentSubmissions([
+                { name: 'สมปอง สบายใจ', package_interest: 'Premium E-Commerce', created_at: nowStr, status: 'new' },
+                { name: 'บริษัท เอบีซี จำกัด', package_interest: 'Corporate System', created_at: yesterdayStr, status: 'contacted' },
+                { name: 'คุณมาลี สวยงาม', package_interest: 'Standard Website', created_at: twoDaysAgoStr, status: 'closed' },
+                { name: 'ธนาวัตน์ วิวัฒน์', package_interest: 'SEO Marketing', created_at: twoDaysAgoStr, status: 'closed' },
+            ])
+
+            setAllInvoices([
+                { id: 'mock-1', client_name: 'บริษัท ทิคแทค จำกัด', client_email: 'contact@tictac.co.th', package_details: 'Premium E-Commerce', setup_fee: 45000, monthly_fee: 0, status: 'paid', created_at: nowStr, due_date: nowStr },
+                { id: 'mock-2', client_name: 'ร้านอาหารเจ๊นก', client_email: 'nok@food.com', package_details: 'Standard Website', setup_fee: 15000, monthly_fee: 0, status: 'paid', created_at: yesterdayStr, due_date: yesterdayStr },
+                { id: 'mock-3', client_name: 'คลินิกทันตกรรมรอยยิ้ม', client_email: 'smile@clinic.com', package_details: 'Booking System', setup_fee: 25000, monthly_fee: 1500, status: 'paid', created_at: twoDaysAgoStr, due_date: twoDaysAgoStr },
+            ])
+
+            setContentStats({
+                articles: 45,
+                portfolios: 12,
+                services: 5,
+                total: 62
+            })
+
+            if (!silent) setIsLoading(false)
+            return;
+        }
+
         try {
             const now = new Date()
             const todayStart = new Date()
@@ -282,6 +335,33 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
 
     const fetchAccountingData = async () => {
         setAccLoading(true)
+
+        // MOCK ACCOUNTING FOR DEMO ROLE
+        if (isReadOnly) {
+            const nowStr = new Date().toISOString()
+            const yesterdayStr = new Date(Date.now() - 86400000).toISOString()
+            const twoDaysAgoStr = new Date(Date.now() - 172800000).toISOString()
+            const expensesStr = new Date().toISOString().split('T')[0]
+
+            setAccData({
+                paidInvoices: [
+                    { id: 'mock-1', client_name: 'บริษัท ทิคแทค จำกัด', client_email: 'contact@tictac.co.th', package_details: 'Premium E-Commerce', setup_fee: 45000, monthly_fee: 0, created_at: nowStr, due_date: nowStr },
+                    { id: 'mock-2', client_name: 'ร้านอาหารเจ๊นก', client_email: 'nok@food.com', package_details: 'Standard Website', setup_fee: 15000, monthly_fee: 0, created_at: yesterdayStr, due_date: yesterdayStr },
+                    { id: 'mock-3', client_name: 'คลินิกทันตกรรมรอยยิ้ม', client_email: 'smile@clinic.com', package_details: 'Booking System', setup_fee: 25000, monthly_fee: 1500, created_at: twoDaysAgoStr, due_date: twoDaysAgoStr },
+                ],
+                pendingInvoices: [
+                    { id: 'mock-4', client_name: 'บจก. นวัตกรรมใหม่', client_email: 'hello@innovate.co.th', package_details: 'Corporate Package', setup_fee: 35000, monthly_fee: 0, due_date: new Date(Date.now() + 86400000 * 5).toISOString() }
+                ],
+                expenses: [
+                    { id: 'exp-1', category: 'ค่าเซิร์ฟเวอร์/โฮสติ้ง', description: 'DigitalOcean Hosting', amount: 3500, expense_date: expensesStr, created_at: nowStr },
+                    { id: 'exp-2', category: 'ค่าการตลาด/โฆษณา', description: 'Facebook Ads', amount: 5000, expense_date: expensesStr, created_at: yesterdayStr },
+                ],
+                accYear,
+            })
+            setAccLoading(false)
+            return;
+        }
+
         try {
             const [{ data: paid }, { data: pending }, { data: expenseData }] = await Promise.all([
                 supabase.from('invoices')
@@ -463,6 +543,20 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
 
     return (
         <main className="space-y-6">
+            {isReadOnly && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="bg-amber-100 p-2 rounded-xl shrink-0">
+                        <Info className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                        <h4 className="text-amber-900 font-bold text-sm">ข้อมูลจำลองเพื่อการสาธิต (Demo Data)</h4>
+                        <p className="text-amber-700 text-sm mt-1">
+                            เนื้อหา สถิติ ยอดรายได้ และรายชื่อการติดต่อต่างๆ ในหน้านี้เป็นเพียงข้อมูลที่ถูกจำลองขึ้นมา เพื่อแสดงให้คุณเห็นภาพรวมความสามารถและการทำงานของระบบได้อย่างจัดเจนครบถ้วนเท่านั้น (ไม่ใช่ข้อมูลจริง) เพื่อใช้ประกอบการพิจารณาครับ
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>

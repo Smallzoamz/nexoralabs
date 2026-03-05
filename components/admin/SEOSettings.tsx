@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Loader2, Image as ImageIcon, Globe, Search, Tag, AlertCircle } from 'lucide-react'
+import { Save, Loader2, Image as ImageIcon, Globe, Search, Tag, AlertCircle, Activity, TrendingUp, CheckCircle, BarChart2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
 import { useAuth } from '@/lib/auth-context'
@@ -80,6 +80,66 @@ export function SEOSettings() {
         const { name, value } = e.target
         setConfig(prev => ({ ...prev, [name]: value }))
     }
+
+    // SEO Score Calculation Logic
+    const getSEOScore = () => {
+        let score = 0;
+        const checks = { title: false, desc: false, keywords: false, image: false };
+
+        // 1. Title Length (Optimal: 30-60 chars)
+        if (config.seo_title.length >= 30 && config.seo_title.length <= 60) {
+            score += 35;
+            checks.title = true;
+        } else if (config.seo_title.length > 0) {
+            score += 15;
+        }
+
+        // 2. Description Length (Optimal: 120-160 chars)
+        if (config.seo_description.length >= 100 && config.seo_description.length <= 160) {
+            score += 35;
+            checks.desc = true;
+        } else if (config.seo_description.length > 0) {
+            score += 15;
+        }
+
+        // 3. Keywords Presence
+        if (config.seo_keywords && config.seo_keywords.split(',').length >= 3) {
+            score += 10;
+            checks.keywords = true;
+        } else if (config.seo_keywords.length > 0) {
+            score += 5;
+        }
+
+        // 4. OG Image Presence
+        if (config.og_image_url) {
+            score += 20;
+            checks.image = true;
+        }
+
+        return { score: Math.min(100, score), checks };
+    }
+
+    const { score: seoScore, checks: seoChecks } = getSEOScore();
+
+    const getScoreColor = (score: number) => {
+        if (score >= 80) return 'text-green-500 bg-green-50 ring-green-500/20'
+        if (score >= 50) return 'text-amber-500 bg-amber-50 ring-amber-500/20'
+        return 'text-red-500 bg-red-50 ring-red-500/20'
+    }
+
+    const getScoreGradient = (score: number) => {
+        if (score >= 80) return 'from-green-500 to-emerald-400'
+        if (score >= 50) return 'from-amber-400 to-orange-400'
+        return 'from-red-500 to-rose-400'
+    }
+
+    const getTrendPrediction = (score: number) => {
+        if (score >= 80) return { trend: '+24%', text: 'สูงมาก', color: 'text-green-600', desc: 'โอกาสในการคลิก (CTR) และการจัดอันดับอยู่ในเกณฑ์ดีเยี่ยม' }
+        if (score >= 50) return { trend: '+12%', text: 'ปานกลาง', color: 'text-amber-600', desc: 'โครงสร้างพื้นฐานผ่านเกณฑ์ แต่อาจเพิ่มรายละเอียดเพื่อให้ดึงดูดมากขึ้น' }
+        return { trend: '~0%', text: 'ต้องปรับปรุง', color: 'text-red-600', desc: 'ข้อมูลยังไม่ครบถ้วน อาจทำให้ระบบค้นหาทำความเข้าใจเว็บได้ยาก' }
+    }
+
+    const prediction = getTrendPrediction(seoScore);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (isReadOnly) {
@@ -215,8 +275,9 @@ export function SEOSettings() {
     }
 
     return (
-        <div className="max-w-4xl space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-secondary-100">
+        <div className="flex flex-col xl:flex-row gap-6 items-start max-w-7xl mx-auto">
+            {/* Editor Side (Left) */}
+            <div className="w-full xl:w-2/3 bg-white p-6 rounded-xl shadow-sm border border-secondary-100 shrink-0">
                 <div className="mb-6 pb-6 border-b border-secondary-100 flex items-start gap-4">
                     <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
                         <Search className="w-6 h-6 text-primary-600" />
@@ -231,20 +292,20 @@ export function SEOSettings() {
 
                 <div className="space-y-6">
                     {/* Google Search Preview Card (Simulation) */}
-                    <div className="bg-secondary-50 p-5 rounded-xl border border-secondary-200">
-                        <div className="flex items-center gap-2 mb-3 text-sm font-medium text-secondary-600">
-                            <Globe className="w-4 h-4 text-blue-500" /> ตัวอย่างการแสดงผลบน Google
+                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-2 mb-3 text-sm font-bold text-slate-700">
+                            <Globe className="w-4 h-4 text-blue-500" /> ตัวอย่างการค้นหา (Search Preview)
                         </div>
                         <div className="bg-white p-4 rounded-lg shadow-sm">
-                            <div className="text-sm text-secondary-500 mb-1 flex items-center gap-2">
+                            <div className="text-sm text-slate-600 mb-1 flex items-center gap-2">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src="/logos/footer-logo.png" alt="icon" className="w-4 h-4 rounded-full" />
-                                {process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nexoralabs.com'}
+                                <span className="truncate">{process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nexoralabs.com'}</span>
                             </div>
-                            <div className="text-xl text-[#1a0dab] font-medium leading-tight mb-1 hover:underline cursor-pointer truncate">
+                            <div className="text-xl text-[#1a0dab] font-medium leading-tight mb-1 hover:underline cursor-pointer break-words">
                                 {config.seo_title || 'ชื่อเว็บไซต์ของคุณ'}
                             </div>
-                            <div className="text-sm text-[#4d5156] leading-snug line-clamp-2">
+                            <div className="text-sm text-[#4d5156] leading-snug line-clamp-2 break-words">
                                 {config.seo_description || 'คำอธิบายเว็บไซต์ที่ดึงดูดใจ เพื่อให้ลูกค้ารู้ว่าเว็บไซต์ของคุณนำเสนอบริการหรือสินค้าใด...'}
                             </div>
                         </div>
@@ -381,6 +442,115 @@ export function SEOSettings() {
                         </motion.button>
                     </div>
                 </div>
+            </div>
+
+            {/* Analytics & Tracking Side (Right) */}
+            <div className="w-full xl:w-1/3 space-y-6">
+                {/* 1. Health Score */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-secondary-100">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Activity className="w-5 h-5 text-primary-600" />
+                        <h3 className="font-bold text-secondary-900">SEO Health Score</h3>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center mb-8 relative">
+                        {/* Circular Progress (CSS Hack) */}
+                        <div className="w-32 h-32 rounded-full flex items-center justify-center relative bg-slate-50">
+                            <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                                <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
+                                <circle
+                                    cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent"
+                                    className={`${getScoreColor(seoScore).split(' ')[0]} transition-all duration-1000 ease-out`}
+                                    strokeDasharray={351.85} // 2 * PI * 56
+                                    strokeDashoffset={351.85 - (351.85 * seoScore) / 100}
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="text-center z-10">
+                                <span className={`text-4xl font-black bg-gradient-to-br ${getScoreGradient(seoScore)} bg-clip-text text-transparent`}>{seoScore}</span>
+                                <span className="text-sm font-bold text-slate-400 block -mt-1">/ 100</span>
+                            </div>
+                        </div>
+                        <div className="mt-4 text-center">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ring-1 ${getScoreColor(seoScore)}`}>
+                                {seoScore >= 80 ? 'ดีเยี่ยม' : seoScore >= 50 ? 'ปานกลาง' : 'ปรับปรุง'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Checklist */}
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                            {seoChecks.title ? <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />}
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800">ความยาวของ Title</p>
+                                <p className="text-xs text-slate-500">{seoChecks.title ? 'ความยาวเหมาะสม (30-60 ตัวอักษร)' : 'ควรอยู่ระหว่าง 30 ถึง 60 ตัวอักษร'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                            {seoChecks.desc ? <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />}
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800">รายละเอียด Description</p>
+                                <p className="text-xs text-slate-500">{seoChecks.desc ? 'ความยาวเหมาะสม (100-160 ตัวอักษร)' : 'ควรอยู่ระหว่าง 100 ถึง 160 ตัวอักษร'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                            {seoChecks.image ? <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />}
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800">รูปภาพเชื่อมโยง (OG Image)</p>
+                                <p className="text-xs text-slate-500">{seoChecks.image ? 'มีการอัปโหลดรูปภาพครอบคลุมแล้ว' : 'ยังไม่ได้อัปโหลดรูปภาพสำหรับการแชร์'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2. Traffic Prediction */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-secondary-100 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 to-white rounded-bl-full -z-0 opacity-50" />
+
+                    <div className="flex items-center justify-between mb-4 relative z-10">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-indigo-500" />
+                            <h3 className="font-bold text-secondary-900">การวิเคราะห์แนวโน้ม</h3>
+                        </div>
+                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md uppercase tracking-wider">Prediction</span>
+                    </div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-end gap-3 mb-2">
+                            <span className="text-3xl font-black text-slate-800">{prediction.trend}</span>
+                            <span className={`text-sm font-bold mb-1 ${prediction.color}`}>({prediction.text})</span>
+                        </div>
+                        <p className="text-sm text-slate-500 leading-relaxed">
+                            {prediction.desc}
+                        </p>
+
+                        {/* Visual Sparkline Mock */}
+                        <div className="mt-5 h-16 w-full flex items-end justify-between gap-1">
+                            {[40, 50, 45, 60, 55, 70, 85].map((val, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${(val * seoScore) / 100}%` }}
+                                    className={`w-full rounded-t-sm ${i === 6 ? 'bg-indigo-500' : 'bg-indigo-100'}`}
+                                />
+                            ))}
+                        </div>
+                        <p className="text-[10px] text-center text-slate-400 font-medium mt-2 uppercase tracking-widest">คาดการณ์ 7 วันข้างหน้า</p>
+                    </div>
+                </div>
+
+                {/* 3. Info Panel */}
+                <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <BarChart2 className="w-5 h-5 text-blue-500" />
+                        <h4 className="font-bold text-blue-900 text-sm">การพยากรณ์ข้อมูล (Prediction)</h4>
+                    </div>
+                    <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                        ตัวเลขประเมินผลและสถิติการคาดการณ์ในส่วน Analytics อาศัยอัลกอริทึมวิเคราะห์เบื้องต้นจากความครบถ้วนของข้อมูลที่ตั้งค่า เพื่อใช้เป็นแนวทางในการทำการตลาด (ข้อมูลอาจไม่ตรงตามจริงของ Google Index 100%)
+                    </p>
+                </div>
+
             </div>
         </div>
     )

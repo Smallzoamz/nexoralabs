@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Save } from 'lucide-react'
+import { Save, ChevronDown, Check } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 import { useAuth } from '@/lib/auth-context'
+import { THAI_BANKS, getBankInfo } from '@/lib/banks'
 
 export function PaymentSettings() {
     const { isReadOnly } = useAuth()
@@ -19,6 +20,21 @@ export function PaymentSettings() {
         bank_account_no: '',
         bank_account_name: ''
     })
+    const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false)
+    const [customBankName, setCustomBankName] = useState('')
+
+    const selectedBank = getBankInfo(formData.bank_name);
+
+    // Helper to render bank logo from SVG
+    const renderBankLogo = (logo: string, size: string = 'w-6 h-6') => {
+        if (!logo) return null;
+        return (
+            <div
+                className={`${size} rounded-lg flex items-center justify-center shrink-0 overflow-hidden`}
+                dangerouslySetInnerHTML={{ __html: logo }}
+            />
+        );
+    };
 
     const fetchPaymentSettings = async () => {
         try {
@@ -39,6 +55,10 @@ export function PaymentSettings() {
                     bank_account_no: data.bank_account_no || '',
                     bank_account_name: data.bank_account_name || ''
                 })
+                const bankInfo = getBankInfo(data.bank_name || '');
+                if (bankInfo?.code === 'CUSTOM') {
+                    setCustomBankName(data.bank_name || '');
+                }
             }
         } catch (error) {
             console.error('Error fetching payment settings:', error)
@@ -106,7 +126,7 @@ export function PaymentSettings() {
                 <p className="text-secondary-600 mt-1">ตั้งค่าบัญชีธนาคารและพร้อมเพย์ สำหรับแสดงในใบแจ้งหนี้ (E-Invoice)</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-secondary-200">
                 <form onSubmit={handleSave} className="p-6 space-y-8">
 
                     {/* PromptPay Section */}
@@ -140,15 +160,71 @@ export function PaymentSettings() {
                     <div>
                         <h3 className="text-lg font-semibold text-secondary-900 mb-4 border-b border-secondary-100 pb-2">บัญชีธนาคาร (Bank Transfer)</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
+                            <div className="relative">
                                 <label className="block text-sm font-medium text-secondary-700 mb-2">ธนาคาร</label>
-                                <input
-                                    type="text"
-                                    value={formData.bank_name}
-                                    onChange={e => setFormData({ ...formData, bank_name: e.target.value })}
-                                    className="w-full px-4 py-2 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-secondary-300"
-                                    placeholder="เช่น ธนาคารกสิกรไทย"
-                                />
+
+                                {/* Custom Dropdown Trigger */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                                    className="w-full flex items-center justify-between px-4 py-2 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all bg-white"
+                                >
+                                    {selectedBank ? (
+                                        <div className="flex items-center gap-3">
+                                            {renderBankLogo(selectedBank.logo, 'w-8 h-8')}
+                                            <span className="text-secondary-900 truncate">{selectedBank.name}</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-secondary-400">เลือกธนาคาร</span>
+                                    )}
+                                    <ChevronDown className={`w-4 h-4 text-secondary-500 transition-transform ${isBankDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {isBankDropdownOpen && (
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() => setIsBankDropdownOpen(false)}
+                                        />
+                                        <div className="absolute z-50 w-full mt-2 bg-white border border-secondary-200 rounded-xl shadow-lg max-h-[300px] overflow-y-auto py-2">
+                                            {THAI_BANKS.map((bank) => (
+                                                <button
+                                                    key={bank.code}
+                                                    type="button"
+                                                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary-50 transition-colors"
+                                                    onClick={() => {
+                                                        setFormData({ ...formData, bank_name: bank.code === 'OTHER' ? customBankName : bank.name })
+                                                        setIsBankDropdownOpen(false)
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {renderBankLogo(bank.logo, 'w-10 h-10')}
+                                                        <span className="text-secondary-900 font-medium">{bank.name}</span>
+                                                    </div>
+                                                    {selectedBank?.code === bank.code && <Check className="w-5 h-5 text-primary-600" />}
+                                                </button>
+                                            ))}
+
+                                            {/* Custom Input when OTHER is selected or a custom name already exists */}
+                                            {(selectedBank?.code === 'OTHER' || selectedBank?.code === 'CUSTOM') && (
+                                                <div className="px-4 pb-2 pt-3 border-t border-secondary-100 mt-2">
+                                                    <label className="block text-xs font-medium text-secondary-500 mb-2">ระบุชื่อธนาคาร / ช่องทางอื่นๆ</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBank.code === 'CUSTOM' ? formData.bank_name : customBankName}
+                                                        onChange={e => {
+                                                            setCustomBankName(e.target.value)
+                                                            setFormData({ ...formData, bank_name: e.target.value })
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-secondary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                                                        placeholder="เช่น PayPal, บัญชีต่างประเทศ"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-secondary-700 mb-2">เลขที่บัญชี</label>

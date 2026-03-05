@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Sparkles, Monitor, Palette, ShoppingBag, Rocket, X, Eye, Smartphone, Tablet, Play } from 'lucide-react'
+import { ExternalLink, Sparkles, Monitor, Palette, ShoppingBag, Rocket, X, Eye, Smartphone, Tablet, Play, Home, ChevronRight } from 'lucide-react'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 
 /* ─── Template Data ─── */
 const categories = [
@@ -179,149 +181,168 @@ export default function ShowcasePage() {
         : templates.filter(t => t.category === activeCategory)
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-            {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-secondary-200/60">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-secondary-600 hover:text-primary-600 transition-colors">
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="text-sm font-medium">กลับหน้าหลัก</span>
-                    </Link>
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary-600" />
-                        <span className="font-bold text-secondary-800">Template Showcase</span>
-                    </div>
-                    <Link href="/#contact" className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        ปรึกษาเรา
-                    </Link>
-                </div>
-            </header>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
+            <Header />
+            <main className="flex-grow pt-32 pb-16">
+                {/* Hero */}
+                <section className="pb-16 text-center px-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="flex flex-col items-center"
+                    >
+                        {/* Breadcrumbs */}
+                        <nav className="flex items-center justify-center text-sm font-medium text-secondary-500 mb-8 overflow-x-auto whitespace-nowrap">
+                            <Link href="/" className="flex items-center hover:text-primary-600 transition-colors">
+                                <Home className="w-4 h-4 mr-1.5" />
+                                Home
+                            </Link>
+                            <ChevronRight className="w-4 h-4 mx-2 text-secondary-300 shrink-0" />
 
-            {/* Hero */}
-            <section className="py-16 sm:py-20 text-center px-4">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-6">
-                        <Palette className="w-4 h-4" />
-                        Template Gallery
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-secondary-900 mb-4 leading-tight">
-                        เลือกสไตล์เว็บไซต์<br className="sm:hidden" />
-                        <span className="bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent">ที่ใช่สำหรับคุณ</span>
-                    </h1>
-                    <p className="text-secondary-500 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
-                        รวมตัวอย่างดีไซน์เว็บไซต์กว่า {templates.length} แบบ ครอบคลุมทุกประเภทธุรกิจ<br className="hidden sm:block" />
-                        เลือกแบบที่ถูกใจ แล้วให้ทีมเราออกแบบเว็บไซต์ในฝันให้คุณ
-                    </p>
-                </motion.div>
-            </section>
-
-            {/* Category Filter */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {categories.map(c => {
-                        const Icon = c.icon
-                        const isActive = activeCategory === c.key
-                        return (
                             <button
-                                key={c.key}
-                                onClick={() => setActiveCategory(c.key)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all shrink-0 ${isActive
-                                    ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
-                                    : 'bg-white text-secondary-600 hover:bg-secondary-50 border border-secondary-200'
-                                    }`}
+                                onClick={() => setActiveCategory('all')}
+                                className={`flex items-center transition-colors ${activeCategory === 'all' ? 'text-primary-600' : 'hover:text-primary-600'}`}
                             >
-                                <Icon className="w-4 h-4" />
-                                {c.label}
+                                ตัวอย่างเว็บไซต์
                             </button>
-                        )
-                    })}
-                </div>
-            </div>
 
-            {/* Template Grid */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-                <motion.div
-                    layout
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                >
-                    <AnimatePresence mode="popLayout">
-                        {filtered.map((t, i) => (
-                            <motion.div
-                                key={t.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.35, delay: i * 0.06 }}
-                                className="group bg-white rounded-2xl border border-secondary-200/60 overflow-hidden hover:shadow-xl hover:shadow-secondary-200/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                                onClick={() => setSelectedTemplate(t)}
-                            >
-                                {/* Image */}
-                                <div className="relative aspect-[16/10] overflow-hidden">
-                                    <Image
-                                        src={t.image}
-                                        alt={t.name}
-                                        fill
-                                        className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                    />
-                                    {/* Overlay on hover */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 gap-2">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-secondary-800 rounded-lg text-xs font-medium">
-                                            <Eye className="w-3.5 h-3.5" />
-                                            ดูตัวอย่าง
+                            <AnimatePresence>
+                                {activeCategory !== 'all' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, width: 0, x: -10 }}
+                                        animate={{ opacity: 1, width: 'auto', x: 0 }}
+                                        exit={{ opacity: 0, width: 0, x: -10 }}
+                                        className="flex items-center overflow-hidden"
+                                    >
+                                        <ChevronRight className="w-4 h-4 mx-2 text-secondary-300 shrink-0" />
+                                        <span className="text-secondary-900 font-semibold truncate max-w-[200px] sm:max-w-none">
+                                            Category: &quot;{categories.find(c => c.key === activeCategory)?.labelEn || activeCategory}&quot;
                                         </span>
-                                        {t.demoUrl && (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600/90 backdrop-blur-sm text-white rounded-lg text-xs font-medium">
-                                                <Play className="w-3 h-3" />
-                                                Live Demo
-                                            </span>
-                                        )}
-                                    </div>
-                                    {/* Category badge */}
-                                    <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r ${t.color} shadow-sm`}>
-                                        {categories.find(c => c.key === t.category)?.labelEn}
-                                    </div>
-                                </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </nav>
 
-                                {/* Info */}
-                                <div className="p-5">
-                                    <h3 className="font-bold text-secondary-800 text-lg mb-1.5">{t.name}</h3>
-                                    <p className="text-secondary-500 text-sm leading-relaxed mb-3 line-clamp-2">{t.description}</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {t.tags.map(tag => (
-                                            <span
-                                                key={tag}
-                                                className="px-2.5 py-0.5 bg-secondary-100 text-secondary-600 rounded-full text-[11px] font-medium"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
-            </div>
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-6">
+                            <Palette className="w-4 h-4" />
+                            Template Gallery
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-secondary-900 mb-4 leading-tight">
+                            เลือกสไตล์เว็บไซต์<br className="sm:hidden" />
+                            <span className="bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent">ที่ใช่สำหรับคุณ</span>
+                        </h1>
+                        <p className="text-secondary-500 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
+                            รวมตัวอย่างดีไซน์เว็บไซต์กว่า {templates.length} แบบ ครอบคลุมทุกประเภทธุรกิจ<br className="hidden sm:block" />
+                            เลือกแบบที่ถูกใจ แล้วให้ทีมเราออกแบบเว็บไซต์ในฝันให้คุณ
+                        </p>
+                    </motion.div>
+                </section>
 
-            {/* CTA Bottom */}
-            <section className="py-16 bg-gradient-to-r from-primary-600 to-violet-600 text-center px-4">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">ชอบแบบไหน? บอกเราได้เลย</h2>
-                <p className="text-white/80 mb-8 max-w-lg mx-auto">ทีมเราพร้อมออกแบบเว็บไซต์ตามสไตล์ที่คุณเลือก ปรับแต่งได้ทุกรายละเอียด</p>
-                <Link
-                    href="/#contact"
-                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow-lg shadow-primary-900/20"
-                >
-                    ติดต่อเราเลย
-                    <ExternalLink className="w-4 h-4" />
-                </Link>
-            </section>
+                {/* Category Filter */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {categories.map(c => {
+                            const Icon = c.icon
+                            const isActive = activeCategory === c.key
+                            return (
+                                <button
+                                    key={c.key}
+                                    onClick={() => setActiveCategory(c.key)}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all shrink-0 ${isActive
+                                        ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
+                                        : 'bg-white text-secondary-600 hover:bg-secondary-50 border border-secondary-200'
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    {c.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* Template Grid */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+                    <motion.div
+                        layout
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                        <AnimatePresence mode="popLayout">
+                            {filtered.map((t, i) => (
+                                <motion.div
+                                    key={t.id}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.35, delay: i * 0.06 }}
+                                    className="group bg-white rounded-2xl border border-secondary-200/60 overflow-hidden hover:shadow-xl hover:shadow-secondary-200/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                                    onClick={() => setSelectedTemplate(t)}
+                                >
+                                    {/* Image */}
+                                    <div className="relative aspect-[16/10] overflow-hidden">
+                                        <Image
+                                            src={t.image}
+                                            alt={t.name}
+                                            fill
+                                            className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        />
+                                        {/* Overlay on hover */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 gap-2">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-secondary-800 rounded-lg text-xs font-medium">
+                                                <Eye className="w-3.5 h-3.5" />
+                                                ดูตัวอย่าง
+                                            </span>
+                                            {t.demoUrl && (
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600/90 backdrop-blur-sm text-white rounded-lg text-xs font-medium">
+                                                    <Play className="w-3 h-3" />
+                                                    Live Demo
+                                                </span>
+                                            )}
+                                        </div>
+                                        {/* Category badge */}
+                                        <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r ${t.color} shadow-sm`}>
+                                            {categories.find(c => c.key === t.category)?.labelEn}
+                                        </div>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="p-5">
+                                        <h3 className="font-bold text-secondary-800 text-lg mb-1.5">{t.name}</h3>
+                                        <p className="text-secondary-500 text-sm leading-relaxed mb-3 line-clamp-2">{t.description}</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {t.tags.map(tag => (
+                                                <span
+                                                    key={tag}
+                                                    className="px-2.5 py-0.5 bg-secondary-100 text-secondary-600 rounded-full text-[11px] font-medium"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                </div>
+
+                {/* CTA Bottom */}
+                <section className="py-16 bg-gradient-to-r from-primary-600 to-violet-600 text-center px-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">ชอบแบบไหน? บอกเราได้เลย</h2>
+                    <p className="text-white/80 mb-8 max-w-lg mx-auto">ทีมเราพร้อมออกแบบเว็บไซต์ตามสไตล์ที่คุณเลือก ปรับแต่งได้ทุกรายละเอียด</p>
+                    <Link
+                        href="/#contact"
+                        className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow-lg shadow-primary-900/20"
+                    >
+                        ติดต่อเราเลย
+                        <ExternalLink className="w-4 h-4" />
+                    </Link>
+                </section>
+            </main>
+            <Footer />
 
             {/* Preview Modal */}
             <AnimatePresence>
