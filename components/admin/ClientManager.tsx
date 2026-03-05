@@ -156,35 +156,8 @@ export default function ClientManager() {
             setIsSaving(true)
             const validated = clientSchema.parse(formData)
 
-            if (!editingClient && formData.shouldCreateAccount) {
-                if (!formData.email) {
-                    showAlert('ข้อมูลไม่ครบถ้วน', 'กรุณาระบุอีเมลเพื่อสร้างบัญชีผู้ใช้', 'error')
-                    setIsSaving(false)
-                    return
-                }
-
-                const res = await fetch('/api/admin/create-account', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: formData.name,
-                        email: formData.email,
-                        package_type: formData.package_type,
-                        supabase_url: formData.supabase_url || '-',
-                        supabase_key: formData.supabase_key || '-'
-                    })
-                })
-
-                const result = await res.json()
-                if (!res.ok) throw new Error(result.error || 'Failed to create account')
-
-                const { password } = result.data
-                showAlert(
-                    'สำเร็จ!',
-                    `สร้างโปรเจกต์และบัญชีผู้ใช้เรียบร้อยแล้ว\n\nอีเมล: ${formData.email}\nรหัสผ่าน: ${password}\n\nกรุณาจดบันทึกรหัสผ่านนี้เพื่อแจ้งให้ลูกค้าทราบ`,
-                    'success'
-                )
-            } else {
+            // Save client to database (without creating account)
+            if (editingClient) {
                 if (editingClient) {
                     const { error } = await supabase
                         .from('clients')
