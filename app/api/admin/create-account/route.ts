@@ -111,11 +111,20 @@ export async function POST(req: Request) {
 
         // 4. Create Client Profile
         console.log('[create-account] Creating client profile...')
+
+        // Normalize package_type to valid values
+        let normalizedPackage = package_type?.toLowerCase() || 'standard'
+        if (normalizedPackage.includes('pro') || normalizedPackage.includes('professional')) {
+            normalizedPackage = 'pro'
+        } else if (!normalizedPackage.includes('standard')) {
+            normalizedPackage = 'standard'
+        }
+
         const { data: clientData, error: clientError } = await supabase
             .from('clients')
             .insert([{
                 name,
-                package_type: package_type || 'standard',
+                package_type: normalizedPackage,
                 supabase_url: supabase_url || '-',
                 supabase_key: supabase_key || '-',
                 is_active: true
@@ -153,7 +162,7 @@ export async function POST(req: Request) {
                 client_id: clientData.id,
                 client_email: email,
                 website_name: website_name,
-                package: package_type || 'standard',
+                package: normalizedPackage,
                 status: 'pending'
             }])
             console.log('[create-account] Website record created')
