@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, Loader2 } from "lucide-react";
+import { useModal } from "@/lib/modal-context";
 
 interface Message {
     id: string;
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export default function ChatbotWidget() {
+    const { showAlert } = useModal();
     const [isOpen, setIsOpen] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
 
@@ -84,11 +86,11 @@ export default function ChatbotWidget() {
                 localStorage.setItem("chatbot_session_id", data.sessionId);
                 addWelcomeMessage();
             } else {
-                alert("ไม่สามารถเริ่มการแชทได้ กรุณาลองใหม่อีกครั้ง");
+                showAlert("ไม่สามารถเริ่มการแชทได้", "กรุณาลองใหม่อีกครั้ง", "error");
             }
         } catch (error) {
             console.error("Session start error:", error);
-            alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            showAlert("เกิดข้อผิดพลาด", "กรุณาลองใหม่อีกครั้ง", "error");
         } finally {
             setIsStarting(false);
         }
@@ -256,8 +258,8 @@ export default function ChatbotWidget() {
                                         >
                                             <div
                                                 className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.sender === "user"
-                                                        ? "bg-primary-600 text-white rounded-br-none"
-                                                        : "bg-white text-secondary-800 border border-secondary-200 shadow-sm rounded-bl-none"
+                                                    ? "bg-primary-600 text-white rounded-br-none"
+                                                    : "bg-white text-secondary-800 border border-secondary-200 shadow-sm rounded-bl-none"
                                                     }`}
                                             >
                                                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>

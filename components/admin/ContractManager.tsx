@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Edit, Trash2, FileText, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import ContractTemplateEditor from './ContractTemplateEditor'
+import { useModal } from '@/lib/modal-context'
 
 // Types
 interface Template {
@@ -25,6 +26,7 @@ interface ClientContract {
 }
 
 export function ContractManager() {
+    const { showConfirm } = useModal()
     const [view, setView] = useState<'list' | 'editor'>('list')
     const [activeTab, setActiveTab] = useState<'client_contracts' | 'templates'>('client_contracts')
 
@@ -81,13 +83,15 @@ export function ContractManager() {
     }
 
     const handleDeleteTemplate = async (id: string) => {
-        if (!confirm('ยืนยันการลบเทมเพลตสัญญานี้? ข้อมูลเก่าที่เคยสร้างไปแล้วจะไม่ถูกลบ แต่จะไม่สามารถใช้เทมเพลตนี้สร้างใหม่ได้อีก')) return
+        const confirmed = await showConfirm('ยืนยันการลบ', 'ยืนยันการลบเทมเพลตสัญญานี้? ข้อมูลเก่าที่เคยสร้างไปแล้วจะไม่ถูกลบ แต่จะไม่สามารถใช้เทมเพลตนี้สร้างใหม่ได้อีก')
+        if (!confirmed) return
         await supabase.from('contract_templates').delete().eq('id', id)
         fetchData()
     }
 
     const handleDeleteContract = async (id: string) => {
-        if (!confirm('ยืนยันการลบเอกสารสัญญานี้?')) return
+        const confirmed = await showConfirm('ยืนยันการลบ', 'ยืนยันการลบเอกสารสัญญานี้?')
+        if (!confirmed) return
         await supabase.from('client_contracts').delete().eq('id', id)
         fetchData()
     }

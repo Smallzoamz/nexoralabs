@@ -9,6 +9,18 @@
 ---
 
 ## Recent Updates
+ 
+### 2026-03-05 | Project-Wide (Alert/Confirm Replacement) | Status: ✅ Completed
+- **Change:** Replaced Native Browser Alerts with Custom Modal System
+- **Details:** 
+  1. **Goal:** Standardized UI by replacing all remaining native `alert()` and `confirm()` calls with the project's custom modal system (`showAlert`, `showConfirm`).
+  2. **Affected Files:**
+     - `components/chatbot/ChatbotWidget.tsx`: Replaced error alerts in `startSession`.
+     - `components/admin/ContractTemplateEditor.tsx`: Replaced template save failure alerts.
+     - `components/admin/ContractGeneratorModal.tsx`: Replaced contract generation failure alerts.
+     - `components/admin/ContractManager.tsx`: Replaced delete confirmation alerts for templates and contracts.
+  3. **Verification:** Exhaustive search across the codebase ensured all native browser dialogs in project source code were removed. `npm run build` verified successful (Exit Code 0).
+  4. **Quality:** Fixed a small state duplication bug in `ContractTemplateEditor.tsx` and resolved a build-breaking unused variable error in `ContractManager.tsx`.
 
 ### 2026-03-02 | File: app/admin/page.tsx, app/actions/admin-users.ts, components/admin/UserManager.tsx | Status: ✅ Completed
 - **Change:** Role-Based Access Control (RBAC) & User Management

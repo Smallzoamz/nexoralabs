@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, FileText, CheckCircle2, Loader2, Save } from 'lucide-react'
+import { useModal } from '@/lib/modal-context'
 
 // Variable reference (used inline in useEffect for replacement logic)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -51,6 +52,7 @@ export default function ContractGeneratorModal({
     prefilledData,
     onGenerate
 }: ContractGeneratorModalProps) {
+    const { showAlert } = useModal()
     const [selectedTemplate, setSelectedTemplate] = useState<string>('')
     const [title, setTitle] = useState('')
     const [formData, setFormData] = useState<ContractData>({
@@ -119,7 +121,7 @@ export default function ContractGeneratorModal({
             }, 2000)
         } catch (error) {
             console.error('Failed to generate contract:', error)
-            alert('เกิดข้อผิดพลาดในการสร้างสัญญา')
+            showAlert('เกิดข้อผิดพลาด', 'เกิดข้อผิดพลาดในการสร้างสัญญา', 'error')
         } finally {
             setIsGenerating(false)
         }

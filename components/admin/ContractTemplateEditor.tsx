@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { PlusCircle, Save, Loader2, FileText, CheckCircle2, ChevronLeft } from 'lucide-react'
 import 'react-quill/dist/quill.snow.css'
+import { useModal } from '@/lib/modal-context'
 
 // Dynamically import ReactQuill to disable Server-Side Rendering (SSR)
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -35,6 +36,7 @@ const VARIABLES = [
 ]
 
 export default function ContractTemplateEditor({ initialData, onSave, onBack }: ContractTemplateEditorProps) {
+    const { showAlert } = useModal()
     const [name, setName] = useState(initialData?.name || '')
     const [description, setDescription] = useState(initialData?.description || '')
     const [content, setContent] = useState(initialData?.content || '')
@@ -64,7 +66,7 @@ export default function ContractTemplateEditor({ initialData, onSave, onBack }: 
             setTimeout(() => setSaveSuccess(false), 3000)
         } catch (error) {
             console.error('Failed to save template:', error)
-            alert('เกิดข้อผิดพลาดในการบันทึกเทมเพลต')
+            showAlert('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการบันทึกเทมเพลต', 'error')
         } finally {
             setIsSaving(false)
         }
