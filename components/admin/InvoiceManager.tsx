@@ -569,7 +569,8 @@ export function InvoiceManager() {
                         name: inv.client_name,
                         email: inv.client_email,
                         package_type: inv.package_details,
-                        website_name: inv.client_name // Use client name as website/project name
+                        website_name: inv.client_name,
+                        force: true // Force reset: delete old account if exists
                     })
                 })
                 const accountResult = await accountRes.json()

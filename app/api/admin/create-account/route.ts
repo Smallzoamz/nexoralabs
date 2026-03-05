@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         })
 
         const body = await req.json()
-        const { name, email, package_type, website_name, supabase_url, supabase_key } = body
+        const { name, email, package_type, website_name, supabase_url, supabase_key, force } = body
 
         if (!name || !email) {
             return NextResponse.json(
@@ -25,15 +25,38 @@ export async function POST(req: Request) {
         }
 
         // 1. Check if user already exists
-        console.log('[create-account] Checking if user exists:', email)
+        console.log('[create-account] Checking if user exists:', email, 'force:', force)
         const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers()
         if (usersError) {
             console.error('[create-account] Error listing users:', usersError)
             throw usersError
         }
 
-        const userExists = usersData.users.find(u => u.email === email)
+        let userExists = usersData.users.find(u => u.email === email)
         console.log('[create-account] User exists:', !!userExists, userExists?.id)
+
+        // If force=true and user exists, delete the old user first
+        if (force && userExists) {
+            console.log('[create-account] Force mode: deleting old user:', userExists.id)
+
+            // Delete related records first
+            const { data: linkData } = await supabase
+                .from('client_users')
+                .select('client_id')
+                .eq('user_id', userExists.id)
+                .single()
+
+            if (linkData?.client_id) {
+                await supabase.from('client_websites').delete().eq('client_id', linkData.client_id)
+                await supabase.from('client_users').delete().eq('client_id', linkData.client_id)
+                await supabase.from('clients').delete().eq('id', linkData.client_id)
+            }
+
+            // Delete the auth user
+            await supabase.auth.admin.deleteUser(userExists.id)
+            userExists = undefined
+            console.log('[create-account] Old user deleted, will create new one')
+        }
 
         if (userExists) {
             // User already exists — still create website record if website_name provided
