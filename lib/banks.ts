@@ -56,14 +56,41 @@ export const THAI_BANKS: Bank[] = [
     }
 ];
 
+// Keyword aliases for fuzzy matching bank names
+const BANK_ALIASES: Record<string, string[]> = {
+    KBANK: ['kasikorn', 'กสิกร', 'kbank'],
+    SCB: ['siam commercial', 'ไทยพาณิชย์', 'scb'],
+    BBL: ['bangkok bank', 'กรุงเทพ', 'bbl'],
+    KTB: ['krungthai', 'กรุงไทย', 'ktb'],
+    BAY: ['krungsri', 'กรุงศรี', 'ayudhya', 'bay'],
+    TTB: ['tmb', 'thanachart', 'ธนชาต', 'ttb', 'ทีเอ็มบี'],
+    GSB: ['government savings', 'ออมสิน', 'gsb'],
+};
+
 // Helper to get bank info from name
 export const getBankInfo = (nameToMatch: string): Bank | undefined => {
     if (!nameToMatch) return undefined;
-    return THAI_BANKS.find(b =>
-        b.name.toLowerCase() === nameToMatch.toLowerCase() ||
-        b.code.toLowerCase() === nameToMatch.toLowerCase() ||
-        nameToMatch.includes(b.code)
-    ) || {
+    const lower = nameToMatch.toLowerCase();
+
+    // Exact match by name or code
+    const exact = THAI_BANKS.find(b =>
+        b.name.toLowerCase() === lower ||
+        b.code.toLowerCase() === lower
+    );
+    if (exact) return exact;
+
+    // Fuzzy match by aliases
+    for (const [code, aliases] of Object.entries(BANK_ALIASES)) {
+        if (aliases.some(alias => lower.includes(alias))) {
+            return THAI_BANKS.find(b => b.code === code);
+        }
+    }
+
+    // Fallback: check if name contains bank code
+    const codeMatch = THAI_BANKS.find(b => lower.includes(b.code.toLowerCase()));
+    if (codeMatch) return codeMatch;
+
+    return {
         code: 'CUSTOM',
         name: nameToMatch,
         color: '#64748b',

@@ -2,6 +2,10 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import PaymentPageClient from './PaymentPageClient'
 
+// Force dynamic rendering - always fetch fresh payment config
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // We need server-side data fetch for invoice details
 interface PageProps {
     params: Promise<{ invoiceId: string }>
