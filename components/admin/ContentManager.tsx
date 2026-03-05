@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, Eye, Save, X, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { z } from 'zod'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 const heroSchema = z.object({
     title: z.string().max(200, 'หัวข้อหลักต้องไม่เกิน 200 ตัวอักษร'),
@@ -81,6 +82,7 @@ interface TestimonialItem {
 }
 
 export function ContentManager() {
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
     const [selectedSection, setSelectedSection] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
@@ -134,6 +136,10 @@ export function ContentManager() {
     }
 
     const handleSaveHero = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
         try {
             setIsSaving(true)
 
@@ -177,6 +183,10 @@ export function ContentManager() {
     }
 
     const handleAddService = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเพิ่มข้อมูลได้', 'warning')
+            return
+        }
         try {
             setIsSaving(true)
 
@@ -204,6 +214,10 @@ export function ContentManager() {
     }
 
     const handleDeleteService = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันลบ', 'ลบบริการนี้หรือไม่?'))) return
         try {
             const { error } = await supabase.from('services').delete().eq('id', id)
@@ -220,6 +234,10 @@ export function ContentManager() {
     }
 
     const handleAddTestimonial = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเพิ่มข้อมูลได้', 'warning')
+            return
+        }
         try {
             setIsSaving(true)
 
@@ -243,6 +261,10 @@ export function ContentManager() {
     }
 
     const handleDeleteTestimonial = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันลบ', 'ลบรีวิวนี้หรือไม่?'))) return
         try {
             const { error } = await supabase.from('testimonials').delete().eq('id', id)
@@ -255,6 +277,10 @@ export function ContentManager() {
     }
 
     const handleToggleTestimonialActivity = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('testimonials')

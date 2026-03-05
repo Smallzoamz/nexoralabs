@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Save } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 export function PaymentSettings() {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -51,6 +53,10 @@ export function PaymentSettings() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกการตั้งค่าได้', 'warning')
+            return
+        }
         setIsSaving(true)
 
         try {

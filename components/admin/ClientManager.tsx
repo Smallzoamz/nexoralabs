@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus, Trash2, Edit2, Link as LinkIcon, ShieldAlert, KeyRound, Clock, Download, FileText } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import ContractGeneratorModal from './ContractGeneratorModal'
 import { z } from 'zod'
 
@@ -36,6 +37,7 @@ export default function ClientManager() {
     const [templates, setTemplates] = useState<{ id: string, name: string, content: string }[]>([])
     const [isContractModalOpen, setIsContractModalOpen] = useState(false)
     const [selectedContractClient, setSelectedContractClient] = useState<ClientProfile | null>(null)
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
 
     // Form State
@@ -78,6 +80,10 @@ export default function ClientManager() {
     }
 
     const handleManualBackup = async (client: ClientProfile) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถสั่งรัน Backup ได้', 'warning')
+            return
+        }
         if (!(await showConfirm('สั่งรัน Backup พิเศษ', `ต้องการสั่งระบบเริ่มแพ็กข้อมูลของโปรเจกต์ ${client.name} นอกรอบเวลาปกติใช่หรือไม่?\n\n(ขั้นตอนนี้อาจใช้เวลาหลายวินาทีหรือเป็นนาที สำหรับแพ็กเกจ Pro)`))) return
 
         try {
@@ -139,6 +145,11 @@ export default function ClientManager() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเพิ่มหรือแก้ไขข้อมูลลูกค้าได้', 'warning')
+            return
+        }
 
         try {
             setIsSaving(true)
@@ -216,6 +227,10 @@ export default function ClientManager() {
     }
 
     const handleDelete = async (client: ClientProfile) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลลูกค้าได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบข้อมูลของ ${client.name} ใช่หรือไม่?\nประวัติการแบ็คอัปจะถูกลบไปด้วย แต่ไฟล์สำรองจะไม่ถูกลบ`))) return
 
         try {
@@ -235,6 +250,10 @@ export default function ClientManager() {
     }
 
     const toggleStatus = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเปลี่ยนสถานะได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('clients')
@@ -549,6 +568,10 @@ export default function ClientManager() {
                         projectName: `โปรเจกต์ ${selectedContractClient.name}`
                     }}
                     onGenerate={async (templateId, title, finalContent) => {
+                        if (isReadOnly) {
+                            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถสร้างสัญญาได้', 'warning')
+                            return
+                        }
                         const { error } = await supabase.from('client_contracts').insert({
                             client_id: selectedContractClient.id,
                             template_id: templateId,

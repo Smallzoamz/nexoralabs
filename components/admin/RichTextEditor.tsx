@@ -8,6 +8,7 @@ import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useCallback } from 'react'
+import { useModal } from '@/lib/modal-context'
 import {
     Bold,
     Italic,
@@ -108,10 +109,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [content])
 
-    const setLink = useCallback(() => {
+    const { showPrompt } = useModal()
+
+    const setLink = useCallback(async () => {
         if (!editor) return
         const previousUrl = editor.getAttributes('link').href
-        const url = window.prompt('ใส่ URL ลิงก์:', previousUrl || 'https://')
+        const url = await showPrompt('แทรกลิงก์', 'กรุณาใส่ URL ของลิงก์ที่ต้องการ:', previousUrl || 'https://')
 
         if (url === null) return
         if (url === '') {
@@ -119,15 +122,15 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             return
         }
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-    }, [editor])
+    }, [editor, showPrompt])
 
-    const addImage = useCallback(() => {
+    const addImage = useCallback(async () => {
         if (!editor) return
-        const url = window.prompt('ใส่ URL รูปภาพ:', 'https://')
+        const url = await showPrompt('แทรกรูปภาพ', 'กรุณาใส่ URL ของรูปภาพที่ต้องการ:', 'https://')
         if (url) {
             editor.chain().focus().setImage({ src: url }).run()
         }
-    }, [editor])
+    }, [editor, showPrompt])
 
     if (!editor) return null
 

@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, FileText, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import ContractTemplateEditor from './ContractTemplateEditor'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 // Types
 interface Template {
@@ -26,7 +27,8 @@ interface ClientContract {
 }
 
 export function ContractManager() {
-    const { showConfirm } = useModal()
+    const { isReadOnly } = useAuth()
+    const { showAlert, showConfirm } = useModal()
     const [view, setView] = useState<'list' | 'editor'>('list')
     const [activeTab, setActiveTab] = useState<'client_contracts' | 'templates'>('client_contracts')
 
@@ -62,6 +64,10 @@ export function ContractManager() {
     }, [view, fetchData])
 
     const handleSaveTemplate = async (data: { name: string, description: string, content: string }) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกเทมเพลตได้', 'warning')
+            return
+        }
         try {
             if (editorData?.id) {
                 await supabase.from('contract_templates').update({
@@ -83,6 +89,10 @@ export function ContractManager() {
     }
 
     const handleDeleteTemplate = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบเทมเพลตได้', 'warning')
+            return
+        }
         const confirmed = await showConfirm('ยืนยันการลบ', 'ยืนยันการลบเทมเพลตสัญญานี้? ข้อมูลเก่าที่เคยสร้างไปแล้วจะไม่ถูกลบ แต่จะไม่สามารถใช้เทมเพลตนี้สร้างใหม่ได้อีก')
         if (!confirmed) return
         await supabase.from('contract_templates').delete().eq('id', id)
@@ -90,6 +100,10 @@ export function ContractManager() {
     }
 
     const handleDeleteContract = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบเอกสารสัญญาได้', 'warning')
+            return
+        }
         const confirmed = await showConfirm('ยืนยันการลบ', 'ยืนยันการลบเอกสารสัญญานี้?')
         if (!confirmed) return
         await supabase.from('client_contracts').delete().eq('id', id)

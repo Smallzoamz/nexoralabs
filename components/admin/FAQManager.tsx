@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit2, ShieldAlert, Eye, EyeOff, GripVertical } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { z } from 'zod'
 
 interface FAQ {
@@ -26,6 +27,7 @@ export function FAQManager() {
     const [isSaving, setIsSaving] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingFaq, setEditingFaq] = useState<FAQ | null>(null)
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
 
     const [formData, setFormData] = useState({
@@ -81,6 +83,10 @@ export function FAQManager() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกข้อมูลได้', 'warning')
+            return
+        }
         try {
             faqSchema.parse(formData)
             setIsSaving(true)
@@ -130,6 +136,10 @@ export function FAQManager() {
     }
 
     const handleDelete = async (id: string, question: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
         const confirmed = await showConfirm(
             'ลบคำถาม',
             `คุณแน่ใจหรือไม่ที่จะลบคำถาม "${question}"? ข้อมูลนี้จะไม่สามารถกู้คืนได้`
@@ -153,6 +163,10 @@ export function FAQManager() {
     }
 
     const toggleActive = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเปลี่ยนสถานะได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('faqs')
@@ -168,6 +182,14 @@ export function FAQManager() {
     }
 
     const moveOrder = async (index: number, direction: 'up' | 'down') => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถจัดเรียงข้อมูลได้', 'warning')
+            return
+        }
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถจัดเรียงลำดับได้', 'warning')
+            return
+        }
         if (direction === 'up' && index === 0) return
         if (direction === 'down' && index === faqs.length - 1) return
 

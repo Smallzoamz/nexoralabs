@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, FileText, CheckCircle2, Loader2, Save } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 // Variable reference (used inline in useEffect for replacement logic)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,6 +53,7 @@ export default function ContractGeneratorModal({
     prefilledData,
     onGenerate
 }: ContractGeneratorModalProps) {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [selectedTemplate, setSelectedTemplate] = useState<string>('')
     const [title, setTitle] = useState('')
@@ -109,6 +111,10 @@ export default function ContractGeneratorModal({
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกสัญญาได้', 'warning')
+            return
+        }
         if (!selectedTemplate || !title.trim() || !previewContent) return
 
         setIsGenerating(true)

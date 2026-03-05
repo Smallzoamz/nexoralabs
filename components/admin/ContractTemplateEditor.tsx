@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { PlusCircle, Save, Loader2, FileText, CheckCircle2, ChevronLeft } from 'lucide-react'
 import 'react-quill/dist/quill.snow.css'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 // Dynamically import ReactQuill to disable Server-Side Rendering (SSR)
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -36,6 +37,7 @@ const VARIABLES = [
 ]
 
 export default function ContractTemplateEditor({ initialData, onSave, onBack }: ContractTemplateEditorProps) {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [name, setName] = useState(initialData?.name || '')
     const [description, setDescription] = useState(initialData?.description || '')
@@ -58,6 +60,11 @@ export default function ContractTemplateEditor({ initialData, onSave, onBack }: 
 
     const handleSave = async () => {
         if (!name.trim() || !content.trim()) return
+
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกเทมเพลตได้', 'warning')
+            return
+        }
 
         setIsSaving(true)
         try {

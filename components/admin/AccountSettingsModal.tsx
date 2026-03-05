@@ -11,7 +11,7 @@ interface AccountSettingsModalProps {
 }
 
 export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalProps) {
-    const { logout } = useAuth()
+    const { logout, isReadOnly } = useAuth()
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -23,6 +23,10 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            alert('คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเปลี่ยนรหัสหรือข้อมูลส่วนตัวได้')
+            return
+        }
 
         if (newPassword.length < 6) {
             setStatus('error')

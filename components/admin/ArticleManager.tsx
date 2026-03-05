@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, Eye, Link as LinkIcon, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { z } from 'zod'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 
@@ -35,6 +36,7 @@ interface ArticleItem {
 }
 
 export function ArticleManager() {
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
     const [articles, setArticles] = useState<ArticleItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -124,6 +126,10 @@ export function ArticleManager() {
     }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอัปโหลดรูปภาพได้', 'warning')
+            return
+        }
         try {
             const file = e.target.files?.[0]
             if (!file) return
@@ -164,6 +170,10 @@ export function ArticleManager() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกบทความได้', 'warning')
+            return
+        }
         try {
             setIsSaving(true)
 
@@ -244,6 +254,10 @@ export function ArticleManager() {
     }
 
     const handleDelete = async (id: string, coverImage: string | null) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบบทความได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันลบข้อมูล', 'คุณต้องการลบบทความนี้ หรือข้อมูลที่ถูกลบจะไม่สามารถกู้คืนได้?'))) return
 
         try {

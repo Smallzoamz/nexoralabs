@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Save, Loader2, Image as ImageIcon, Globe, Search, Tag, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { z } from 'zod'
 
 // SEO Config Validation Schema
@@ -24,6 +25,7 @@ interface SiteConfig {
 }
 
 export function SEOSettings() {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -80,6 +82,10 @@ export function SEOSettings() {
     }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอัปโหลดรูปภาพได้', 'warning')
+            return
+        }
         try {
             const file = e.target.files?.[0]
             if (!file) return
@@ -151,6 +157,10 @@ export function SEOSettings() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกการตั้งค่า SEO ได้', 'warning')
+            return
+        }
         try {
             setIsSaving(true)
 

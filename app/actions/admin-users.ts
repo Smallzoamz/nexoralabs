@@ -34,7 +34,7 @@ export async function getAdminUsers(): Promise<{ success: boolean; data?: AdminU
                 created_at: user.created_at,
                 last_sign_in_at: user.last_sign_in_at
             }))
-            .filter(user => ['superadmin', 'admin', 'moderator'].includes(user.role))
+            .filter(user => ['superadmin', 'admin', 'moderator', 'demo'].includes(user.role))
 
         return { success: true, data: adminUsers }
     } catch (error: unknown) {

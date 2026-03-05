@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus, Trash2, GripVertical, Image as ImageIcon, CheckCircle2, XCircle } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 interface TrustBadge {
     id: string
@@ -16,6 +17,7 @@ interface TrustBadge {
 }
 
 export default function TrustBadgeManager() {
+    const { isReadOnly } = useAuth()
     const [badges, setBadges] = useState<TrustBadge[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isUploading, setIsUploading] = useState(false)
@@ -44,6 +46,10 @@ export default function TrustBadgeManager() {
     }
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอัปโหลดโลโก้ได้', 'warning')
+            return
+        }
         const file = e.target.files?.[0]
         if (!file) return
 
@@ -107,6 +113,10 @@ export default function TrustBadgeManager() {
     }
 
     const toggleStatus = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเปลี่ยนสถานะได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('trust_badges')
@@ -124,6 +134,10 @@ export default function TrustBadgeManager() {
     }
 
     const updateOrder = async (id: string, newOrder: number) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขลำดับได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('trust_badges')
@@ -143,6 +157,10 @@ export default function TrustBadgeManager() {
     }
 
     const updateName = async (id: string, newName: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขชื่อได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('trust_badges')
@@ -161,6 +179,10 @@ export default function TrustBadgeManager() {
 
 
     const updateUrl = async (id: string, newUrl: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขลิงก์ได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('trust_badges')
@@ -178,6 +200,10 @@ export default function TrustBadgeManager() {
     }
 
     const deleteBadge = async (badge: TrustBadge) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบโลโก้ ${badge.name} ใช่หรือไม่?`))) return
 
         try {

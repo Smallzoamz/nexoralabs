@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Globe, Mail, Phone, Clock, MapPin, Loader2, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
+import { useModal } from '@/lib/modal-context'
 
 const initialSettings = {
     siteName: 'VELOZI | Dev',
@@ -11,7 +13,7 @@ const initialSettings = {
     contactEmail: 'contact@nexoralabs.com',
     contactPhone: '+66 XX XXX XXXX',
     contactAddress: 'กรุงเทพมหานคร, ประเทศไทย',
-    workingHours: '09:00 - 18:00',
+    working_hours: '09:00 - 18:00',
     socialFacebook: 'https://facebook.com/velozidev',
     socialLine: '@velozidev',
     socialInstagram: '@velozidev',
@@ -26,6 +28,8 @@ export function SiteSettings() {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [configId, setConfigId] = useState<string | null>(null)
+    const { isReadOnly } = useAuth()
+    const { showAlert } = useModal()
 
     useEffect(() => {
         fetchSettings()
@@ -52,7 +56,7 @@ export function SiteSettings() {
                     contactEmail: data.contact_email || '',
                     contactPhone: data.contact_phone || '',
                     contactAddress: data.contact_address || '',
-                    workingHours: data.working_hours || '',
+                    working_hours: data.working_hours || '',
                     socialFacebook: data.social_facebook || '',
                     socialLine: data.social_line || '',
                     socialInstagram: data.social_instagram || '',
@@ -74,6 +78,11 @@ export function SiteSettings() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ (Demo Mode) ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
+
         setIsSaving(true)
         setError(null)
         setSaved(false)
@@ -85,7 +94,7 @@ export function SiteSettings() {
                 contact_email: settings.contactEmail,
                 contact_phone: settings.contactPhone,
                 contact_address: settings.contactAddress,
-                working_hours: settings.workingHours,
+                working_hours: settings.working_hours,
                 social_facebook: settings.socialFacebook,
                 social_line: settings.socialLine,
                 social_instagram: settings.socialInstagram,
@@ -269,8 +278,8 @@ export function SiteSettings() {
                             </label>
                             <input
                                 type="text"
-                                value={settings.workingHours}
-                                onChange={(e) => handleChange('workingHours', e.target.value)}
+                                value={settings.working_hours}
+                                onChange={(e) => handleChange('working_hours', e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
                             />
                         </div>

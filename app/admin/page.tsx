@@ -46,47 +46,47 @@ import { useAuth } from '@/lib/auth-context'
 const menuGroups = [
     {
         title: 'ภาพรวมระบบ',
-        roles: ['superadmin', 'admin', 'moderator'],
+        roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity, roles: ['superadmin', 'admin'] },
-            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail, roles: ['superadmin', 'admin'] },
-            { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings, roles: ['superadmin', 'admin'] },
-            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart, roles: ['superadmin', 'admin'] },
-            { id: 'users', label: 'จัดการบุคลากร (Staff)', icon: Users, roles: ['superadmin', 'admin'] }
+            { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'users', label: 'จัดการบุคลากร (Staff)', icon: Users, roles: ['superadmin', 'admin', 'demo'] }
         ]
     },
     {
         title: 'ระบบแชทบอท (AI)',
-        roles: ['superadmin', 'admin', 'moderator'],
+        roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'chatbot-settings', label: 'ตั้งค่าแชทบอท', icon: Bot, roles: ['superadmin', 'admin'] },
-            { id: 'chatbot-faqs', label: 'สอนบอทตอบคำถาม', icon: BookOpen, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'chatbot-history', label: 'ประวัติการสนทนา', icon: History, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'chatbot-settings', label: 'ตั้งค่าแชทบอท', icon: Bot, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'chatbot-faqs', label: 'สอนบอทตอบคำถาม', icon: BookOpen, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'chatbot-history', label: 'ประวัติการสนทนา', icon: History, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
         ]
     },
     {
         title: 'จัดการระบบ',
-        roles: ['superadmin', 'admin', 'moderator'],
+        roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'content', label: 'จัดการเนื้อหา', icon: FileText, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'articles', label: 'บทความ (Blog)', icon: FileText, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package, roles: ['superadmin', 'admin'] },
-            { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'content', label: 'จัดการเนื้อหา', icon: FileText, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'articles', label: 'บทความ (Blog)', icon: FileText, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
         ]
     },
     {
         title: 'ลูกค้าและรายได้',
-        roles: ['superadmin', 'admin', 'moderator'],
+        roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'contacts', label: 'รายการติดต่อ', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users, roles: ['superadmin', 'admin', 'moderator'] },
-            { id: 'contracts', label: 'จัดการสัญญา', icon: FileText, roles: ['superadmin', 'admin'] },
-            { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard, roles: ['superadmin', 'admin'] },
-            { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark, roles: ['superadmin', 'admin'] },
-            { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator'] },
+            { id: 'contacts', label: 'รายการติดต่อ', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'contracts', label: 'จัดการสัญญา', icon: FileText, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
         ]
     }
 ]
@@ -97,7 +97,7 @@ const allMenuItems = menuGroups.flatMap(group => group.items)
 export default function AdminPage() {
     const [activeMenu, setActiveMenu] = useState('dashboard')
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const { userRole } = useAuth()
+    const { userRole, isReadOnly } = useAuth()
 
     // Filter menus based on userRole
     const filteredMenuGroups = useMemo(() => {
@@ -256,6 +256,12 @@ export default function AdminPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
+                            {isReadOnly && (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg text-sm font-bold animate-pulse border border-amber-200">
+                                    <ShieldCheck className="w-4 h-4" />
+                                    DEMO MODE (READ ONLY)
+                                </div>
+                            )}
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                 Online

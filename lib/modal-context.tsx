@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
 
-type AlertType = 'success' | 'error' | 'info'
+type AlertType = 'success' | 'error' | 'info' | 'warning'
 
 interface AlertContextData {
     title: string;
@@ -21,9 +21,18 @@ interface ConfirmContextData {
     resolve?: (value: boolean) => void;
 }
 
+interface PromptContextData {
+    title: string;
+    message: string;
+    defaultValue: string;
+    isOpen: boolean;
+    resolve?: (value: string | null) => void;
+}
+
 interface ModalContextType {
     showAlert: (title: string, message: string, type?: AlertType) => void;
     showConfirm: (title: string, message: string) => Promise<boolean>;
+    showPrompt: (title: string, message: string, defaultValue?: string) => Promise<string | null>;
     openProjectTracker: () => void;
     closeProjectTracker: () => void;
     isProjectTrackerOpen: boolean;
@@ -35,7 +44,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [mounted, setMounted] = useState(false)
     const [alert, setAlert] = useState<AlertContextData>({ title: '', message: '', type: 'info', isOpen: false })
     const [confirm, setConfirm] = useState<ConfirmContextData>({ title: '', message: '', isOpen: false })
+    const [prompt, setPrompt] = useState<PromptContextData>({ title: '', message: '', defaultValue: '', isOpen: false })
     const [isProjectTrackerOpen, setIsProjectTrackerOpen] = useState(false)
+    const [promptValue, setPromptValue] = useState('')
 
     useEffect(() => {
         setMounted(true)
@@ -51,11 +62,23 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         })
     }
 
+    const showPrompt = (title: string, message: string, defaultValue: string = ''): Promise<string | null> => {
+        setPromptValue(defaultValue)
+        return new Promise((resolve) => {
+            setPrompt({ title, message, defaultValue, isOpen: true, resolve })
+        })
+    }
+
     const closeAlert = () => setAlert({ ...alert, isOpen: false })
 
     const resolveConfirm = (value: boolean) => {
         if (confirm.resolve) confirm.resolve(value)
         setConfirm({ ...confirm, isOpen: false })
+    }
+
+    const resolvePrompt = (value: string | null) => {
+        if (prompt.resolve) prompt.resolve(value)
+        setPrompt({ ...prompt, isOpen: false })
     }
 
     const openProjectTracker = () => setIsProjectTrackerOpen(true)
@@ -66,6 +89,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         switch (type) {
             case 'success': return <CheckCircle2 className="w-8 h-8 text-green-500" />
             case 'error': return <AlertCircle className="w-8 h-8 text-red-500" />
+            case 'warning': return <AlertCircle className="w-8 h-8 text-amber-500" />
             case 'info':
             default: return <Info className="w-8 h-8 text-primary-500" />
         }
@@ -147,11 +171,63 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                     </motion.div>
                 </div>
             )}
+
+            {/* PROMPT MODAL */}
+            {prompt.isOpen && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={() => resolvePrompt(null)}
+                        className="absolute inset-0 bg-secondary-900/60 backdrop-blur-sm"
+                    />
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                        className="relative bg-white rounded-2xl shadow-xl w-[calc(100%-2rem)] max-w-[450px] overflow-hidden"
+                    >
+                        <button onClick={() => resolvePrompt(null)} className="absolute top-4 right-4 p-1 text-secondary-400 hover:bg-secondary-100 rounded-lg transition-colors">
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="p-6 pt-8">
+                            <h3 className="text-xl font-bold text-secondary-900 mb-2">{prompt.title}</h3>
+                            <p className="text-secondary-600 font-medium mb-4">{prompt.message}</p>
+
+                            <input
+                                autoFocus
+                                type="text"
+                                value={promptValue}
+                                onChange={(e) => setPromptValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') resolvePrompt(promptValue)
+                                    if (e.key === 'Escape') resolvePrompt(null)
+                                }}
+                                className="w-full px-4 py-3 border border-secondary-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-secondary-900"
+                                placeholder="พิมพ์ข้อความที่นี่..."
+                            />
+                        </div>
+                        <div className="p-4 bg-secondary-50 border-t border-secondary-100 flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => resolvePrompt(null)}
+                                className="px-5 py-2.5 text-secondary-600 hover:bg-secondary-200 font-medium rounded-xl transition-colors flex-1"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={() => resolvePrompt(promptValue)}
+                                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl shadow-sm transition-colors flex-1"
+                            >
+                                ตกลง
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </AnimatePresence>
     )
 
     return (
-        <ModalContext.Provider value={{ showAlert, showConfirm, openProjectTracker, closeProjectTracker, isProjectTrackerOpen }}>
+        <ModalContext.Provider value={{ showAlert, showConfirm, showPrompt, openProjectTracker, closeProjectTracker, isProjectTrackerOpen }}>
             {children}
             {mounted && createPortal(modalContent, document.body)}
         </ModalContext.Provider>

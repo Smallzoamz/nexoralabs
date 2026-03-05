@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Loader2, GripVertical } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { z } from 'zod'
 
 const portfolioSchema = z.object({
@@ -29,6 +30,7 @@ interface PortfolioItem {
 }
 
 export function PortfolioManager() {
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
     const [portfolios, setPortfolios] = useState<PortfolioItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -99,6 +101,10 @@ export function PortfolioManager() {
     }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอัปโหลดรูปภาพได้', 'warning')
+            return
+        }
         try {
             const file = e.target.files?.[0]
             if (!file) return
@@ -143,6 +149,10 @@ export function PortfolioManager() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกข้อมูลได้', 'warning')
+            return
+        }
         try {
             if (!formData.image_url) {
                 showAlert('ข้อมูลไม่ครบ', 'กรุณาอัปโหลดรูปภาพผลงาน', 'error')
@@ -212,6 +222,10 @@ export function PortfolioManager() {
     }
 
     const handleDelete = async (id: string, imageUrl: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันลบข้อมูล', 'คุณต้องการลบผลงานชิ้นนี้ออกจากระบบใช่หรือไม่?'))) return
 
         try {
@@ -250,6 +264,10 @@ export function PortfolioManager() {
     }
 
     const handleMove = async (index: number, direction: 'up' | 'down') => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถจัดเรียงข้อมูลได้', 'warning')
+            return
+        }
         if (
             (direction === 'up' && index === 0) ||
             (direction === 'down' && index === portfolios.length - 1)

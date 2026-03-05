@@ -10,7 +10,15 @@
 
 ## Recent Updates
  
-### 2026-03-05 | Project-Wide (Alert/Confirm Replacement) | Status: ✅ Completed
+### 2026-03-05 | Admin UI & Security Enhancements | Status: ✅ Completed
+- **Change:** Finalized Demo Role and Enhanced Modal System
+- **Details:** 
+  1. **User Management:** Added the "Demo / Guest" role selection to the staff creation/edit modal in `UserManager.tsx`.
+  2. **Navigation:** Updated `app/admin/page.tsx` to grant the `demo` role full visibility across all menu groups, mimicking the Super Admin experience.
+  3. **Premium UX:** Enhanced `ModalProvider` with a custom `showPrompt` method. Replaced native `window.prompt` in `RichTextEditor.tsx` (used for links and images) with this new modal for a consistent "Premium" design.
+  4. **Verification:** Production build (`npm run build`) passed with zero errors.
+
+### 2026-03-05 | Admin Security (Demo Mode) | Status: ✅ Completed
 - **Change:** Replaced Native Browser Alerts with Custom Modal System
 - **Details:** 
   1. **Goal:** Standardized UI by replacing all remaining native `alert()` and `confirm()` calls with the project's custom modal system (`showAlert`, `showConfirm`).

@@ -56,7 +56,7 @@ interface PaymentSubmission {
 
 export function InvoiceManager() {
     const { showAlert, showConfirm } = useModal()
-    const { user } = useAuth()
+    const { user, isReadOnly } = useAuth()
     const [invoices, setInvoices] = useState<InvoiceRecord[]>([])
     const [availablePackages, setAvailablePackages] = useState<{ name: string, setup_price_min: number, monthly_price_min: number }[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -171,6 +171,10 @@ export function InvoiceManager() {
     }
 
     const handleDelete = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบใบแจ้งหนี้ได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยัน', 'คุณต้องการลบใบแจ้งหนี้นี้ใช่หรือไม่?'))) return
 
         try {
@@ -186,6 +190,10 @@ export function InvoiceManager() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกข้อมูลได้', 'warning')
+            return
+        }
 
         try {
             // Validate
@@ -272,6 +280,10 @@ export function InvoiceManager() {
     }
 
     const handleSendEmail = async (invoice: InvoiceRecord) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถส่งอีเมลได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันส่งอีเมล', `ยืนยันการส่ง E-Invoice ไปยัง ${invoice.client_email} ใช่หรือไม่?`))) return
 
         setSendingEmailId(invoice.id)
@@ -507,6 +519,10 @@ export function InvoiceManager() {
     }
 
     const handleApproveSlip = async (submission: PaymentSubmission) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอนุมัติสลิปได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยันการอนุมัติสลิป', `ยืนยันการชำระเงินของ "${submission.invoice?.client_name}" ใช่หรือไม่? ระบบจะส่งใบเสร็จ PDF อัตโนมัติ`))) return
         setProcessingSlipId(submission.id)
         try {
@@ -585,6 +601,10 @@ export function InvoiceManager() {
     }
 
     const handleRejectSlip = async (submission: PaymentSubmission) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถปฏิเสธสลิปได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ปฏิเสธสลิป', `ปฏิเสธสลิปของ "${submission.invoice?.client_name}" ใช่หรือไม่?`))) return
         setProcessingSlipId(submission.id)
         try {

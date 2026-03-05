@@ -18,11 +18,12 @@ interface EmailTemplate {
 
 export function EmailTemplateManager() {
     const { showAlert, showConfirm } = useModal()
-    const { user } = useAuth()
+    const { isReadOnly, user } = useAuth()
     const [templates, setTemplates] = useState<EmailTemplate[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [formData, setFormData] = useState({ subject: '', body_html: '' })
+    const [isSaving, setIsSaving] = useState(false)
 
     // Broadcast State
     const [isBroadcasting, setIsBroadcasting] = useState(false)
@@ -66,6 +67,11 @@ export function EmailTemplateManager() {
     }
 
     const handleSave = async (id: string, name: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกเทมเพลตได้', 'warning')
+            return
+        }
+        setIsSaving(true)
         try {
             const { error } = await supabase
                 .from('email_templates')
@@ -86,11 +92,17 @@ export function EmailTemplateManager() {
         } catch (error) {
             console.error('Error updating template:', error)
             showAlert('ข้อผิดพลาด', 'ไม่สามารถบันทึกเทมเพลตได้', 'error')
+        } finally {
+            setIsSaving(false)
         }
     }
 
     const handleBroadcast = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถส่งบรอดแคสต์ได้', 'warning')
+            return
+        }
 
         if (!broadcastData.subject || !broadcastData.body_html) {
             showAlert('ข้อมูลไม่ครบ', 'กรุณากรอกหัวข้อและเนื้อหาอีเมล', 'error')
@@ -213,9 +225,15 @@ export function EmailTemplateManager() {
                                             </button>
                                             <button
                                                 onClick={() => handleSave(template.id, template.template_name)}
-                                                className="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex items-center gap-2"
+                                                disabled={isSaving}
+                                                className="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
                                             >
-                                                <Save className="w-4 h-4" /> บันทึก
+                                                {isSaving ? (
+                                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Save className="w-4 h-4" />
+                                                )}
+                                                บันทึก
                                             </button>
                                         </div>
                                     </div>

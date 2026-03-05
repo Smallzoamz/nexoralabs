@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, Edit2, ShieldAlert, User as UserIcon, ShieldHalf } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, AdminUser } from '@/app/actions/admin-users'
-import { UserRole } from '@/lib/auth-context'
+import { UserRole, useAuth } from '@/lib/auth-context'
 
 export default function UserManager() {
     const [users, setUsers] = useState<AdminUser[]>([])
@@ -12,6 +12,7 @@ export default function UserManager() {
     const [isSaving, setIsSaving] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
 
     // Form State
@@ -64,6 +65,11 @@ export default function UserManager() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
 
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเพิ่มหรือแก้ไขข้อมูลบุคลากรได้', 'warning')
+            return
+        }
+
         try {
             setIsSaving(true)
 
@@ -104,6 +110,11 @@ export default function UserManager() {
     }
 
     const handleDelete = async (user: AdminUser) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลบุคลากรได้', 'warning')
+            return
+        }
+
         if (!(await showConfirm('ยืนยันการลบ', `คุณต้องการลบบัญชีของ ${user.name} ใช่หรือไม่?\nบัญชีนี้จะไม่สามารถล็อกอินเข้าระบบได้อีกต่อไป`))) return
 
         try {
@@ -269,6 +280,20 @@ export default function UserManager() {
                                                 <span className="font-bold text-red-900">Super Admin</span>
                                             </div>
                                             <p className="text-[11px] text-red-600 ml-5 leading-tight">สิทธิ์สูงสุด จัดการการเงิน สัญญา การตั้งค่าเชิงลึก (สงวนไว้สำหรับผู้บริหาร)</p>
+                                        </label>
+                                        <label className={`border-2 rounded-xl p-3 cursor-pointer transition-all ${formData.role === 'demo' ? 'border-amber-500 bg-amber-50' : 'border-secondary-200 hover:border-amber-200'}`}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <input
+                                                    type="radio"
+                                                    name="role"
+                                                    value="demo"
+                                                    checked={formData.role === 'demo'}
+                                                    onChange={() => setFormData({ ...formData, role: 'demo' })}
+                                                    className="text-amber-600 focus:ring-amber-500"
+                                                />
+                                                <span className="font-bold text-amber-900">Demo / Guest</span>
+                                            </div>
+                                            <p className="text-[11px] text-amber-600 ml-5 leading-tight">โหมดทดลองใช้ เห็นทุกเมนูเหมือน Super Admin แต่ไม่สามารถบันทึกหรือลบข้อมูลได้</p>
                                         </label>
                                     </div>
                                 </div>

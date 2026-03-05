@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { Save, Bot } from 'lucide-react'
 
 interface ChatSettings {
@@ -13,6 +14,7 @@ interface ChatSettings {
 }
 
 export function ChatbotSettings() {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [settings, setSettings] = useState<ChatSettings | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -51,6 +53,10 @@ export function ChatbotSettings() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกการตั้งค่าแชทบอทได้', 'warning')
+            return
+        }
         if (!settings) return
 
         setIsSaving(true)

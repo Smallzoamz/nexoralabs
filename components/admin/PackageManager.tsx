@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { z } from 'zod'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 const packageSchema = z.object({
     name: z.string().min(1, 'กรุณากรอกชื่อแพ็กเกจ').max(50, 'ชื่อแพ็กเกจยาวเกินไป'),
@@ -34,6 +35,7 @@ interface PackageItem {
 }
 
 export function PackageManager() {
+    const { isReadOnly } = useAuth()
     const { showAlert } = useModal()
     const [packages, setPackages] = useState<PackageItem[]>([])
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -87,6 +89,10 @@ export function PackageManager() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
         if (!editForm) return
         setIsSaving(true)
         try {
@@ -156,6 +162,10 @@ export function PackageManager() {
     }
 
     const toggleActive = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase.from('packages').update({ is_active: !currentStatus }).eq('id', id)
             if (error) throw error
@@ -168,6 +178,10 @@ export function PackageManager() {
     }
 
     const toggleHighlight = async (id: string, currentStatus: boolean) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase.from('packages').update({ highlight: !currentStatus }).eq('id', id)
             if (error) throw error

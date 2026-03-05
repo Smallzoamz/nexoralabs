@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from './supabase'
 import type { User } from '@supabase/supabase-js'
 
-export type UserRole = 'superadmin' | 'moderator' | 'admin' | 'client'
+export type UserRole = 'superadmin' | 'moderator' | 'admin' | 'client' | 'demo'
 
 interface AuthContextType {
     user: User | null
@@ -13,6 +13,7 @@ interface AuthContextType {
     isSuperAdmin: boolean
     isModerator: boolean
     isClient: boolean
+    isReadOnly: boolean
     isLoading: boolean
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
     logout: () => Promise<void>
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (role === 'client') return 'client'
             if (role === 'superadmin') return 'superadmin'
             if (role === 'moderator') return 'moderator'
+            if (role === 'demo') return 'demo'
 
             // Assume 'admin' for backward compatibility if not client
             return 'admin'
@@ -90,10 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             value={{
                 user,
                 userRole,
-                isAdmin: ['superadmin', 'admin', 'moderator'].includes(userRole as string),
-                isSuperAdmin: ['superadmin', 'admin'].includes(userRole as string),
+                isAdmin: ['superadmin', 'admin', 'moderator', 'demo'].includes(userRole as string),
+                isSuperAdmin: ['superadmin', 'admin', 'demo'].includes(userRole as string),
                 isModerator: userRole === 'moderator',
                 isClient: userRole === 'client',
+                isReadOnly: userRole === 'demo',
                 isLoading,
                 login,
                 logout,

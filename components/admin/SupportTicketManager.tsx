@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { MessageSquare, Send, AlertCircle, Search } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 interface Ticket {
     id: string;
@@ -25,6 +26,7 @@ interface Reply {
 import { useModal } from '@/lib/modal-context'
 
 export function SupportTicketManager() {
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
     const [tickets, setTickets] = useState<Ticket[]>([])
     const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
@@ -118,6 +120,10 @@ export function SupportTicketManager() {
 
     const handleSendReply = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถส่งข้อความตอบกลับได้', 'warning')
+            return
+        }
         if (!replyText.trim() || !activeTicket) return
 
         setIsSubmitting(true)
@@ -165,6 +171,10 @@ export function SupportTicketManager() {
 
     const handleUpdateStatus = async (newStatus: string) => {
         if (!activeTicket) return
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเปลี่ยนสถานะ Ticket ได้', 'warning')
+            return
+        }
         if (!(await showConfirm('เปลี่ยนสถานะ', `ต้องการเปลี่ยนสถานะ Ticket นี้เป็น ${newStatus === 'resolved' ? 'เสร็จสิ้น' : 'กำลังแก้ไข'} ใช่หรือไม่?`))) return
 
         try {

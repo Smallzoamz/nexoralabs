@@ -74,7 +74,7 @@ interface PaymentConfig {
 
 export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardProps) {
     const { showAlert, showConfirm } = useModal()
-    const { isModerator } = useAuth()
+    const { isModerator, isReadOnly } = useAuth()
     const [isLoading, setIsLoading] = useState(true)
     const [stats, setStats] = useState([
         { label: 'Revenue', value: `฿0`, trend: `+0%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -310,6 +310,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
     }
 
     const handleAddExpense = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถเพิ่มรายจ่ายได้', 'warning')
+            return
+        }
         if (!expenseForm.description || expenseForm.amount <= 0) {
             showAlert('ข้อมูลไม่ครบ', 'กรุณากรอกรายละเอียดและจำนวนเงิน', 'error')
             return
@@ -330,6 +334,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
     }
 
     const handleDeleteExpense = async (id: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบรายจ่ายได้', 'warning')
+            return
+        }
         if (!(await showConfirm('ยืนยัน', 'คุณต้องการลบรายจ่ายนี้ใช่หรือไม่?'))) return
         try {
             const { error } = await supabase.from('expenses').delete().eq('id', id)

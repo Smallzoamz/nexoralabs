@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 
 interface ContactSubmission {
     id: string
@@ -72,7 +73,7 @@ export function ContactManager() {
     const [modalStatus, setModalStatus] = useState<string>('')
     const [isSavingStatus, setIsSavingStatus] = useState(false)
 
-    // Supabase State
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
     const [contacts, setContacts] = useState<ContactSubmission[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -101,7 +102,11 @@ export function ContactManager() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!(await showConfirm('ยืนยันลบ', 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลสติดต่อนี้?'))) return
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูลได้', 'warning')
+            return
+        }
+        if (!(await showConfirm('ยืนยันลบ', 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลติดต่อนี้?'))) return
 
         try {
             const { error } = await supabase
@@ -118,6 +123,10 @@ export function ContactManager() {
     }
 
     const handleUpdateStatus = async (id: string, newStatus: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถอัปเดตสถานะได้', 'warning')
+            return
+        }
         try {
             const { error } = await supabase
                 .from('contact_submissions')

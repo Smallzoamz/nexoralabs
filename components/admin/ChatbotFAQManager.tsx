@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit2, ShieldAlert, Eye, EyeOff, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useModal } from '@/lib/modal-context'
+import { useAuth } from '@/lib/auth-context'
 import { z } from 'zod'
 
 interface ChatbotFAQ {
@@ -27,6 +28,7 @@ export function ChatbotFAQManager() {
     const [isSaving, setIsSaving] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingFaq, setEditingFaq] = useState<ChatbotFAQ | null>(null)
+    const { isReadOnly } = useAuth()
     const { showAlert, showConfirm } = useModal()
 
     const [formData, setFormData] = useState({
@@ -85,6 +87,10 @@ export function ChatbotFAQManager() {
     }
 
     const handleSave = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถบันทึกข้อมูล Q&A ได้', 'warning')
+            return
+        }
         try {
             faqSchema.parse(formData)
             setIsSaving(true)
@@ -136,6 +142,10 @@ export function ChatbotFAQManager() {
     }
 
     const handleDelete = async (id: string, question: string) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถลบข้อมูล Q&A ได้', 'warning')
+            return
+        }
         const confirmed = await showConfirm(
             'ลบคำถาม',
             `คุณแน่ใจหรือไม่ที่จะลบคำถาม "${question}"?`
