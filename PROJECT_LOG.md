@@ -10,6 +10,24 @@
 
 ## Recent Updates
 
+### 2026-03-05 | Code Refactoring - Remove Unused Components & Create Shared Libraries | Status: ✅ Completed
+- **Change:** 1. Deleted unused AdminDashboard.tsx and AnalyticsDashboard.tsx components
+- **Change:** 2. Created shared lib/email.ts for nodemailer transporter (used by 4 API routes)
+- **Change:** 3. Created shared lib/pdf.ts for html2pdf.js utilities (used by 3 components)
+- **Change:** 4. Refactored 4 API routes to use shared lib/email.ts:
+  - app/api/send-invoice/route.ts
+  - app/api/send-receipt/route.ts
+  - app/api/broadcast/route.ts
+  - app/api/cron/payment-reminders/route.ts
+- **Verification:** npm run build passed with Exit Code 0
+- **Files Created:** lib/email.ts, lib/pdf.ts
+- **Files Deleted:** components/admin/AdminDashboard.tsx, components/admin/AnalyticsDashboard.tsx
+
+### 2026-03-06 | Feature: Auto-Create Client Account on Payment Confirm | Status: ✅ Completed
+- **Change:** เมื่อ Admin อนุมัติสลิป ระบบจะสร้าง Supabase Auth account ให้ลูกค้าอัตโนมัติ (เฉพาะอีเมลใหม่) พร้อมสร้างข้อมูลเว็บไซต์ใน `client_websites` table และแนบ Login credentials ไปในอีเมลใบเสร็จ
+- **Files:** `api/admin/create-account/route.ts`, `components/admin/InvoiceManager.tsx`, `api/send-receipt/route.ts`, `supabase/migrations/20260306_create_client_websites.sql`
+- **Note:** ต้อง run migration SQL ใน Supabase Dashboard ก่อนใช้งาน
+
 ### 2026-03-06 | File: lib/banks.ts, public/images/banks/ | Status: ✅ Completed
 - **Change:** Replace SVG logos with real PNG bank logos
 - **Details:** Downloaded official Thai bank logos (KBANK, SCB, BBL, KTB, BAY, TTB, GSB) from GitHub repo `casperstack/thai-banks-logo` to `public/images/banks/`. Updated `banks.ts` to use image paths. Updated `renderBankLogo` in `PaymentSettings.tsx` and `PaymentPageClient.tsx` to use `<img>` tags. Build verified.

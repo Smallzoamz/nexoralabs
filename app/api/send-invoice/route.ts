@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
 import { createClient } from '@supabase/supabase-js'
+import { transporter } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,18 +20,7 @@ export async function POST(req: Request) {
             )
         }
 
-        // Configure Nodemailer with Boss's Gmail credentials
-        // Note: Boss needs to set these in .env.local
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_APP_PASSWORD,
-            },
-        })
-
-        // Verify connection configuration
-        await transporter.verify()
+        // Use shared transporter from lib/email.ts
 
         const totalAmount = Number(invoice.setup_fee) + Number(invoice.monthly_fee)
         const formattedTotal = totalAmount.toLocaleString('th-TH')

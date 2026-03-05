@@ -559,7 +559,28 @@ export function InvoiceManager() {
 
             logAdminAction(user?.email || 'System', 'APPROVE_SLIP', `อนุมัติสลิปและรอบบิลถัดไปให้ ${inv.client_name}`)
 
-            // 4. Generate Receipt PDF as base64 to attach to email
+            // 4. Auto-create client account (only creates if email doesn't have an account yet)
+            let clientPassword: string | null = null
+            try {
+                const accountRes = await fetch('/api/admin/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: inv.client_name,
+                        email: inv.client_email,
+                        package_type: inv.package_details,
+                        website_name: inv.client_name // Use client name as website/project name
+                    })
+                })
+                const accountResult = await accountRes.json()
+                if (accountRes.ok && !accountResult.alreadyExists) {
+                    clientPassword = accountResult.data?.password || null
+                }
+            } catch (accountErr) {
+                console.warn('Auto-create client account failed (non-blocking):', accountErr)
+            }
+
+            // 5. Generate Receipt PDF as base64 to attach to email
             let pdfBase64: string | null = null
             try {
                 const html2pdfModule = (await import('html2pdf.js')).default
@@ -580,11 +601,11 @@ export function InvoiceManager() {
                 console.warn('PDF generation failed, will send email without attachment:', pdfErr)
             }
 
-            // 5. Send receipt email (+ PDF attachment if available)
+            // 6. Send receipt email (+ PDF attachment if available)
             const res = await fetch('/api/send-receipt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ invoiceId: submission.invoice_id, amount: submission.amount, invoice: inv, pdfBase64 })
+                body: JSON.stringify({ invoiceId: submission.invoice_id, amount: submission.amount, invoice: inv, pdfBase64, clientPassword })
             })
             const result = await res.json()
             if (!res.ok) throw new Error(result.error || 'ส่งอีเมลใบเสร็จไม่สำเร็จ')

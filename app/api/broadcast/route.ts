@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/dist/server/web/spec-extension/response'
-import nodemailer from 'nodemailer'
 import { createClient } from '@supabase/supabase-js'
+import { transporter } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,13 +43,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No valid client emails found' }, { status: 404 })
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_APP_PASSWORD,
-            },
-        })
+        // Use shared transporter from lib/email.ts
 
         let sentCount = 0
 

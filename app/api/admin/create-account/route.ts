@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         })
 
         const body = await req.json()
-        const { name, email, package_type, supabase_url, supabase_key } = body
+        const { name, email, package_type, website_name, supabase_url, supabase_key } = body
 
         if (!name || !email) {
             return NextResponse.json(
@@ -29,11 +29,32 @@ export async function POST(req: Request) {
         if (usersError) throw usersError
 
         const userExists = usersData.users.find(u => u.email === email)
+
         if (userExists) {
-            return NextResponse.json(
-                { error: 'อีเมลนี้ถูกใช้งานแล้วในระบบ' },
-                { status: 400 }
-            )
+            // User already exists — still create website record if website_name provided
+            if (website_name) {
+                // Find client_id from client_users
+                const { data: linkData } = await supabase
+                    .from('client_users')
+                    .select('client_id')
+                    .eq('user_id', userExists.id)
+                    .single()
+
+                await supabase.from('client_websites').insert([{
+                    client_id: linkData?.client_id || null,
+                    client_email: email,
+                    website_name: website_name,
+                    package: package_type || 'standard',
+                    status: 'pending'
+                }])
+            }
+
+            return NextResponse.json({
+                success: true,
+                alreadyExists: true,
+                message: 'ลูกค้ามีบัญชีอยู่แล้ว เพิ่มโปรเจกต์ใหม่เรียบร้อย',
+                data: { email, password: null }
+            })
         }
 
         // 2. Generate random 8 character password
@@ -87,8 +108,20 @@ export async function POST(req: Request) {
             throw linkError
         }
 
+        // 6. Create Website Record (if website_name provided)
+        if (website_name) {
+            await supabase.from('client_websites').insert([{
+                client_id: clientData.id,
+                client_email: email,
+                website_name: website_name,
+                package: package_type || 'standard',
+                status: 'pending'
+            }])
+        }
+
         return NextResponse.json({
             success: true,
+            alreadyExists: false,
             message: 'สร้างบัญชีลูกค้าเรียบร้อยแล้ว',
             data: {
                 email,
@@ -106,3 +139,4 @@ export async function POST(req: Request) {
         )
     }
 }
+

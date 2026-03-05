@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import nodemailer from 'nodemailer'
+import { transporter } from '@/lib/email'
 
 // SECURITY: This endpoint must only be callable by Vercel's cron scheduler.
 // Set CRON_SECRET in your .env.local.
@@ -16,13 +16,7 @@ export async function GET(req: Request) {
         process.env.SUPABASE_SERVICE_ROLE_KEY! // Service role key to bypass RLS
     )
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_APP_PASSWORD,
-        },
-    })
+    // Use shared transporter from lib/email.ts
 
     try {
         // Fetch all pending invoices

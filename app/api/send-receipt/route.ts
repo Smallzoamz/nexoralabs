@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
 import { createClient } from '@supabase/supabase-js'
+import { transporter } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,21 +11,13 @@ export async function POST(req: Request) {
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
         const body = await req.json()
-        const { invoice, amount, pdfBase64 } = body
+        const { invoice, amount, pdfBase64, clientPassword } = body
 
         if (!invoice || !invoice.client_email) {
             return NextResponse.json({ error: 'ข้อมูลไม่ครบถ้วน' }, { status: 400 })
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_APP_PASSWORD,
-            },
-        })
-
-        await transporter.verify()
+        // Use shared transporter from lib/email.ts
 
         const formattedAmount = Number(amount).toLocaleString('th-TH')
         const receiptNo = `REC-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Date.now().toString().slice(-6)}`
@@ -114,6 +106,31 @@ export async function POST(req: Request) {
                     </div>
 
                     ${pdfBase64 ? '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;margin-bottom:24px;"><p style="margin:0;color:#1e40af;font-size:14px;">📎 ใบเสร็จรับเงินแบบ PDF แนบมาพร้อมอีเมลฉบับนี้แล้วครับ</p></div>' : ''}
+
+                    ${clientPassword ? `
+                    <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                        <div style="background:linear-gradient(90deg,#22c55e,#16a34a);padding:14px 20px;">
+                            <p style="margin:0;font-weight:700;color:white;font-size:15px;">🔑 ข้อมูลเข้าสู่ระบบ Customer Portal</p>
+                        </div>
+                        <div style="padding:20px;">
+                            <p style="color:#334155;font-size:14px;margin:0 0 16px;line-height:1.6;">ระบบได้สร้างบัญชีสำหรับติดตามสถานะงานของท่านเรียบร้อยแล้ว สามารถเข้าสู่ระบบได้ด้วยข้อมูลด้านล่าง:</p>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tr>
+                                    <td style="padding:10px 14px;color:#64748b;font-size:13px;border-bottom:1px solid #e2e8f0;width:35%;">📧 Username (Email)</td>
+                                    <td style="padding:10px 14px;color:#1e293b;font-weight:600;font-size:14px;border-bottom:1px solid #e2e8f0;font-family:monospace;">${invoice.client_email}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 14px;color:#64748b;font-size:13px;border-bottom:1px solid #e2e8f0;">🔒 Password</td>
+                                    <td style="padding:10px 14px;color:#1e293b;font-weight:700;font-size:16px;border-bottom:1px solid #e2e8f0;font-family:monospace;letter-spacing:1px;">${clientPassword}</td>
+                                </tr>
+                            </table>
+                            <div style="margin-top:16px;text-align:center;">
+                                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexoralabs.com'}/login" style="display:inline-block;background:linear-gradient(90deg,#22c55e,#16a34a);color:white;padding:12px 32px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;">🚀 เข้าสู่ระบบ Customer Portal</a>
+                            </div>
+                            <p style="margin:12px 0 0;color:#94a3b8;font-size:12px;text-align:center;">⚠️ แนะนำให้เปลี่ยนรหัสผ่านหลังเข้าสู่ระบบครั้งแรก</p>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;">
                         <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">📋 ท่านจะได้รับบิลสำหรับเดือนถัดไปตามรอบปกติ หากมีข้อสงสัย ติดต่อเราได้ที่ <a href="mailto:${companyEmail}" style="color:#d97706;font-weight:600;">${companyEmail}</a></p>
