@@ -130,7 +130,18 @@ export async function POST(req: Request) {
                             <p style="margin:12px 0 0;color:#94a3b8;font-size:12px;text-align:center;">⚠️ แนะนำให้เปลี่ยนรหัสผ่านหลังเข้าสู่ระบบครั้งแรก</p>
                         </div>
                     </div>
-                    ` : ''}
+                    ` : `<div style="background:#fef3c7;border:2px solid #fde68a;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                        <div style="background:linear-gradient(90deg,#f59e0b,#d97706);padding:14px 20px;">
+                            <p style="margin:0;font-weight:700;color:white;font-size:15px;">🔐 ข้อมูลเข้าสู่ระบบ</p>
+                        </div>
+                        <div style="padding:20px;">
+                            <p style="color:#92400e;font-size:14px;margin:0 0 12px;line-height:1.6;">ระบบพบว่าท่านมีบัญชีอยู่แล้ว สามารถเข้าสู่ระบบด้วยอีเมลนี้ได้ทันที</p>
+                            <div style="margin-top:16px;text-align:center;">
+                                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexoralabs.com'}/login" style="display:inline-block;background:linear-gradient(90deg,#f59e0b,#d97706);color:white;padding:12px 32px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;">🚀 เข้าสู่ระบบ Customer Portal</a>
+                            </div>
+                            <p style="margin:12px 0 0;color:#92400e;font-size:12px;text-align:center;">📧 หากท่านลืมรหัสผ่าน กรุณาคลิก "ลืมรหัสผ่าน" ที่หน้าเข้าสู่ระบบ</p>
+                        </div>
+                    </div>`}
 
                     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;">
                         <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">📋 ท่านจะได้รับบิลสำหรับเดือนถัดไปตามรอบปกติ หากมีข้อสงสัย ติดต่อเราได้ที่ <a href="mailto:${companyEmail}" style="color:#d97706;font-weight:600;">${companyEmail}</a></p>
