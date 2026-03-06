@@ -167,13 +167,36 @@ export function ETaxInvoiceManager() {
     }
 
     const handleSave = async () => {
+        console.log('Current userRole:', userRole)
         if (isReadOnly) {
             showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถแก้ไขข้อมูลได้', 'warning')
             return
         }
 
-        if (userRole !== 'superadmin') {
-            showAlert('ไม่มีสิทธิ์', 'เฉพาะ Super Admin เท่านั้นที่สามารถจัดการใบกำกับภาษีได้', 'error')
+        if (userRole !== 'superadmin' && userRole !== 'admin') {
+            showAlert('ไม่มีสิทธิ์', 'เฉพาะ Super Admin หรือ Admin เท่านั้นที่สามารถจัดการใบกำกับภาษีได้', 'error')
+            return
+        }
+
+        // Validate required fields
+        if (!formData.invoice_number?.trim()) {
+            showAlert('ข้อผิดพลาด', 'กรุณากรอกเลขที่ใบกำกับภาษี', 'error')
+            return
+        }
+        if (!formData.seller_name?.trim()) {
+            showAlert('ข้อผิดพลาด', 'กรุณากรอกชื่อผู้ขาย', 'error')
+            return
+        }
+        if (!formData.buyer_name?.trim()) {
+            showAlert('ข้อผิดพลาด', 'กรุณากรอกชื่อผู้ซื้อ', 'error')
+            return
+        }
+        if (!formData.description?.trim()) {
+            showAlert('ข้อผิดพลาด', 'กรุณากรอกรายละเอียด', 'error')
+            return
+        }
+        if (!formData.amount || formData.amount <= 0) {
+            showAlert('ข้อผิดพลาด', 'กรุณากรอกจำนวนเงิน', 'error')
             return
         }
 
@@ -201,21 +224,27 @@ export function ETaxInvoiceManager() {
             }
 
             let error
+            console.log('Saving etax invoice with payload:', payload)
             if (editingId === 'new') {
                 const result = await supabase.from('etax_invoices').insert(payload)
                 error = result.error
+                console.log('Insert result:', result)
                 if (!error) {
                     await logAdminAction('CREATE_ETAX_INVOICE', `Created e-Tax Invoice ${formData.invoice_number}`)
                 }
             } else {
                 const result = await supabase.from('etax_invoices').update(payload).eq('id', editingId)
                 error = result.error
+                console.log('Update result:', result)
                 if (!error) {
                     await logAdminAction('UPDATE_ETAX_INVOICE', `Updated e-Tax Invoice ${formData.invoice_number}`)
                 }
             }
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase error details:', JSON.stringify(error, null, 2))
+                throw error
+            }
 
             showAlert('สำเร็จ', 'บันทึกข้อมูลใบกำกับภาษีสำเร็จ', 'success')
             setIsEditing(false)

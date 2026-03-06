@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Mail, ArrowLeft, Send } from 'lucide-react'
+import { Mail, ArrowLeft, Send, Loader2 } from 'lucide-react'
 
 interface ForgotPasswordModalProps {
     isOpen: boolean
@@ -24,14 +23,22 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
         setMessage('')
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/admin/update-password`,
+            const response = await fetch('/api/password-reset/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
             })
 
-            if (error) throw error
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'เกิดข้อผิดพลาด')
+            }
 
             setStatus('success')
-            setMessage('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมลของคุณเรียบร้อยแล้ว โปรดตรวจสอบกล่องจดหมาย')
+            setMessage(data.message)
         } catch (err: unknown) {
             console.error('Reset password error:', err)
             setStatus('error')
@@ -107,7 +114,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                         >
                             {status === 'loading' ? (
                                 <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                     กำลังดำเนินการ...
                                 </>
                             ) : (

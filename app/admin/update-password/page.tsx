@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, Save, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
 function UpdatePasswordContent() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const token = searchParams.get('token')
+
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -16,27 +18,38 @@ function UpdatePasswordContent() {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        const checkSession = async () => {
-            // Wait for Supabase to process the URL hash
-            await new Promise(resolve => setTimeout(resolve, 500))
-
-            const { data: { session } } = await supabase.auth.getSession()
-
-            // Check if there's a hash token in the URL
-            const hasHashToken = window.location.hash.includes('access_token') ||
-                window.location.hash.includes('type=recovery')
-
-            if (!session && !hasHashToken) {
-                setError('ลิงก์นี้หมดอายุ หรือไม่ถูกต้อง กรุณาขอลิงก์ใหม่อีกครั้ง')
+        const checkToken = async () => {
+            if (!token) {
+                setError('ไม่พบ token กรุณาขอลิงก์ใหม่อีกครั้ง')
+                setIsLoading(false)
+                return
             }
-            setIsLoading(false)
+
+            // Verify token exists in our database
+            try {
+                const response = await fetch(`/api/password-reset/verify?token=${token}`)
+                const data = await response.json()
+
+                if (!response.ok || data.error) {
+                    setError(data.error || 'Token ไม่ถูกต้อง หรือหมดอายุ')
+                }
+            } catch {
+                setError('เกิดข้อผิดพลาดในการตรวจสอบ token')
+            } finally {
+                setIsLoading(false)
+            }
         }
 
-        checkSession()
-    }, [])
+        checkToken()
+    }, [token])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!token) {
+            setError('ไม่พบ token')
+            return
+        }
 
         if (password.length < 6) {
             setError('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
@@ -52,11 +65,22 @@ function UpdatePasswordContent() {
         setError('')
 
         try {
-            const { error: supabaseError } = await supabase.auth.updateUser({
-                password: password
+            const response = await fetch('/api/password-reset/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token,
+                    newPassword: password
+                })
             })
 
-            if (supabaseError) throw supabaseError
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'เกิดข้อผิดพลาด')
+            }
 
             setIsSuccess(true)
 
@@ -90,7 +114,7 @@ function UpdatePasswordContent() {
         )
     }
 
-    if (error && !password) {
+    if (error && !token) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
                 <div className="w-full max-w-md">
