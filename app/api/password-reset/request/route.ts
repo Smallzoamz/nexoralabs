@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
         // Get site URL for the reset link
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://velozi-dev.vercel.app'
-        const resetLink = `${siteUrl}/admin/update-password?token=${token}`
+        const resetLink = `${siteUrl}/update-password?token=${token}`
 
         // Send email
         const emailHtml = `
