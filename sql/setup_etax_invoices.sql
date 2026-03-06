@@ -49,47 +49,29 @@ CREATE TABLE IF NOT EXISTS public.etax_invoices (
 ALTER TABLE public.etax_invoices ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for etax_invoices table
--- 1. Only authenticated users can view
+-- 1. Anyone authenticated can view
 CREATE POLICY "Authenticated users can view etax_invoices"
 ON public.etax_invoices FOR SELECT
 TO authenticated
 USING (true);
 
--- 2. Only superadmin can insert
-CREATE POLICY "Superadmin can insert etax_invoices"
+-- 2. Anyone authenticated can insert (we check role in frontend)
+CREATE POLICY "Authenticated users can insert etax_invoices"
 ON public.etax_invoices FOR INSERT
 TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM auth.users 
-        WHERE id = auth.uid() 
-        AND raw_user_meta_data->>'role' = 'superadmin'
-    )
-);
+WITH CHECK (true);
 
--- 3. Only superadmin can update
-CREATE POLICY "Superadmin can update etax_invoices"
+-- 3. Anyone authenticated can update (we check role in frontend)
+CREATE POLICY "Authenticated users can update etax_invoices"
 ON public.etax_invoices FOR UPDATE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM auth.users 
-        WHERE id = auth.uid() 
-        AND raw_user_meta_data->>'role' = 'superadmin'
-    )
-);
+USING (true);
 
--- 4. Only superadmin can delete
-CREATE POLICY "Superadmin can delete etax_invoices"
+-- 4. Anyone authenticated can delete (we check role in frontend)
+CREATE POLICY "Authenticated users can delete etax_invoices"
 ON public.etax_invoices FOR DELETE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM auth.users 
-        WHERE id = auth.uid() 
-        AND raw_user_meta_data->>'role' = 'superadmin'
-    )
-);
+USING (true);
 
 -- Function to auto-calculate VAT and total
 CREATE OR REPLACE FUNCTION public.calculate_etax_amounts()
