@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { FileText, Eye, XCircle, CheckCircle, Clock, Search, RefreshCw } from 'lucide-react'
+import { FileText, Eye, XCircle, CheckCircle, Clock, Search, RefreshCw, Download } from 'lucide-react'
 
 interface ETaxInvoice {
     id: string
@@ -304,7 +304,14 @@ export function ClientETaxInvoices() {
                                 </div>
                             )}
                         </div>
-                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end">
+                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                            <button
+                                onClick={() => window.print()}
+                                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                ดาวน์โหลด PDF
+                            </button>
                             <button
                                 onClick={() => setSelectedInvoice(null)}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
