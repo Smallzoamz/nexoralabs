@@ -252,7 +252,13 @@ export function ETaxInvoiceManager() {
             fetchData()
         } catch (error: any) {
             console.error('Error saving etax invoice:', error)
-            const errorMessage = error instanceof Error ? error.message : 'ไม่สามารถบันทึกข้อมูลได้'
+            // Show more detailed error
+            let errorMessage = 'ไม่สามารถบันทึกข้อมูลได้'
+            if (error && typeof error === 'object') {
+                errorMessage = JSON.stringify(error)
+            } else if (typeof error === 'string') {
+                errorMessage = error
+            }
             showAlert('เกิดข้อผิดพลาด', errorMessage, 'error')
         } finally {
             setIsSaving(false)
