@@ -15,80 +15,61 @@ import {
     ChevronRight,
     ShieldCheck,
     Layout,
-    Activity,
-    Mail
+    CreditCard,
+    MessageCircleQuestion,
+    Bot,
+    FileSignature
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import IntegratedDashboard from '@/components/admin/IntegratedDashboard'
-import { SiteSettings } from '@/components/admin/SiteSettings'
 import { ContentManager } from '@/components/admin/ContentManager'
 import { PackageManager } from '@/components/admin/PackageManager'
 import { ContactManager } from '@/components/admin/ContactManager'
 import { InvoiceManager } from '@/components/admin/InvoiceManager'
-import { PaymentSettings } from '@/components/admin/PaymentSettings'
 import { ArticleManager } from '@/components/admin/ArticleManager'
 import TrustBadgeManager from '@/components/admin/TrustBadgeManager'
 import ClientManager from '@/components/admin/ClientManager'
 import { PortfolioManager } from '@/components/admin/PortfolioManager'
-import { SEOSettings } from '@/components/admin/SEOSettings'
 import { FAQManager } from '@/components/admin/FAQManager'
-import { ActivityLogManager } from '@/components/admin/ActivityLogManager'
-import { EmailTemplateManager } from '@/components/admin/EmailTemplateManager'
 import { SupportTicketManager } from '@/components/admin/SupportTicketManager'
 import { ContractManager } from '@/components/admin/ContractManager'
-import UserManager from '@/components/admin/UserManager'
-import { ChatbotSettings } from '@/components/admin/ChatbotSettings'
-import { ChatbotFAQManager } from '@/components/admin/ChatbotFAQManager'
-import { ChatHistoryViewer } from '@/components/admin/ChatHistoryViewer'
 import { ETaxInvoiceManager } from '@/components/admin/ETaxInvoiceManager'
-import { CreditCard, Landmark, LineChart, MessageCircleQuestion, Bot, History, BookOpen, FileSignature } from 'lucide-react'
+import { SystemSettingsHub } from '@/components/admin/SystemSettingsHub'
+import { ChatbotHub } from '@/components/admin/ChatbotHub'
 import { useAuth } from '@/lib/auth-context'
 
 const menuGroups = [
     {
-        title: 'ภาพรวมระบบ',
+        title: 'ระบบจัดการ (Management)',
         roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-            { id: 'activity-log', label: 'บันทึกประวัติ (Log)', icon: Activity, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'templates', label: 'จัดการเทมเพลตอีเมล', icon: Mail, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'site', label: 'ตั้งค่าเว็บไซต์', icon: Settings, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'seo', label: 'ตั้งค่า SEO', icon: LineChart, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'users', label: 'จัดการบุคลากร (Staff)', icon: Users, roles: ['superadmin', 'admin', 'demo'] }
+            { id: 'dashboard', label: 'ฟีดหลัก (Dashboard)', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'chatbot-hub', label: 'ระบบแชทบอท (AI)', icon: Bot, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'contacts', label: 'กล่องข้อความ (Leads)', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'system-settings', label: 'ตั้งค่าระบบทั้งหมด (Settings)', icon: Settings, roles: ['superadmin', 'admin', 'demo'] }
         ]
     },
     {
-        title: 'ระบบแชทบอท (AI)',
+        title: 'เนื้อหาเว็บไซต์ (CMS)',
         roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'chatbot-settings', label: 'ตั้งค่าแชทบอท', icon: Bot, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'chatbot-faqs', label: 'สอนบอทตอบคำถาม', icon: BookOpen, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-            { id: 'chatbot-history', label: 'ประวัติการสนทนา', icon: History, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-        ]
-    },
-    {
-        title: 'จัดการระบบ',
-        roles: ['superadmin', 'admin', 'moderator', 'demo'],
-        items: [
-            { id: 'content', label: 'จัดการเนื้อหา', icon: FileText, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'content', label: 'โครงสร้างหน้าเว็บ', icon: FileText, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
             { id: 'articles', label: 'บทความ (Blog)', icon: FileText, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
             { id: 'portfolios', label: 'ผลงานของเรา', icon: Layout, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
             { id: 'faqs', label: 'คำถามที่พบบ่อย (FAQ)', icon: MessageCircleQuestion, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-            { id: 'packages', label: 'จัดการแพ็กเกจ', icon: Package, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'trust-badges', label: 'โลโก้ลูกค้า', icon: ShieldCheck, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'trust-badges', label: 'โลโก้ลูกค้าน่าเชื่อถือ', icon: ShieldCheck, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
         ]
     },
     {
-        title: 'ลูกค้าและรายได้',
+        title: 'รายได้และข้อตกลง',
         roles: ['superadmin', 'admin', 'moderator', 'demo'],
         items: [
-            { id: 'contacts', label: 'รายการติดต่อ', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-            { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
-            { id: 'contracts', label: 'จัดการสัญญา', icon: FileText, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'etax-invoices', label: 'ใบกำกับภาษี (e-Tax)', icon: FileSignature, roles: ['superadmin'] },
-            { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark, roles: ['superadmin', 'admin', 'demo'] },
-            { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'clients', label: 'ฐานข้อมูลลูกค้า', icon: Users, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
+            { id: 'packages', label: 'บริการ & ราคาแพ็กเกจ', icon: Package, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'contracts', label: 'ระบบสร้างเอกสารสัญญา', icon: FileText, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'invoices', label: 'ระบบใบแจ้งหนี้รับเงิน', icon: CreditCard, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'etax-invoices', label: 'ออกใบกำกับภาษี (e-Tax)', icon: FileSignature, roles: ['superadmin'] },
         ]
     }
 ]
@@ -112,24 +93,12 @@ export default function AdminPage() {
 
     const renderContent = () => {
         switch (activeMenu) {
-            case 'chatbot-settings':
-                return <ChatbotSettings />
-            case 'chatbot-faqs':
-                return <ChatbotFAQManager />
-            case 'chatbot-history':
-                return <ChatHistoryViewer />
+            case 'chatbot-hub':
+                return <ChatbotHub />
+            case 'system-settings':
+                return <SystemSettingsHub />
             case 'dashboard':
                 return <IntegratedDashboard onNavigate={setActiveMenu} />
-            case 'site':
-                return <SiteSettings />
-            case 'seo':
-                return <SEOSettings />
-            case 'templates':
-                return <EmailTemplateManager />
-            case 'users':
-                return <UserManager />
-            case 'activity-log':
-                return <ActivityLogManager />
             case 'content':
                 return <ContentManager />
             case 'articles':
@@ -146,8 +115,6 @@ export default function AdminPage() {
                 return <InvoiceManager />
             case 'etax-invoices':
                 return <ETaxInvoiceManager />
-            case 'payment':
-                return <PaymentSettings />
             case 'trust-badges':
                 return <TrustBadgeManager />
             case 'clients':
