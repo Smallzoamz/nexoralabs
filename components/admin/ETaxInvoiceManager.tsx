@@ -11,6 +11,8 @@ import {
 import { useModal } from '@/lib/modal-context'
 import { useAuth } from '@/lib/auth-context'
 import { logAdminAction } from '@/lib/admin-logger'
+import { ETaxInvoiceTemplate } from '@/components/shared/ETaxInvoiceTemplate'
+import { generatePDF, invoicePDFOptions } from '@/lib/pdf'
 
 interface ETaxInvoice {
     id: string
@@ -56,6 +58,7 @@ export function ETaxInvoiceManager() {
     const [isViewing, setIsViewing] = useState(false)
     const [viewingInvoice, setViewingInvoice] = useState<ETaxInvoice | null>(null)
     const [isSaving, setIsSaving] = useState(false)
+    const [isDownloading, setIsDownloading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<string>('all')
     const [yearFilter, setYearFilter] = useState(new Date().getFullYear())
@@ -172,6 +175,30 @@ export function ETaxInvoiceManager() {
         setViewingInvoice(invoice)
     }
 
+    const handleDownloadDoc = async (invoice: ETaxInvoice) => {
+        setIsDownloading(true)
+        try {
+            const element = document.getElementById(`etax-pdf-${invoice.id}`)
+            if (!element) throw new Error('ไม่พบแบบฟอร์มใบกำกับภาษี')
+
+            element.style.display = 'block'
+
+            const opt = {
+                ...invoicePDFOptions,
+                filename: `e-TaxInvoice_${invoice.invoice_number}_${new Date().getTime()}.pdf`
+            }
+
+            await generatePDF(element, opt)
+            element.style.display = 'none'
+        } catch (error: unknown) {
+            console.error('Error generating PDF:', error)
+            const msg = error instanceof Error ? error.message : 'Unknown error'
+            showAlert('ข้อผิดพลาด', `ข้อผิดพลาดในการสร้าง PDF: ${msg}`, 'error')
+        } finally {
+            setIsDownloading(false)
+        }
+    }
+
     const closeViewModal = () => {
         setIsViewing(false)
         setViewingInvoice(null)
@@ -261,11 +288,12 @@ export function ETaxInvoiceManager() {
             setIsEditing(false)
             setEditingId(null)
             fetchData()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error saving etax invoice:', error)
-            // Show more detailed error
             let errorMessage = 'ไม่สามารถบันทึกข้อมูลได้'
-            if (error && typeof error === 'object') {
+            if (error instanceof Error) {
+                errorMessage = error.message
+            } else if (error && typeof error === 'object') {
                 errorMessage = JSON.stringify(error)
             } else if (typeof error === 'string') {
                 errorMessage = error
@@ -300,8 +328,9 @@ export function ETaxInvoiceManager() {
                 await logAdminAction('DELETE_ETAX_INVOICE', `Deleted e-Tax Invoice ${invoice.invoice_number}`)
                 showAlert('สำเร็จ', 'ลบข้อมูลสำเร็จ', 'success')
                 fetchData()
-            } catch (error: any) {
-                showAlert('เกิดข้อผิดพลาด', error.message, 'error')
+            } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : 'Unknown error'
+                showAlert('เกิดข้อผิดพลาด', msg, 'error')
             }
         }
     }
@@ -329,8 +358,9 @@ export function ETaxInvoiceManager() {
                 await logAdminAction('ISSUE_ETAX_INVOICE', `Issued e-Tax Invoice ${invoice.invoice_number}`)
                 showAlert('สำเร็จ', 'ออกใบกำกับภาษีสำเร็จ', 'success')
                 fetchData()
-            } catch (error: any) {
-                showAlert('เกิดข้อผิดพลาด', error.message, 'error')
+            } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : 'Unknown error'
+                showAlert('เกิดข้อผิดพลาด', msg, 'error')
             }
         }
     }
@@ -358,8 +388,9 @@ export function ETaxInvoiceManager() {
                 await logAdminAction('CANCEL_ETAX_INVOICE', `Cancelled e-Tax Invoice ${invoice.invoice_number}`)
                 showAlert('สำเร็จ', 'ยกเลิกใบกำกับภาษีสำเร็จ', 'success')
                 fetchData()
-            } catch (error: any) {
-                showAlert('เกิดข้อผิดพลาด', error.message, 'error')
+            } catch (error: unknown) {
+                const msg = error instanceof Error ? error.message : 'Unknown error'
+                showAlert('เกิดข้อผิดพลาด', msg, 'error')
             }
         }
     }
@@ -859,25 +890,29 @@ export function ETaxInvoiceManager() {
                             </h2>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => window.print()}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                    onClick={() => handleDownloadDoc(viewingInvoice)}
+                                    disabled={isDownloading}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
                                 >
-                                    <Download className="w-4 h-4" />
-                                    ดาวน์โหลด PDF
+                                    {isDownloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                    {isDownloading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
                                 </button>
                                 <button
                                     onClick={closeViewModal}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <XCircle className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Invoice Content - Print Friendly */}
-                        <div id="printable-invoice" className="p-8 bg-white print:p-0">
+                        {/* Invoice Content - Formal Template (hidden by default, used for PDF generator) */}
+                        <ETaxInvoiceTemplate invoice={viewingInvoice} />
+
+                        {/* Invoice Content - Web Preview */}
+                        <div className="p-8 bg-white overflow-hidden max-w-full">
                             {/* Invoice Header */}
-                            <div className="flex justify-between items-start mb-8">
+                            <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                                 <div>
                                     <h1 className="text-3xl font-bold text-gray-900">ใบกำกับภาษี</h1>
                                     <p className="text-lg text-gray-500 mt-1">TAX INVOICE</p>

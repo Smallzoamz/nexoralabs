@@ -4,29 +4,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { FileText, Eye, XCircle, CheckCircle, Clock, Search, RefreshCw, Download } from 'lucide-react'
+import { ETaxInvoiceTemplate, ETaxInvoice } from '@/components/shared/ETaxInvoiceTemplate'
+import { generatePDF, invoicePDFOptions } from '@/lib/pdf'
 
-interface ETaxInvoice {
-    id: string
-    invoice_number: string
-    invoice_date: string
-    seller_name: string
-    seller_tax_id?: string
-    seller_address?: string
-    seller_branch_code?: string
-    buyer_name: string
-    buyer_tax_id?: string
-    buyer_address?: string
-    buyer_email?: string
-    buyer_branch_code?: string
-    description: string
-    amount: number
-    vat_rate: number
-    vat_amount: number
-    total_amount: number
-    status: 'draft' | 'issued' | 'cancelled' | 'void'
-    notes?: string
-    created_at?: string
-}
+// We no longer need to define ETaxInvoice here since it's exported from ETaxInvoiceTemplate
 
 export function ClientETaxInvoices() {
     const { user, isLoading: authLoading } = useAuth()
@@ -34,6 +15,7 @@ export function ClientETaxInvoices() {
     const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedInvoice, setSelectedInvoice] = useState<ETaxInvoice | null>(null)
+    const [isDownloading, setIsDownloading] = useState(false)
 
     // Also allow viewing by email input
     const [emailFilter, setEmailFilter] = useState('')
@@ -80,6 +62,30 @@ export function ClientETaxInvoices() {
             console.error('Error searching invoices:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const handleDownloadDoc = async (invoice: ETaxInvoice) => {
+        setIsDownloading(true)
+        try {
+            const element = document.getElementById(`etax-pdf-${invoice.id}`)
+            if (!element) throw new Error('ไม่พบแบบฟอร์มใบกำกับภาษี')
+
+            element.style.display = 'block'
+
+            const opt = {
+                ...invoicePDFOptions,
+                filename: `e-TaxInvoice_${invoice.invoice_number}_${new Date().getTime()}.pdf`
+            }
+
+            await generatePDF(element, opt)
+            element.style.display = 'none'
+        } catch (error: unknown) {
+            console.error('Error generating PDF:', error)
+            const msg = error instanceof Error ? error.message : 'Unknown error'
+            alert(`ข้อผิดพลาดในการสร้าง PDF: ${msg}`)
+        } finally {
+            setIsDownloading(false)
         }
     }
 
@@ -304,13 +310,14 @@ export function ClientETaxInvoices() {
                                 </div>
                             )}
                         </div>
-                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3 z-10">
                             <button
-                                onClick={() => window.print()}
-                                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                onClick={() => handleDownloadDoc(selectedInvoice)}
+                                disabled={isDownloading}
+                                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-2"
                             >
-                                <Download className="w-4 h-4" />
-                                ดาวน์โหลด PDF
+                                {isDownloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                {isDownloading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
                             </button>
                             <button
                                 onClick={() => setSelectedInvoice(null)}
@@ -319,6 +326,8 @@ export function ClientETaxInvoices() {
                                 ปิด
                             </button>
                         </div>
+                        {/* Hidden standard template for PDF generation */}
+                        <ETaxInvoiceTemplate invoice={selectedInvoice} />
                     </div>
                 </div>
             )}

@@ -616,3 +616,5 @@ CREATE POLICY "Allow authenticated users to insert admin logs"
 [2026-03-02] | File: app/api/chat/route.ts, .env.local | Line: ALL | Keyword: Modify | Status: Completed | Change: Switched AI Provider from OpenAI (GPT-4o-mini) to Groq API (Llama-3.3-70b-versatile) for a free and faster chatbot experience.
 
 [2026-03-02] | File: app/api/chat/route.ts | Line: 121-133 | Keyword: Debug | Status: Paused | Change: Added detailed console.error logs to trace HTTP 500 error from Groq API integration.
+
+[2026-03-07 01:42] | File: ETaxInvoiceTemplate.tsx, ETaxInvoiceManager.tsx, ClientETaxInvoices.tsx | Line: Multiple | Keyword: e-Tax Invoice Standardization | Status: Completed | Change: Created a shared ETaxInvoiceTemplate component with formal A4 dimensions. Refactored both Admin and Client components to use the new template and generate consistent PDFs using html2pdf, replacing window.print() logic. Fixed all associated TypeScript and ESLint errors.
