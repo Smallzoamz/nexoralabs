@@ -40,7 +40,8 @@ import UserManager from '@/components/admin/UserManager'
 import { ChatbotSettings } from '@/components/admin/ChatbotSettings'
 import { ChatbotFAQManager } from '@/components/admin/ChatbotFAQManager'
 import { ChatHistoryViewer } from '@/components/admin/ChatHistoryViewer'
-import { CreditCard, Landmark, LineChart, MessageCircleQuestion, Bot, History, BookOpen } from 'lucide-react'
+import { ETaxInvoiceManager } from '@/components/admin/ETaxInvoiceManager'
+import { CreditCard, Landmark, LineChart, MessageCircleQuestion, Bot, History, BookOpen, FileSignature } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 const menuGroups = [
@@ -85,6 +86,7 @@ const menuGroups = [
             { id: 'clients', label: 'เว็บลูกค้าทั้งหมด', icon: Users, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
             { id: 'contracts', label: 'จัดการสัญญา', icon: FileText, roles: ['superadmin', 'admin', 'demo'] },
             { id: 'invoices', label: 'ใบแจ้งหนี้', icon: CreditCard, roles: ['superadmin', 'admin', 'demo'] },
+            { id: 'etax-invoices', label: 'ใบกำกับภาษี (e-Tax)', icon: FileSignature, roles: ['superadmin'] },
             { id: 'payment', label: 'ช่องทางการชำระเงิน', icon: Landmark, roles: ['superadmin', 'admin', 'demo'] },
             { id: 'support', label: 'Support Tickets', icon: MessageSquare, roles: ['superadmin', 'admin', 'moderator', 'demo'] },
         ]
@@ -142,6 +144,8 @@ export default function AdminPage() {
                 return <ContactManager />
             case 'invoices':
                 return <InvoiceManager />
+            case 'etax-invoices':
+                return <ETaxInvoiceManager />
             case 'payment':
                 return <PaymentSettings />
             case 'trust-badges':
