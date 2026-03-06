@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
     Plus, Edit2, Trash2, FileText, Send,
-    XCircle, RefreshCw, Search, Eye, Calculator
+    XCircle, RefreshCw, Search, Eye, Calculator, Download
 } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 import { useAuth } from '@/lib/auth-context'
@@ -847,102 +847,147 @@ export function ETaxInvoiceManager() {
                 </div>
             )}
 
-            {/* View Modal */}
+            {/* View Modal - Professional Invoice Format */}
             {isViewing && viewingInvoice && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div className="bg-white rounded-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+                        {/* Header - Hidden when printing */}
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 print:hidden">
                             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <FileText className="w-5 h-5" />
                                 ใบกำกับภาษี {viewingInvoice.invoice_number}
                             </h2>
-                            <button
-                                onClick={closeViewModal}
-                                className="p-2 hover:bg-gray-100 rounded-lg"
-                            >
-                                <XCircle className="w-5 h-5" />
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => window.print()}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    ดาวน์โหลด PDF
+                                </button>
+                                <button
+                                    onClick={closeViewModal}
+                                    className="p-2 hover:bg-gray-100 rounded-lg"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="p-6 space-y-6">
-                            {/* Status Badge */}
-                            <div className="flex items-center justify-between">
-                                <span className="text-gray-600">สถานะ:</span>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${viewingInvoice.status === 'issued' ? 'bg-green-100 text-green-800' :
-                                        viewingInvoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                                            viewingInvoice.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                                'bg-yellow-100 text-yellow-800'}`}>
-                                    {viewingInvoice.status === 'issued' ? 'ออกแล้ว' :
-                                        viewingInvoice.status === 'draft' ? 'ฉบับร่าง' :
-                                            viewingInvoice.status === 'cancelled' ? 'ยกเลิก' : 'ไม่ใช้งาน'}
-                                </span>
+
+                        {/* Invoice Content - Print Friendly */}
+                        <div id="printable-invoice" className="p-8 bg-white print:p-0">
+                            {/* Invoice Header */}
+                            <div className="flex justify-between items-start mb-8">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900">ใบกำกับภาษี</h1>
+                                    <p className="text-lg text-gray-500 mt-1">TAX INVOICE</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xl font-bold text-gray-900">{viewingInvoice.seller_name}</p>
+                                    {viewingInvoice.seller_address && <p className="text-sm text-gray-600 whitespace-pre-line">{viewingInvoice.seller_address}</p>}
+                                    {viewingInvoice.seller_tax_id && <p className="text-sm mt-2"><span className="text-gray-500">เลขประจำตัวผู้เสียภาษี:</span> <span className="font-medium">{viewingInvoice.seller_tax_id}</span></p>}
+                                    {viewingInvoice.seller_branch_code && viewingInvoice.seller_branch_code !== '00000' && <p className="text-sm"><span className="text-gray-500">สาขา:</span> <span className="font-medium">{viewingInvoice.seller_branch_code}</span></p>}
+                                </div>
                             </div>
 
-                            {/* Invoice Details */}
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-sm text-gray-600">เลขที่:</p>
-                                <p className="font-semibold">{viewingInvoice.invoice_number}</p>
-                                <p className="text-sm text-gray-600 mt-2">วันที่:</p>
-                                <p className="font-semibold">{new Date(viewingInvoice.invoice_date).toLocaleDateString('th-TH')}</p>
-                            </div>
-
-                            {/* Seller Info */}
-                            <div>
-                                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <FileText className="w-5 h-5" /> ข้อมูลผู้ขาย (Seller)
-                                </h4>
-                                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                                    <p><span className="text-gray-600">ชื่อ:</span> <span className="font-medium">{viewingInvoice.seller_name}</span></p>
-                                    {viewingInvoice.seller_tax_id && <p><span className="text-gray-600">เลขประจำตัวผู้เสียภาษี:</span> <span className="font-medium">{viewingInvoice.seller_tax_id}</span></p>}
-                                    {viewingInvoice.seller_address && <p><span className="text-gray-600">ที่อยู่:</span> <span className="font-medium">{viewingInvoice.seller_address}</span></p>}
-                                    {viewingInvoice.seller_branch_code && <p><span className="text-gray-600">สาขา:</span> <span className="font-medium">{viewingInvoice.seller_branch_code}</span></p>}
+                            {/* Invoice Meta */}
+                            <div className="flex justify-between mb-8 p-4 bg-gray-50 rounded-lg print:bg-white print:border print:border-gray-300">
+                                <div>
+                                    <p className="text-sm text-gray-500">เลขที่เอกสาร</p>
+                                    <p className="text-xl font-bold text-gray-900">{viewingInvoice.invoice_number}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-500">วันที่ออกเอกสาร</p>
+                                    <p className="text-lg font-medium text-gray-900">{new Date(viewingInvoice.invoice_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                 </div>
                             </div>
 
                             {/* Buyer Info */}
-                            <div>
-                                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <FileText className="w-5 h-5" /> ข้อมูลผู้ซื้อ (Buyer)
-                                </h4>
-                                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                                    <p><span className="text-gray-600">ชื่อ:</span> <span className="font-medium">{viewingInvoice.buyer_name}</span></p>
-                                    {viewingInvoice.buyer_tax_id && <p><span className="text-gray-600">เลขประจำตัวผู้เสียภาษี:</span> <span className="font-medium">{viewingInvoice.buyer_tax_id}</span></p>}
-                                    {viewingInvoice.buyer_address && <p><span className="text-gray-600">ที่อยู่:</span> <span className="font-medium">{viewingInvoice.buyer_address}</span></p>}
-                                    {viewingInvoice.buyer_email && <p><span className="text-gray-600">อีเมล:</span> <span className="font-medium">{viewingInvoice.buyer_email}</span></p>}
-                                    {viewingInvoice.buyer_branch_code && <p><span className="text-gray-600">สาขา:</span> <span className="font-medium">{viewingInvoice.buyer_branch_code}</span></p>}
+                            <div className="mb-8">
+                                <p className="text-sm text-gray-500 mb-2">ผู้ซื้อ / Buyer</p>
+                                <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 print:bg-white">
+                                    <p className="text-lg font-bold text-gray-900">{viewingInvoice.buyer_name}</p>
+                                    {viewingInvoice.buyer_address && <p className="text-sm text-gray-600 whitespace-pre-line">{viewingInvoice.buyer_address}</p>}
+                                    <div className="mt-2 flex flex-wrap gap-4">
+                                        {viewingInvoice.buyer_tax_id && (
+                                            <p className="text-sm"><span className="text-gray-500">เลขประจำตัวผู้เสียภาษี:</span> <span className="font-medium">{viewingInvoice.buyer_tax_id}</span></p>
+                                        )}
+                                        {viewingInvoice.buyer_branch_code && viewingInvoice.buyer_branch_code !== '00000' && (
+                                            <p className="text-sm"><span className="text-gray-500">สาขา:</span> <span className="font-medium">{viewingInvoice.buyer_branch_code}</span></p>
+                                        )}
+                                        {viewingInvoice.buyer_email && (
+                                            <p className="text-sm"><span className="text-gray-500">อีเมล:</span> <span className="font-medium">{viewingInvoice.buyer_email}</span></p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Description */}
-                            <div>
-                                <p className="text-gray-600">รายละเอียด:</p>
-                                <p className="font-medium mt-1">{viewingInvoice.description}</p>
+                            {/* Items Table */}
+                            <div className="mb-8">
+                                <table className="w-full border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-800 text-white">
+                                            <th className="text-left p-3">รายการ</th>
+                                            <th className="text-center p-3">จำนวน</th>
+                                            <th className="text-right p-3">ราคาต่อหน่วย</th>
+                                            <th className="text-right p-3">จำนวนเงิน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="border-b border-gray-200">
+                                            <td className="p-4">
+                                                <p className="font-medium">{viewingInvoice.description}</p>
+                                            </td>
+                                            <td className="text-center p-4">1</td>
+                                            <td className="text-right p-4">{viewingInvoice.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                            <td className="text-right p-4 font-medium">{viewingInvoice.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {/* Amount */}
-                            <div className="bg-blue-50 p-4 rounded-lg space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">จำนวนเงิน (ไม่รวม VAT):</span>
-                                    <span className="font-medium">{viewingInvoice.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">VAT {viewingInvoice.vat_rate}%:</span>
-                                    <span className="font-medium">{viewingInvoice.vat_amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
-                                </div>
-                                <div className="flex justify-between text-lg font-semibold border-t border-blue-200 pt-2">
-                                    <span>รวมทั้งสิ้น:</span>
-                                    <span className="text-blue-600">{viewingInvoice.total_amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
+                            {/* Totals */}
+                            <div className="flex justify-end mb-8">
+                                <div className="w-80">
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600">รวมเป็นเงิน</span>
+                                        <span className="font-medium">{viewingInvoice.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600">ภาษีมูลค่าเพิ่ม (VAT {viewingInvoice.vat_rate}%)</span>
+                                        <span className="font-medium">{viewingInvoice.vat_amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
+                                    </div>
+                                    <div className="flex justify-between py-3 text-xl font-bold">
+                                        <span>รวมทั้งสิ้น</span>
+                                        <span className="text-blue-600">{viewingInvoice.total_amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Notes */}
-                            {viewingInvoice.notes && (
-                                <div>
-                                    <p className="text-gray-600">หมายเหตุ:</p>
-                                    <p className="font-medium mt-1">{viewingInvoice.notes}</p>
+                            {/* Footer */}
+                            <div className="flex justify-between items-start">
+                                <div className="w-1/2">
+                                    {viewingInvoice.notes && (
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-1">หมายเหตุ</p>
+                                            <p className="text-sm text-gray-700">{viewingInvoice.notes}</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-500">สถานะ</p>
+                                    <span className={`inline-block px-4 py-1 rounded-full text-sm font-medium mt-1 ${viewingInvoice.status === 'issued' ? 'bg-green-100 text-green-800' :
+                                        viewingInvoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                            'bg-red-100 text-red-800'}`}>
+                                        {viewingInvoice.status === 'issued' ? 'ออกแล้ว / Issued' :
+                                            viewingInvoice.status === 'draft' ? 'ฉบับร่าง / Draft' : 'ยกเลิก / Cancelled'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end">
+
+                        {/* Footer Actions - Hidden when printing */}
+                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end print:hidden">
                             <button
                                 onClick={closeViewModal}
                                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
