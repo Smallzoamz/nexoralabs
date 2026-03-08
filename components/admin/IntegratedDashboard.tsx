@@ -431,6 +431,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
     }
 
     const handleDownloadAccPdf = async () => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลด PDF ได้', 'warning')
+            return
+        }
         const sourceEl = document.getElementById('accounting-report-pdf')
         if (!sourceEl) return
         setIsGeneratingPdf(true)
@@ -455,6 +459,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
 
     const handleGenerateTaxForm = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถสร้างและดาวน์โหลด PDF ได้', 'warning')
+            return
+        }
         const sourceEl = document.getElementById('tax-form-pdf')
         if (!sourceEl) return
         setIsGeneratingPdf(true)
@@ -479,6 +487,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
     }
 
     const handleDownloadPdf = async (invoice: Invoice) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลด PDF ได้', 'warning')
+            return
+        }
         const sourceEl = document.getElementById(`invoice-pdf-${invoice.id}`)
         if (!sourceEl) {
             showAlert('ไม่พบเทมเพลต', 'กรุณาลองใหม่อีกครั้ง', 'error')
@@ -505,6 +517,10 @@ export default function IntegratedDashboard({ onNavigate }: IntegratedDashboardP
     }
 
     const handleDownloadReceipt = async (invoice: Invoice) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลดใบเสร็จได้', 'warning')
+            return
+        }
         const sourceEl = document.getElementById(`receipt-pdf-${invoice.id}`)
         if (!sourceEl) {
             showAlert('ไม่พบเทมเพลต', 'กรุณาลองใหม่อีกครั้ง', 'error')

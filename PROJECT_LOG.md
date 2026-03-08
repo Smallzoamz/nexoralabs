@@ -10,6 +10,14 @@
 
 ## Recent Updates
 
+### 2026-03-09 | Feature: Disable PDF Download for Demo Role | Status: ✅ Completed
+- **Change:** ปิดฟังก์ชันการดาวน์โหลดไฟล์ PDF ต่างๆ สำหรับผู้ใช้ Demo / Guest
+- **Details:** 
+  1. เพิ่มเงื่อนไข `if (isReadOnly)` ใน `handleDownloadAccPdf`, `handleGenerateTaxForm`, `handleDownloadPdf`, `handleDownloadReceipt` ใน `components/admin/IntegratedDashboard.tsx`
+  2. เพิ่มเงื่อนไข `if (isReadOnly)` ในฟังก์ชันการดาวน์โหลดใน `components/admin/InvoiceManager.tsx` (รวมสลิปโอนเงิน)
+  3. ระบบจะแสดงการแจ้งเตือน (`showAlert`) อัตโนมัติและไม่ดาวน์โหลดไฟล์หากเข้าใช้งานในโหมด Demo
+- **Verification:** `npm run build` ผ่านสมบูรณ์ (Compiled successfully)
+
 ### 2026-03-05 | Code Refactoring - Remove Unused Components & Create Shared Libraries | Status: ✅ Completed
 - **Change:** 1. Deleted unused AdminDashboard.tsx and AnalyticsDashboard.tsx components
 - **Change:** 2. Created shared lib/email.ts for nodemailer transporter (used by 4 API routes)
@@ -618,3 +626,5 @@ CREATE POLICY "Allow authenticated users to insert admin logs"
 [2026-03-02] | File: app/api/chat/route.ts | Line: 121-133 | Keyword: Debug | Status: Paused | Change: Added detailed console.error logs to trace HTTP 500 error from Groq API integration.
 
 [2026-03-07 01:42] | File: ETaxInvoiceTemplate.tsx, ETaxInvoiceManager.tsx, ClientETaxInvoices.tsx | Line: Multiple | Keyword: e-Tax Invoice Standardization | Status: Completed | Change: Created a shared ETaxInvoiceTemplate component with formal A4 dimensions. Refactored both Admin and Client components to use the new template and generate consistent PDFs using html2pdf, replacing window.print() logic. Fixed all associated TypeScript and ESLint errors.
+
+[2026-03-07 02:40] | File: `app/admin/page.tsx` | Line: Menu Refactor | Keyword: `Admin UI` | Status: `Completed` | Change: Consolidated 10+ settings & chatbot views into two tabbed Hubs (`SystemSettingsHub.tsx`, `ChatbotHub.tsx`) to cleanly simplify the admin sidebar navigation and improve user experience.

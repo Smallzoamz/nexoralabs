@@ -391,6 +391,10 @@ export function InvoiceManager() {
     }
 
     const handleDownloadPdf = async (invoice: InvoiceRecord) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลด PDF ได้', 'warning')
+            return
+        }
         setDownloadingPdfId(invoice.id)
         try {
             // Import dynamically just in case
@@ -426,6 +430,10 @@ export function InvoiceManager() {
     }
 
     const handleDownloadReceipt = async (invoice: InvoiceRecord) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลดใบเสร็จได้', 'warning')
+            return
+        }
         setDownloadingReceiptId(invoice.id)
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
@@ -457,6 +465,10 @@ export function InvoiceManager() {
     }
 
     const handleDownloadContract = async (invoice: InvoiceRecord) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลดเอกสารสัญญาได้', 'warning')
+            return
+        }
         setDownloadingContractId(invoice.id)
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
@@ -488,6 +500,10 @@ export function InvoiceManager() {
     }
 
     const handleDownloadServiceContract = async (invoice: InvoiceRecord) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลดสัญญาจ้างได้', 'warning')
+            return
+        }
         setDownloadingContractId(invoice.id)
         try {
             const html2pdfModule = (await import('html2pdf.js')).default
@@ -673,6 +689,10 @@ export function InvoiceManager() {
     }
 
     const handleDownloadSlip = async (submission: PaymentSubmission) => {
+        if (isReadOnly) {
+            showAlert('Demo Mode', 'คุณอยู่ในโหมดทดลองใช้ ไม่สามารถดาวน์โหลดสลิปได้', 'warning')
+            return
+        }
         try {
             const urlPath = submission.slip_url.split('/payment-slips/')[1]
             if (!urlPath) throw new Error('Invalid slip URL')
