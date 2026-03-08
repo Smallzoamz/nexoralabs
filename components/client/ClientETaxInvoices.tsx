@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { FileText, Eye, XCircle, CheckCircle, Clock, Search, RefreshCw, Download } from 'lucide-react'
@@ -21,7 +21,7 @@ export function ClientETaxInvoices() {
     const [emailFilter, setEmailFilter] = useState('')
     const [showEmailInput, setShowEmailInput] = useState(false)
 
-    const fetchInvoices = async () => {
+    const fetchInvoices = useCallback(async () => {
         setIsLoading(true)
         try {
             let query = supabase
@@ -43,7 +43,7 @@ export function ClientETaxInvoices() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [user?.email])
 
     const searchByEmail = async () => {
         if (!emailFilter.trim()) return
@@ -93,7 +93,7 @@ export function ClientETaxInvoices() {
         if (!authLoading) {
             fetchInvoices()
         }
-    }, [authLoading, user])
+    }, [authLoading, fetchInvoices])
 
     const filteredInvoices = invoices.filter(inv =>
         inv.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||

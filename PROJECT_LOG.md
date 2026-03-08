@@ -10,6 +10,26 @@
 
 ## Recent Updates
 
+### 2026-03-09 | Bugfix: Fixed ESLint React Hook useEffect Warning | Status: ✅ Completed
+- **Change:** ปรับปรุงฟังก์ชัน `fetchInvoices` ในหน้า ClientETaxInvoices
+- **Details:** 
+  1. เพิ่มฟังก์ชันเป็น `useCallback` เพื่อให้สามารถใส่ `fetchInvoices` เป็น dependency เข้าไปใน `useEffect` ได้ ป้องกัน Warning ของ Next.js ในขณะ Build
+- **Verification:** `npm run build` ผ่านสมบูรณ์ 100% ไม่มี Warning กวนใจ
+
+### 2026-03-09 | Bugfix: Fixed Next.js Build Static Rendering Error | Status: ✅ Completed
+- **Change:** เพิ่มการตั้งค่า `export const dynamic = 'force-dynamic'`
+- **Details:** 
+  1. แก้ไขไฟล์ `app/api/password-reset/verify/route.ts` เพื่อป้องกัน Error: `Dynamic server usage: Route couldn't be rendered statically` เนื่องจากมีการใช้งาน `nextUrl.searchParams`
+- **Verification:** ตรวจสอบผ่านคำสั่ง Git grep แล้วไม่มีไฟล์อื่นที่พบปัญหานี้
+
+### 2026-03-09 | Bugfix: Fixed LINE Official Link Format | Status: ✅ Completed
+- **Change:** ปรับปรุงรูปแบบลิงก์ LINE ให้ชี้ไปที่หน้า Add Friend (เพิ่มเพื่อน) เสมอ
+- **Details:** 
+  1. แก้ไขฟังก์ชัน `getLineLink` ใน `components/ui/FloatingContact.tsx` ให้ลบสัญลักษณ์ `@` และสร้างลิงก์เป็น `https://line.me/ti/p/~@...` เสมอ
+  2. อัปเดต Schema Markup ใน `app/layout.tsx` เป็นลิงก์ที่เพิ่มเพื่อนได้ทันที (`~@705aayod`)
+  3. เพิ่มฟังก์ชัน `getLineLink` ใน `components/layout/Footer.tsx` เพื่อให้ทำงานเหมือน `FloatingContact` และจัดการลิงก์ LINE ให้ถูกต้องเสมอ
+- **Verification:** `npm run build` ผ่านสมบูรณ์ (Compiled successfully)
+
 ### 2026-03-09 | Feature: Disable PDF Download for Demo Role | Status: ✅ Completed
 - **Change:** ปิดฟังก์ชันการดาวน์โหลดไฟล์ PDF ต่างๆ สำหรับผู้ใช้ Demo / Guest
 - **Details:** 

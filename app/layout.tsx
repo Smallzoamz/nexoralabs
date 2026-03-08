@@ -104,7 +104,7 @@ export default function RootLayout({
                                             "description": "บริการออกแบบ พัฒนา และดูแลเว็บไซต์ระดับพรีเมียมเพื่อผู้ประกอบการ SME",
                                             "sameAs": [
                                                 "https://www.facebook.com/velozi.tech",
-                                                "https://line.me/ti/p/~@velozi"
+                                                "https://line.me/ti/p/~@705aayod"
                                             ],
                                             "contactPoint": {
                                                 "@type": "ContactPoint",

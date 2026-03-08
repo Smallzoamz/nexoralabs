@@ -73,9 +73,16 @@ export function Footer() {
         fetchSiteConfig()
     }, [])
 
+    const getLineLink = (line: string | null | undefined) => {
+        if (!line) return 'https://line.me/ti/p/~@705aayod'
+        if (line.startsWith('http')) return line
+        const cleanId = line.replace('@', '')
+        return `https://line.me/ti/p/~@${cleanId}`
+    }
+
     const activeSocialLinks = [
-        { name: 'Facebook', icon: Facebook, href: siteConfig?.social_facebook || 'https://facebook.com' },
-        { name: 'Line', icon: MessageCircle, href: siteConfig?.social_line || 'https://line.me' },
+        { name: 'Facebook', icon: Facebook, href: siteConfig?.social_facebook || 'https://facebook.com/velozi.tech' },
+        { name: 'Line', icon: MessageCircle, href: getLineLink(siteConfig?.social_line) },
         { name: 'Instagram', icon: Instagram, href: siteConfig?.social_instagram || 'https://instagram.com' },
     ].filter(link => link.href && link.href !== '#' && link.href !== '')
 

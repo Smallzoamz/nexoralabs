@@ -36,13 +36,12 @@ export function FloatingContact() {
 
     const toggleOpen = () => setIsOpen(!isOpen)
 
-    // Helper to format LINE link properly. Simple string replace if they typed `@something`
     const getLineLink = (line: string | null) => {
         if (!line) return '#'
         if (line.startsWith('http')) return line
-        if (line.startsWith('@')) return `https://line.me/R/ti/p/${line}`
-        // Default assumption if they just put an ID
-        return `https://line.me/R/ti/p/~${line}`
+        // LINE Add Friend link format based on ID (both regular and official)
+        const cleanId = line.replace('@', '')
+        return `https://line.me/ti/p/~@${cleanId}`
     }
 
     const getFbLink = (fb: string | null) => {
