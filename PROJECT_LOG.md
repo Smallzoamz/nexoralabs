@@ -10,6 +10,15 @@
 
 ## Recent Updates
 
+### 2026-03-18 | Optimization: Project Cleanup (Unused Files & Dead Code) | Status: ✅ Completed
+- **Change:** Removed 23+ junk files and cleaned up unused exports/types across lib files.
+- **Details:**
+  1. Deleted redundant analysis scripts: `find-unused.js`, `refine-unused.js`, etc.
+  2. Purged leftover logs and reports: `build*.log`, `eslint-*.txt`, `unused-files.txt`.
+  3. Cleaned up `lib/pdf.ts` (removed `taxPDFOptions`, `generatePDFAsDataURI`).
+  4. Internalized unused exported types in `lib/admin-logger.ts`, `lib/email.ts`, `lib/banks.ts`, and `lib/translations.ts`.
+- **Verification:** `npm run build` passed successfully 100% (Compiled successfully).
+
 ### 2026-03-17 | Feature: Enhanced Admin Logger with IP/User Agent Capture | Status: ✅ Completed
 - **Change:** Updated `lib/admin-logger.ts` to capture IP address and user agent for both old and new function signatures
 - **Details:**

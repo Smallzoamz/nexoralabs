@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { getClientNetworkInfo } from '@/lib/network-utils'
 
-export interface LogAdminActionPayload {
+interface LogAdminActionPayload {
     adminEmail: string;
     actionType: string;
     details?: string;

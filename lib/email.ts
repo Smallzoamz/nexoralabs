@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 
 // Note: Don't verify on startup - it will be verified when first used
 
-export interface EmailOptions {
+interface EmailOptions {
     to: string
     subject: string
     html: string

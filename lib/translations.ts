@@ -160,5 +160,5 @@ export const t = {
     },
 }
 
-export type Lang = 'th' | 'en'
+type Lang = 'th' | 'en'
 export const tr = (item: { th: string; en: string }, lang: Lang) => item[lang]

@@ -1,4 +1,4 @@
-export interface Bank {
+interface Bank {
     code: string;
     name: string;
     color: string;
