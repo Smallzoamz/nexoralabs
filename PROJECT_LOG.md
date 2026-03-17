@@ -10,6 +10,16 @@
 
 ## Recent Updates
 
+### 2026-03-17 | Feature: Enhanced Admin Logger with IP/User Agent Capture | Status: ✅ Completed
+- **Change:** Updated `lib/admin-logger.ts` to capture IP address and user agent for both old and new function signatures
+- **Details:**
+  1. Added import for `getClientNetworkInfo` from '@/lib/network-utils'
+  2. Modified the old signature branch (adminEmail, actionType, details) to capture IP address and user agent using `getClientNetworkInfo()` and include them in the database insert
+  3. The new signature branch already supported ipAddress and userAgent fields, so no changes were needed there
+  4. This ensures all admin actions logged via the legacy API calls now include network information for security auditing
+- **Verification:** Code compiles successfully and follows existing patterns in the codebase
+
+
 ### 2026-03-09 | Bugfix: Fixed ESLint React Hook useEffect Warning | Status: ✅ Completed
 - **Change:** ปรับปรุงฟังก์ชัน `fetchInvoices` ในหน้า ClientETaxInvoices
 - **Details:** 

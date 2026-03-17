@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { getClientNetworkInfo } from '@/lib/network-utils'
 
 export interface LogAdminActionPayload {
     adminEmail: string;
@@ -24,12 +25,15 @@ export async function logAdminAction(
 
         if (typeof payloadOrEmail === 'string') {
             // Old signature backward compatibility
+            const { ipAddress, userAgent } = await getClientNetworkInfo();
             insertData = {
                 admin_email: payloadOrEmail,
                 action_type: actionType || 'UNKNOWN',
                 details: details,
                 status: 'SUCCESS',
-                severity: 'INFO'
+                severity: 'INFO',
+                ip_address: ipAddress,
+                user_agent: userAgent
             };
         } else {
             // New signature
